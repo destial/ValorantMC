@@ -29,15 +29,13 @@ public class Spike {
         timer = Duration.of(45L, SECONDS);
         timePlaced = System.currentTimeMillis();
         spikeTimer = new Timer();
-        final Spike spike = this;
-        match.callEvent(new SpikePlaceEvent(spike));
+        match.callEvent(new SpikePlaceEvent(this));
         spikeTimer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 timer = timer.minusMillis(System.currentTimeMillis() - timePlaced);
                 if (timer.isZero() || timer.isNegative()) {
-                    this.cancel();
-                    match.callEvent(new SpikeDetonateEvent(spike));
+                    detonate();
                 }
                 timePlaced = System.currentTimeMillis();
             }
@@ -48,6 +46,12 @@ public class Spike {
         if (spikeTimer == null) return;
         spikeTimer.cancel();
         match.callEvent(new SpikeDefuseEvent(this));
+    }
+
+    public void detonate() {
+        if (spikeTimer == null) return;
+        spikeTimer.cancel();
+        match.callEvent(new SpikeDetonateEvent(this));
     }
 
     public boolean isPlaced() {

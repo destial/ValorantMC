@@ -5,4 +5,8 @@ import java.util.List;
 
 public abstract class Agent {
     protected final List<Ability> abilites = new ArrayList<>();
+
+    public List<Ability> getAbilites() {
+        return abilites;
+    }
 }

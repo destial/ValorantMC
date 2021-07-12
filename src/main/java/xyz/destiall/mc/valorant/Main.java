@@ -1,17 +1,22 @@
 package xyz.destiall.mc.valorant;
 
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Main extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        // Plugin startup logic
-
+        if (Bukkit.getPluginManager().getPlugin("WorldEdit") == null) {
+            Bukkit.getPluginManager().disablePlugin(this);
+            return;
+        }
+        new Valorant(this);
+        Valorant.getInstance().enable();
     }
 
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
+        Valorant.getInstance().disable();
     }
 }

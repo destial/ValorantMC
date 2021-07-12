@@ -6,4 +6,9 @@ public interface Team {
     List<Participant> getMembers();
     Integer getScore();
     Match getMatch();
+    Side getSide();
+    public enum Side {
+        ATTACKER,
+        DEFENDER
+    }
 }

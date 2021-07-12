@@ -4,3 +4,5 @@ main: xyz.destiall.mc.valorant.Main
 api-version: 1.17
 authors: [ destiall ]
 description: Valorant in Minecraft!
+depend:
+  - WorldEdit

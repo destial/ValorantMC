@@ -1,6 +1,7 @@
 package xyz.destiall.mc.valorant.api;
 
 import org.bukkit.entity.Player;
+import xyz.destiall.mc.valorant.utils.Economy;
 
 public interface Participant {
     Player getPlayer();
@@ -13,6 +14,9 @@ public interface Participant {
     Gun getSecondaryGun();
     Knife getKnife();
     boolean isHoldingSpike();
-    Match getMatch();
-    Integer getBalance();
+    Economy getEconomy();
+    default Match getMatch() {
+        return getTeam().getMatch();
+    }
+    void addArmour(Integer armour);
 }
