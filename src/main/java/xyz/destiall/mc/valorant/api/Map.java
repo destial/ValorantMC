@@ -21,7 +21,7 @@ public interface Map {
     default Site getCSite() {
         return getSites().stream().filter(s -> s.getSiteType().equals(Site.Type.C)).findFirst().orElse(null);
     }
-
+    float getSpawnRadius();
     Location getAttackerSpawn();
     Location getDefenderSpawn();
 }

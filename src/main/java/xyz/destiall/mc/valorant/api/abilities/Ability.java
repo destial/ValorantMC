@@ -1,15 +1,16 @@
-package xyz.destiall.mc.valorant.api;
+package xyz.destiall.mc.valorant.api.abilities;
 
 import org.bukkit.util.Vector;
+import xyz.destiall.mc.valorant.api.Participant;
+import xyz.destiall.mc.valorant.api.ShopItem;
 
 public abstract class Ability implements ShopItem {
-    protected Integer uses;
     protected Integer maxUses;
+    protected int uses;
     protected int slot;
     public abstract void use(Participant participant, Vector direction);
-    public Integer getUses() {
-        return uses;
-    }
+    public abstract String getName();
+    public abstract void update();
 
     public Integer getMaxUses() {
         return maxUses;

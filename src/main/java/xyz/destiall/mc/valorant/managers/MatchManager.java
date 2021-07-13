@@ -2,10 +2,12 @@ package xyz.destiall.mc.valorant.managers;
 
 import org.bukkit.entity.Player;
 import xyz.destiall.mc.valorant.agents.jett.Jett;
-import xyz.destiall.mc.valorant.api.Agent;
+import xyz.destiall.mc.valorant.agents.phoenix.Phoenix;
+import xyz.destiall.mc.valorant.api.abilities.Agent;
 import xyz.destiall.mc.valorant.api.Map;
 import xyz.destiall.mc.valorant.api.Match;
 import xyz.destiall.mc.valorant.api.Participant;
+import xyz.destiall.mc.valorant.factories.MatchFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,14 +19,16 @@ public class MatchManager {
     public MatchManager() {
         instance = this;
         agents.add(new Jett());
+        agents.add(new Phoenix());
     }
 
     public static MatchManager getInstance() {
         return instance;
     }
 
-    public void startNewMatch(Map map) {
-
+    public void startNewMatch() {
+        Match match = MatchFactory.createMatch();
+        matches.add(match);
     }
 
     public List<Agent> getAgents() {

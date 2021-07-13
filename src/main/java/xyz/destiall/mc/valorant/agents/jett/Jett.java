@@ -1,9 +1,14 @@
 package xyz.destiall.mc.valorant.agents.jett;
 
-import xyz.destiall.mc.valorant.api.Agent;
+import xyz.destiall.mc.valorant.api.abilities.Agent;
 
 public class Jett extends Agent {
     public Jett() {
-        abilites.add(new CloudBurst());
+
+    }
+
+    @Override
+    public String getName() {
+        return "Jett";
     }
 }

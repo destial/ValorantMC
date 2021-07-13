@@ -1,5 +1,6 @@
 package xyz.destiall.mc.valorant.api;
 
+import org.bukkit.Location;
 import xyz.destiall.mc.valorant.api.events.spike.SpikeDefuseEvent;
 import xyz.destiall.mc.valorant.api.events.spike.SpikeDetonateEvent;
 import xyz.destiall.mc.valorant.api.events.spike.SpikePlaceEvent;
@@ -11,21 +12,21 @@ import java.util.TimerTask;
 import static java.time.temporal.ChronoUnit.SECONDS;
 
 public class Spike {
-    private boolean placed;
     private Duration timer;
     private Long timePlaced;
     private Timer spikeTimer;
     private final Match match;
+    private Location plantedLocation;
     public Spike(Match match) {
-        placed = false;
         timer = null;
         spikeTimer = null;
         timePlaced = null;
         this.match = match;
+        plantedLocation = null;
     }
 
-    public void place() {
-        placed = true;
+    public void place(Location location) {
+        plantedLocation = location;
         timer = Duration.of(45L, SECONDS);
         timePlaced = System.currentTimeMillis();
         spikeTimer = new Timer();
@@ -55,7 +56,7 @@ public class Spike {
     }
 
     public boolean isPlaced() {
-        return placed;
+        return plantedLocation != null;
     }
 
     public Duration getTimer() {

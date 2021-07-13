@@ -1,6 +1,7 @@
 package xyz.destiall.mc.valorant;
 
 import org.bukkit.plugin.Plugin;
+import xyz.destiall.mc.valorant.managers.MapManager;
 import xyz.destiall.mc.valorant.managers.MatchManager;
 
 import java.io.File;
@@ -30,6 +31,7 @@ public class Valorant {
         if (!shopFile.exists()) {
             plugin.saveResource("shop.yml", true);
         }
+        new MapManager();
         new MatchManager();
     }
 

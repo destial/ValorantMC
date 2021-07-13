@@ -1,0 +1,33 @@
+name: Icebox
+world: world
+spawn:
+  radius: 3
+  attacker:
+      x: 0
+      y: 64
+      z: 0
+      yaw: 0
+      pitch: 90
+  defender:
+      x: -100
+      y: 64
+      z: 0
+      yaw: 0
+      pitch: -90
+sites:
+  A:
+    xmx: 10
+    zmx: 10
+    xmn: 0
+    zmn: 0
+  B:
+    xmx: 20
+    zmx: 20
+    xmn: 10
+    zmn: 10
+  C:
+    xmx: 30
+    zmx: 30
+    xmn: 20
+    zmn: 20
+  

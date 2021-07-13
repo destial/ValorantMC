@@ -1,4 +1,4 @@
-package xyz.destiall.mc.valorant.api;
+package xyz.destiall.mc.valorant.api.abilities;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,4 +9,5 @@ public abstract class Agent {
     public List<Ability> getAbilites() {
         return abilites;
     }
+    public abstract String getName();
 }

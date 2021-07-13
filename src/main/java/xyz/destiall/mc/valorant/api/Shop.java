@@ -6,6 +6,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.Inventory;
 import xyz.destiall.mc.valorant.Valorant;
+import xyz.destiall.mc.valorant.api.abilities.Ability;
 import xyz.destiall.mc.valorant.factories.ItemFactory;
 
 import java.io.File;
@@ -47,7 +48,7 @@ public class Shop {
             items.put(Integer.parseInt(abilitySlot), placeholder);
         }
         for (Participant participant : match.getPlayers().values()) {
-            Inventory inv = Bukkit.createInventory(null, 54, "Buy Shop");
+            Inventory inv = Bukkit.createInventory(null, 36, "Buy Shop");
             playerShop.put(participant, inv);
             List<Integer> slots = new ArrayList<>();
             for (Map.Entry<Integer, ShopItem> entry : items.entrySet()) {
@@ -84,9 +85,28 @@ public class Shop {
     public void buy(Participant participant, Integer slot) {
         ShopItem item = items.get(slot);
         if (item == null) return;
+        if (item instanceof Gun) {
+            Gun gun = (Gun) item;
+            if (gun.getType().equals(Gun.Type.PISTOL) || gun.getType().equals(Gun.Type.TACTICAL)) {
+                Gun secondary = participant.getSecondaryGun();
+                if (secondary.getName().equals(gun.getName())) return;
+            } else {
+                Gun primary = participant.getPrimaryGun();
+                if (primary.getName().equals(gun.getName())) return;
+            }
+        }
+        if (item instanceof Ability) {
+
+        }
         if (participant.getEconomy().getBalance() >= item.getPrice()) {
-            participant.getEconomy().remove(item.getPrice());
-            ((Giveable) item).give(participant);
+            if (item instanceof Giveable) {
+                ((Giveable) item).give(participant);
+                participant.getEconomy().remove(item.getPrice());
+                return;
+            }
+            if (item instanceof Ability) {
+                ((Ability) item).addUses();
+            }
         }
     }
 }

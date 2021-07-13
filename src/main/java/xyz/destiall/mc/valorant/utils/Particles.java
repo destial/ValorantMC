@@ -3,7 +3,7 @@ package xyz.destiall.mc.valorant.utils;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 
-public class Smoke {
+public class Particles {
     public static void smoke(Location location, Type type) {
         for (double i = 0; i <= Math.PI; i += Math.PI / 20) {
             double radius = Math.sin(i);

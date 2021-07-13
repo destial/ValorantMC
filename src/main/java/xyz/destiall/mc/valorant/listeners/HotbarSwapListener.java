@@ -1,12 +1,13 @@
 package xyz.destiall.mc.valorant.listeners;
 
+import net.md_5.bungee.api.ChatMessageType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.util.Vector;
-import xyz.destiall.mc.valorant.api.Ability;
-import xyz.destiall.mc.valorant.api.Agent;
+import xyz.destiall.mc.valorant.api.abilities.Ability;
+import xyz.destiall.mc.valorant.api.abilities.Agent;
 import xyz.destiall.mc.valorant.api.Participant;
 import xyz.destiall.mc.valorant.managers.MatchManager;
 
@@ -27,6 +28,7 @@ public class HotbarSwapListener implements Listener {
         }
         e.setCancelled(true);
         if (ability.getUses() <= 0) return;
+        participant.showActionBar(ability.getName());
         double pitch = ((90 - e.getPlayer().getLocation().getPitch()) * Math.PI) / 180;
         double yaw  = ((e.getPlayer().getLocation().getYaw() + 90 + 180) * Math.PI) / 180;
         double x = Math.sin(pitch) * Math.cos(yaw);

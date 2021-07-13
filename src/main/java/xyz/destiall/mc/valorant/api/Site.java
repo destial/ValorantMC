@@ -2,10 +2,9 @@ package xyz.destiall.mc.valorant.api;
 
 import org.bukkit.util.BoundingBox;
 
-public abstract class Site {
-    protected Type siteType;
-    public abstract BoundingBox getBounds();
-    public Type getSiteType() { return siteType; }
+public interface Site {
+    BoundingBox getBounds();
+    Type getSiteType();
 
     public enum Type {
         A,
