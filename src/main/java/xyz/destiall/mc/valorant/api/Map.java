@@ -24,4 +24,6 @@ public interface Map {
     float getSpawnRadius();
     Location getAttackerSpawn();
     Location getDefenderSpawn();
+    boolean isInUse();
+    void setUse(boolean use);
 }

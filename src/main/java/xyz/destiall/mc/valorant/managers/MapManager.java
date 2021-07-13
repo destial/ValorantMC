@@ -32,4 +32,12 @@ public class MapManager {
             FileConfiguration mapConfig = YamlConfiguration.loadConfiguration(mapFile);
         }
     }
+
+    public Map getRandomMap() {
+        for (Map map : maps) {
+            if (map.isInUse()) continue;
+            return map;
+        }
+        return null;
+    }
 }

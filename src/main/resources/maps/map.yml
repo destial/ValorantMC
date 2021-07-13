@@ -1,5 +1,12 @@
 name: Icebox
 world: world
+bounds:
+  xmx: 30
+  ymx: 256
+  zmx: 30
+  xmn: 0
+  ymn: 0
+  zmn: 0
 spawn:
   radius: 3
   attacker:

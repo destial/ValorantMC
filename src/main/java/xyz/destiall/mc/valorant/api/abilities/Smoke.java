@@ -6,6 +6,7 @@ import java.time.Duration;
 
 public interface Smoke {
     void appear(Location location);
+    void updateSmoke();
     void dissipate();
     Duration getSmokeDuration();
     int getSmokeRange();
