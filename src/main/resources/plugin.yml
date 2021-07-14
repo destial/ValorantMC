@@ -6,3 +6,4 @@ authors: [ destiall ]
 description: Valorant in Minecraft!
 depend:
   - WorldEdit
+  - ParticleNativeAPI

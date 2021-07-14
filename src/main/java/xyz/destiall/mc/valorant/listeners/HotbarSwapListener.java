@@ -6,7 +6,6 @@ import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.util.Vector;
 import xyz.destiall.mc.valorant.api.abilities.Ability;
-import xyz.destiall.mc.valorant.api.abilities.Agent;
 import xyz.destiall.mc.valorant.api.Participant;
 import xyz.destiall.mc.valorant.managers.MatchManager;
 
@@ -25,7 +24,7 @@ public class HotbarSwapListener implements Listener {
             return;
         }
         e.setCancelled(true);
-        if (ability.getUses() <= 0) return;
+        if (ability.getMaxUses() <= 0) return;
         participant.showActionBar(ability.getName());
         double pitch = ((90 - e.getPlayer().getLocation().getPitch()) * Math.PI) / 180;
         double yaw  = ((e.getPlayer().getLocation().getYaw() + 90 + 180) * Math.PI) / 180;

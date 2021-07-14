@@ -13,4 +13,21 @@ public interface Smoke {
     Duration getSmokeDuration();
     int getSmokeRange();
     Duration getSmokeLastingDuration();
+    class Travel {
+        public static void show(Type type, Location location) {
+            switch (type) {
+                case JETT: {
+
+                }
+                case OMEN: {
+
+                }
+                default: break;
+            }
+        }
+    }
+    enum Type {
+        JETT,
+        OMEN
+    }
 }

@@ -3,6 +3,7 @@ package xyz.destiall.mc.valorant;
 import org.bukkit.plugin.Plugin;
 import xyz.destiall.mc.valorant.managers.MapManager;
 import xyz.destiall.mc.valorant.managers.MatchManager;
+import xyz.destiall.mc.valorant.utils.Effects;
 
 import java.io.File;
 
@@ -33,6 +34,7 @@ public class Valorant {
         }
         new MapManager();
         new MatchManager();
+        new Effects();
     }
 
     public static MatchManager getMatchManager() {
