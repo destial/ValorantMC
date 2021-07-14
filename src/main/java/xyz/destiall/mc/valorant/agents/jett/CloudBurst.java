@@ -19,7 +19,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class CloudBurst extends Ability implements Smoke {
-    public static final HashMap<UUID, CloudBurst> CLOUDBURST_DATA = new HashMap<>();
+    private static final HashMap<UUID, CloudBurst> CLOUDBURST_DATA = new HashMap<>();
     private Duration smokeDuration;
     private long timer;
     public CloudBurst() {
@@ -66,8 +66,7 @@ public class CloudBurst extends Ability implements Smoke {
         timer = System.currentTimeMillis();
     }
 
-    @Override
-    public void updateSmoke() {
+    public static void updateSmoke() {
         final List<UUID> remove = new ArrayList<>();
         for (Map.Entry<UUID, CloudBurst> cloudBurst : CLOUDBURST_DATA.entrySet()) {
             cloudBurst.getValue().update();
