@@ -1,7 +1,7 @@
 package xyz.destiall.mc.valorant.api.abilities;
 
+import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
-import xyz.destiall.mc.valorant.api.Participant;
 import xyz.destiall.mc.valorant.api.ShopItem;
 
 public abstract class Ability implements ShopItem {
@@ -9,7 +9,7 @@ public abstract class Ability implements ShopItem {
     protected int uses;
     protected int slot;
     protected Agent agent;
-    public abstract void use(Participant participant, Vector direction);
+    public abstract void use(Player player, Vector direction);
     public abstract String getName();
     public abstract void update();
 

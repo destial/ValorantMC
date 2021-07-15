@@ -5,7 +5,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.List;
 
-public class Gun implements ShopItem, Giveable{
+public class Gun implements ShopItem, Giveable {
     protected final ItemStack itemStack;
     protected final Integer price;
     protected final Integer damage;
@@ -15,6 +15,7 @@ public class Gun implements ShopItem, Giveable{
     protected final Name name;
     protected final Integer maxAmmo;
     protected Integer currentAmmo;
+    protected boolean aiming;
 
     public Gun(Name name, ItemStack stack, Integer damage, Integer ammo, float fireSpeed, float reloadSpeed, Integer price) {
         this.name = name;
@@ -26,6 +27,7 @@ public class Gun implements ShopItem, Giveable{
         this.type = name.getType();
         this.maxAmmo = ammo;
         this.currentAmmo = ammo;
+        aiming = false;
     }
 
     public Integer getDamage() {
@@ -58,6 +60,14 @@ public class Gun implements ShopItem, Giveable{
 
     public void shoot() {
 
+    }
+
+    public void setAiming(boolean aiming) {
+        this.aiming = aiming;
+    }
+
+    public boolean isAiming() {
+        return aiming;
     }
 
     @Override

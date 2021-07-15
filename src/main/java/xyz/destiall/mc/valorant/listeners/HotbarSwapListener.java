@@ -31,7 +31,7 @@ public class HotbarSwapListener implements Listener {
         double x = Math.sin(pitch) * Math.cos(yaw);
         double y = Math.sin(pitch) * Math.sin(yaw);
         double z = Math.cos(pitch);
-        ability.use(participant, new Vector(x, z, y));
+        ability.use(participant.getPlayer(), new Vector(x, z, y));
     }
 
     @EventHandler

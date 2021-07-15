@@ -1,8 +1,8 @@
 package xyz.destiall.mc.valorant.agents.jett;
 
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
-import xyz.destiall.mc.valorant.api.Participant;
 import xyz.destiall.mc.valorant.api.abilities.Ability;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
 
@@ -13,11 +13,11 @@ public class Updraft extends Ability {
         agent = Agent.JETT;
     }
     @Override
-    public void use(Participant participant, Vector direction) {
+    public void use(Player player, Vector direction) {
         if (uses >= maxUses) return;
-        Vector velocity = participant.getPlayer().getVelocity();
-        velocity.add(new Vector(0, 5, 0));
-        participant.getPlayer().setVelocity(velocity);
+        Vector velocity = player.getVelocity();
+        velocity.add(new Vector(0, 1, 0));
+        player.setVelocity(velocity);
         uses++;
     }
 

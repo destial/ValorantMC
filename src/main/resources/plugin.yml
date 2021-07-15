@@ -7,3 +7,8 @@ description: Valorant in Minecraft!
 depend:
   - WorldEdit
   - ParticleNativeAPI
+commands:
+  valorant:
+    aliases:
+      - vmc
+    permission: valorant.admin

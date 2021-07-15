@@ -10,6 +10,10 @@ public class SiteImpl implements Site {
         this.siteType = type;
         bounds = new BoundingBox(xmn, 0, zmn, xmx, 256, zmx);
     }
+    public SiteImpl(Type type, BoundingBox bounds) {
+        this.siteType = type;
+        this.bounds = bounds;
+    }
     @Override
     public BoundingBox getBounds() {
         return bounds;

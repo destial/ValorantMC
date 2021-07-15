@@ -12,18 +12,30 @@ public interface Participant {
     Player getPlayer();
     Team getTeam();
     Integer getKills();
+    void addKill();
     Integer getDeaths();
+    void addDeath();
     Integer getAssists();
+    void addAssist();
     Agent getAgent();
     Gun getPrimaryGun();
+    void setPrimaryGun(Gun gun);
     Gun getSecondaryGun();
+    void setSecondaryGun(Gun gun);
     Knife getKnife();
     boolean isHoldingSpike();
+    Spike getSpike();
+    void holdSpike(Spike spike);
+    boolean isFlashed();
+    void setFlashed(boolean flashed);
+    boolean isDead();
+    void setDead(boolean dead);
     Economy getEconomy();
+    void setAgent(Agent agent);
+    void addArmour(Integer armour);
     default Match getMatch() {
         return getTeam().getMatch();
     }
-    void addArmour(Integer armour);
     default void showActionBar(String message) {
         getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message));
     }

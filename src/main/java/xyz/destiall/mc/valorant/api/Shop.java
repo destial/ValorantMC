@@ -59,12 +59,12 @@ public class Shop {
                 inv.setItem(entry.getKey(), entry.getValue().getShopDisplay());
             }
             int i = 0;
-            for (Ability ability : participant.getAgent().getAbilites()) {
-                if (ability instanceof Ultimate) continue;
-                Integer slot = slots.get(i);
-                inv.setItem(slot, ability.getShopDisplay());
-                i++;
-            }
+            //for (Ability ability : participant.getAgent().getAbilites()) {
+            //    if (ability instanceof Ultimate) continue;
+            //    Integer slot = slots.get(i);
+            //    inv.setItem(slot, ability.getShopDisplay());
+            //    i++;
+            //}
         }
     }
 
@@ -104,9 +104,9 @@ public class Shop {
                 participant.getEconomy().remove(item.getPrice());
                 return;
             }
-            if (item instanceof Ability) {
-                ((Ability) item).addUses();
-            }
+            //if (item instanceof Ability) {
+            //    ((Ability) item).addUses();
+            //}
         }
     }
 }

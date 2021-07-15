@@ -1,6 +1,9 @@
 package xyz.destiall.mc.valorant.managers;
 
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import xyz.destiall.mc.valorant.Valorant;
+import xyz.destiall.mc.valorant.agents.jett.CloudBurst;
 import xyz.destiall.mc.valorant.api.Map;
 import xyz.destiall.mc.valorant.api.abilities.Ability;
 import xyz.destiall.mc.valorant.api.Match;
@@ -16,6 +19,16 @@ public class MatchManager {
     private static MatchManager instance;
     public MatchManager() {
         instance = this;
+        Bukkit.getScheduler().runTaskTimerAsynchronously(Valorant.getInstance().getPlugin(), () -> {
+            CloudBurst.updateSmoke();
+        }, 0L, 1L);
+    }
+
+    public void disable() {
+        for (CloudBurst cloudBurst : CloudBurst.CLOUDBURST_DATA.values()) {
+            cloudBurst.dissipate();
+        }
+        CloudBurst.CLOUDBURST_DATA.clear();
     }
 
     public List<Ability> getAbilities() {
