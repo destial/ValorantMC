@@ -32,7 +32,7 @@ public class Effects {
     }
     private void createSmokeSphere() {
         smokeSphere.clear();
-        for (double phi = 0; phi <= Math.PI; phi += Math.PI / 10) {
+        for (double phi = 0; phi <= Math.PI; phi += Math.PI / 11) {
             for (double theta = 0; theta <= 2 * Math.PI; theta += Math.PI / 10) {
                 double r = 2.1;
                 double x = r * Math.cos(theta) * Math.sin(phi);
@@ -49,7 +49,7 @@ public class Effects {
             for (double theta = 0; theta <= 2 * Math.PI; theta += Math.PI / 10) {
                 double r = 1;
                 double x = r * Math.cos(theta) * Math.sin(phi);
-                double y = r * Math.cos(phi);
+                double y = r * Math.cos(phi) - r;
                 double z = r * Math.sin(theta) * Math.sin(phi);
                 flashSphere.add(new Vector(x, y, z));
             }
@@ -65,8 +65,10 @@ public class Effects {
             location.subtract(vect);
         }
         Bukkit.getScheduler().runTaskLater(Valorant.getInstance().getPlugin(), () -> {
-            for (ArmorStand as : asList) {
-                as.remove();
+            int i = 0;
+            for (final ArmorStand as : asList) {
+                Bukkit.getScheduler().runTaskLater(Valorant.getInstance().getPlugin(), as::remove, i);
+                i++;
                 spawnedArmorStands.remove(as);
             }
             asList.clear();
@@ -84,7 +86,7 @@ public class Effects {
     }
 
     public static void flash(Player player, Agent type, double duration) {
-        Location location = player.getLocation();
+        Location location = player.getEyeLocation();
         player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, (int) duration, 1, false));
         final List<ArmorStand> asList = new ArrayList<>();
         for (Vector vect : flashSphere) {
@@ -95,7 +97,7 @@ public class Effects {
         }
         final BukkitTask task = Bukkit.getScheduler().runTaskTimer(Valorant.getInstance().getPlugin(), () -> {
             for (ArmorStand as : asList) {
-                Vector dist = player.getLocation().subtract(as.getLocation()).toVector();
+                Vector dist = player.getEyeLocation().subtract(as.getLocation()).toVector();
                 as.teleport(as.getLocation().add(dist));
             }
         }, 0L, 1L);

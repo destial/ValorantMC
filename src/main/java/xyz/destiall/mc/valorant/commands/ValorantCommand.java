@@ -57,7 +57,7 @@ public class ValorantCommand implements CommandExecutor, TabExecutor {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 0) return new ArrayList<>();
-        List<String> tab = Arrays.asList("cloudburst", "updraft", "leer");
+        List<String> tab = Arrays.asList("cloudburst", "updraft", "leer", "bladestorm");
         return tab.stream().filter(a -> a.toLowerCase().contains(args[0].toLowerCase())).collect(Collectors.toList());
     }
 }

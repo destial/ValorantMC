@@ -30,14 +30,14 @@ public class Leer extends Ability implements Flash {
         leerTravelTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(Valorant.getInstance().getPlugin(), () -> {
             Vector vel = l.getDirection().multiply(1 / 20);
             l.add(vel);
-            Effects.smokeTravel(l, agent);
+            Effects.flashTravel(l, agent);
             as.teleport(l);
         }, 0L, 1L);
         Bukkit.getScheduler().runTaskLater(Valorant.getInstance().getPlugin(), () -> {
             Bukkit.getScheduler().cancelTask(leerTravelTask);
-            Effects.smokeTravel(l, agent);
+            Effects.flashTravel(l, agent);
             Participant participant = MatchManager.getInstance().getParticipant(player);
-            if (participant == null) {
+            if (participant != null) {
                 for (Participant p : participant.getMatch().getPlayers().values()) {
                     if (p.equals(participant) || p.getTeam().equals(participant.getTeam())) return;
                     if (Flash.isSeen(p.getPlayer(), as, 40)) {
@@ -52,6 +52,7 @@ public class Leer extends Ability implements Flash {
                     }
                 }
             }
+            as.remove();
         }, 20L);
         uses++;
     }
