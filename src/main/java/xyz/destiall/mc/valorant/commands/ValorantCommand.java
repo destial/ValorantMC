@@ -6,9 +6,10 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import xyz.destiall.mc.valorant.Valorant;
+import xyz.destiall.mc.valorant.agents.jett.BladeStorm;
 import xyz.destiall.mc.valorant.agents.jett.CloudBurst;
 import xyz.destiall.mc.valorant.agents.jett.Updraft;
-import xyz.destiall.mc.valorant.utils.Effects;
+import xyz.destiall.mc.valorant.agents.reyna.Leer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,17 +29,23 @@ public class ValorantCommand implements CommandExecutor, TabExecutor {
             Player player = (Player) sender;
             switch (args[0].toLowerCase()) {
                 case "cloudburst": {
-                    CloudBurst cb = new CloudBurst(null);
+                    CloudBurst cb = new CloudBurst();
                     cb.use(player, player.getLocation().getDirection());
                     break;
                 }
                 case "leer": {
-                    Effects.flash(player, Effects.Type.REYNA, 5);
+                    Leer leer = new Leer();
+                    leer.use(player, player.getLocation().getDirection());
                     break;
                 }
                 case "updraft": {
                     Updraft ud = new Updraft();
                     ud.use(player, player.getLocation().getDirection());
+                    break;
+                }
+                case "bladestorm": {
+                    BladeStorm bs = new BladeStorm();
+                    bs.use(player, player.getLocation().getDirection());
                     break;
                 }
                 default: break;

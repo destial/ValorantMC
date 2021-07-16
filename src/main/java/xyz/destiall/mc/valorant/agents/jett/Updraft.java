@@ -11,6 +11,7 @@ public class Updraft extends Ability {
         maxUses = 2;
         uses = 0;
         agent = Agent.JETT;
+        hold = false;
     }
     @Override
     public void use(Player player, Vector direction) {

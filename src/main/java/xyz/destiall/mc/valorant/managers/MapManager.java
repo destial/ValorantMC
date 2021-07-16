@@ -18,6 +18,7 @@ public class MapManager {
     }
     public MapManager() {
         instance = this;
+        loadMaps();
     }
 
     public void loadMaps() {
@@ -36,6 +37,7 @@ public class MapManager {
     public Map getRandomMap() {
         for (Map map : maps) {
             if (map.isInUse()) continue;
+            map.setUse(true);
             return map;
         }
         return null;

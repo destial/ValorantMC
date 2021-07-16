@@ -2,13 +2,11 @@ package xyz.destiall.mc.valorant.classes;
 
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.util.BoundingBox;
 import xyz.destiall.mc.valorant.api.Map;
 import xyz.destiall.mc.valorant.api.Site;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class MapImpl implements Map {

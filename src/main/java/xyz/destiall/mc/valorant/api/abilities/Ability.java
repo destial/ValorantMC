@@ -9,6 +9,8 @@ public abstract class Ability implements ShopItem {
     protected int uses;
     protected int slot;
     protected Agent agent;
+    protected boolean hold;
+
     public abstract void use(Player player, Vector direction);
     public abstract String getName();
     public abstract void update();
@@ -16,7 +18,9 @@ public abstract class Ability implements ShopItem {
     public Integer getMaxUses() {
         return maxUses;
     }
-
     public int getSlot() { return slot; }
     public Agent getBelongingAgent() { return agent; }
+    public boolean canHold() {
+        return hold;
+    }
 }

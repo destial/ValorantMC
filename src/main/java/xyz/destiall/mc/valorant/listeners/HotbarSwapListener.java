@@ -1,12 +1,13 @@
 package xyz.destiall.mc.valorant.listeners;
 
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
-import org.bukkit.util.Vector;
-import xyz.destiall.mc.valorant.api.abilities.Ability;
 import xyz.destiall.mc.valorant.api.Participant;
+import xyz.destiall.mc.valorant.api.abilities.Ability;
 import xyz.destiall.mc.valorant.managers.MatchManager;
 
 public class HotbarSwapListener implements Listener {
@@ -16,28 +17,33 @@ public class HotbarSwapListener implements Listener {
         MatchManager matchManager = MatchManager.getInstance();
         Participant participant = matchManager.getParticipant(e.getPlayer());
         if (participant == null) return;
-        Ability ability = MatchManager.getInstance().getAbilities().stream().filter(a -> a.getSlot() == e.getNewSlot()).findFirst().orElse(null);
+        Ability ability = participant.getAbilities().get(e.getNewSlot());
         if (ability == null) {
             if (e.getPlayer().getInventory().getItemInMainHand().getType().isAir()) {
                 e.setCancelled(true);
             }
             return;
         }
-        e.setCancelled(true);
-        if (ability.getMaxUses() <= 0) return;
         participant.showActionBar(ability.getName());
-        double pitch = ((90 - e.getPlayer().getLocation().getPitch()) * Math.PI) / 180;
-        double yaw  = ((e.getPlayer().getLocation().getYaw() + 90 + 180) * Math.PI) / 180;
-        double x = Math.sin(pitch) * Math.cos(yaw);
-        double y = Math.sin(pitch) * Math.sin(yaw);
-        double z = Math.cos(pitch);
-        ability.use(participant.getPlayer(), new Vector(x, z, y));
+        if (!ability.canHold()) return;
+        e.setCancelled(true);
+        ability.use(participant.getPlayer(), participant.getPlayer().getLocation().getDirection());
     }
 
     @EventHandler
     public void onSwapLeftAndRight(PlayerSwapHandItemsEvent e) {
         MatchManager matchManager = MatchManager.getInstance();
         Participant participant = matchManager.getParticipant(e.getPlayer());
+        if (participant == null) return;
+        e.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onOpenInventory(InventoryOpenEvent e) {
+        if (!e.getPlayer().getInventory().equals(e.getInventory())) return;
+        if (!(e.getPlayer() instanceof Player)) return;
+        Player p = (Player) e.getPlayer();
+        Participant participant = MatchManager.getInstance().getParticipant(p);
         if (participant == null) return;
         e.setCancelled(true);
     }

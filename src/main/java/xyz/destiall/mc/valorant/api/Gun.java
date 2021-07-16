@@ -59,7 +59,6 @@ public class Gun implements ShopItem, Giveable {
     }
 
     public void shoot() {
-
     }
 
     public void setAiming(boolean aiming) {
@@ -87,7 +86,15 @@ public class Gun implements ShopItem, Giveable {
 
     @Override
     public void give(Participant participant) {
-
+        int slot = 2;
+        if (!type.equals(Type.PISTOL)) {
+            slot = 1;
+        }
+        if (slot == 1) {
+            participant.setPrimaryGun(this);
+        } else {
+            participant.setSecondaryGun(this);
+        }
     }
 
     @Override

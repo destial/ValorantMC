@@ -15,6 +15,6 @@ public class Knife implements Giveable {
 
     @Override
     public void give(Participant participant) {
-
+        participant.getPlayer().getInventory().setItem(3, itemStack);
     }
 }

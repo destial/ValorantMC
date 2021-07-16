@@ -7,48 +7,40 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 import xyz.destiall.mc.valorant.Valorant;
-import xyz.destiall.mc.valorant.api.Match;
 import xyz.destiall.mc.valorant.api.abilities.Ability;
-import xyz.destiall.mc.valorant.api.Participant;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
 import xyz.destiall.mc.valorant.api.abilities.Smoke;
 import xyz.destiall.mc.valorant.utils.Effects;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.*;
 
 public class CloudBurst extends Ability implements Smoke {
     public static final HashMap<UUID, CloudBurst> CLOUDBURST_DATA = new HashMap<>();
     private Duration smokeDuration;
     private long timer;
     private int smokeTravelTask;
-    private final Match match;
-    public CloudBurst(Match match) {
+    public CloudBurst() {
         uses = 0;
         maxUses = 3;
         agent = Agent.JETT;
         smokeDuration = null;
         smokeTravelTask = -1;
-        this.match = match;
+        hold = false;
     }
 
     @Override
     public void use(Player player, Vector direction) {
         if (uses >= maxUses) return;
         CLOUDBURST_DATA.put(player.getUniqueId(), this);
-        final Location l = player.getEyeLocation();
+        final Location l = player.getEyeLocation().clone();
         final Vector gravity = new Vector(0, -1F, 0);
         final AtomicDouble time = new AtomicDouble(0D);
         smokeTravelTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(Valorant.getInstance().getPlugin(), () -> {
             l.add(direction).add(gravity.multiply(time.get()));
             time.addAndGet(0.1D);
-            Effects.smokeTravel(l, Effects.Type.JETT);
+            Effects.smokeTravel(l, agent);
             if (!l.getBlock().isPassable()) {
                 this.appear(l);
             }
@@ -85,7 +77,7 @@ public class CloudBurst extends Ability implements Smoke {
         if (smokeTravelTask != -1) {
             Bukkit.getScheduler().cancelTask(smokeTravelTask);
         }
-        Effects.smoke(location, Effects.Type.JETT, getSmokeDuration().getSeconds());
+        Effects.smoke(location, agent, getSmokeDuration().getSeconds());
     }
 
     public static void updateSmoke() {

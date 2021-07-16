@@ -4,6 +4,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -26,7 +27,7 @@ public interface Match {
 
     default Team getWinningTeam() {
         if (!isComplete()) return null;
-        return getTeams().stream().sorted((a, b) -> a.getScore() > b.getScore() ? 1 : 0).findFirst().orElse(null);
+        return getTeams().stream().sorted(Comparator.comparingInt(Team::getScore).reversed()).findFirst().orElse(null);
     }
 
     default boolean isInMatch(Player player) {

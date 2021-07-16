@@ -3,24 +3,25 @@ package xyz.destiall.mc.valorant.classes;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import xyz.destiall.mc.valorant.api.Gun;
-import xyz.destiall.mc.valorant.api.Knife;
-import xyz.destiall.mc.valorant.api.Match;
-import xyz.destiall.mc.valorant.api.Participant;
-import xyz.destiall.mc.valorant.api.Spike;
-import xyz.destiall.mc.valorant.api.Team;
+import org.bukkit.inventory.meta.ItemMeta;
+import xyz.destiall.mc.valorant.agents.jett.CloudBurst;
+import xyz.destiall.mc.valorant.agents.jett.Updraft;
+import xyz.destiall.mc.valorant.api.*;
+import xyz.destiall.mc.valorant.api.abilities.Ability;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
 import xyz.destiall.mc.valorant.factories.ItemFactory;
 import xyz.destiall.mc.valorant.utils.Economy;
 
+import java.util.HashMap;
+
 public class ParticipantImpl implements Participant {
     private final Player player;
-    private final Match match;
     private final Team team;
     private final Economy econ;
+    private final Knife knife;
+    private final HashMap<Integer, Ability> abilities = new HashMap<>();
     private Gun primary;
     private Gun secondary;
-    private Knife knife;
     private Agent agent;
     private int kills;
     private int deaths;
@@ -30,7 +31,6 @@ public class ParticipantImpl implements Participant {
     private Spike spike;
     public ParticipantImpl(Player player, Team team) {
         this.player = player;
-        this.match = team.getMatch();
         this.team = team;
         kills = 0;
         deaths = 0;
@@ -38,6 +38,9 @@ public class ParticipantImpl implements Participant {
         primary = null;
         secondary = ItemFactory.createGun("CLASSIC", 0, Material.WOODEN_HOE, 5, 30, 1.5F, 1.5F);
         knife = new Knife(new ItemStack(Material.WOODEN_SWORD));
+        ItemMeta meta = knife.getItem().getItemMeta();
+        meta.setDisplayName("Knife");
+        knife.getItem().setItemMeta(meta);
         agent = null;
         flashed = false;
         dead = false;
@@ -87,6 +90,11 @@ public class ParticipantImpl implements Participant {
     @Override
     public Agent getAgent() {
         return agent;
+    }
+
+    @Override
+    public HashMap<Integer, Ability> getAbilities() {
+        return abilities;
     }
 
     @Override
@@ -140,11 +148,6 @@ public class ParticipantImpl implements Participant {
     }
 
     @Override
-    public void addArmour(Integer armour) {
-        player.setAbsorptionAmount(armour / 100F * 20);
-    }
-
-    @Override
     public boolean isFlashed() {
         return flashed;
     }
@@ -152,6 +155,19 @@ public class ParticipantImpl implements Participant {
     @Override
     public void setFlashed(boolean flashed) {
         this.flashed = flashed;
+    }
+
+    @Override
+    public void chooseAgent(Agent agent) {
+        abilities.clear();
+        switch (agent) {
+            case JETT: {
+                abilities.put(5, new CloudBurst());
+                abilities.put(4, new Updraft());
+                break;
+            }
+            default: break;
+        }
     }
 
     @Override

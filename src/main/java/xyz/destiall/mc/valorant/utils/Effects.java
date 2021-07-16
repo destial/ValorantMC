@@ -1,10 +1,8 @@
 package xyz.destiall.mc.valorant.utils;
 
 import com.github.fierioziy.particlenativeapi.api.Particles_1_13;
-import com.github.fierioziy.particlenativeapi.api.types.ParticleType;
 import com.github.fierioziy.particlenativeapi.plugin.ParticleNativePlugin;
 import org.bukkit.Bukkit;
-import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.ArmorStand;
@@ -17,8 +15,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 import xyz.destiall.mc.valorant.Valorant;
-import xyz.destiall.mc.valorant.api.Match;
-import xyz.destiall.mc.valorant.api.Participant;
+import xyz.destiall.mc.valorant.api.abilities.Agent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,7 +56,7 @@ public class Effects {
         }
     }
 
-    public static void smoke(Location location, Type type, double duration) {
+    public static void smoke(Location location, Agent type, double duration) {
         final List<ArmorStand> asList = new ArrayList<>();
         for (Vector vect : smokeSphere) {
             location.add(vect);
@@ -76,19 +73,24 @@ public class Effects {
         }, (long) (duration * 20L));
     }
 
-    public static void smokeTravel(Location location, Type type) {
+    public static void smokeTravel(Location location, Agent type) {
         Object packet = particles.DUST_COLOR_TRANSITION().color(type.color, type.color, 2).packet(false, location);
         particles.sendPacket(location, 50D, packet);
     }
 
-    public static void flash(Player player, Type type, double duration) {
+    public static void flashTravel(Location location, Agent type) {
+        Object packet = particles.DUST_COLOR_TRANSITION().color(type.color, type.color, 2).packet(false, location);
+        particles.sendPacket(location, 50D, packet);
+    }
+
+    public static void flash(Player player, Agent type, double duration) {
         Location location = player.getLocation();
         player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, (int) duration, 1, false));
         final List<ArmorStand> asList = new ArrayList<>();
         for (Vector vect : flashSphere) {
             location.add(vect);
             location.setDirection(vect);
-            asList.add(getArmorStand(location, type));
+            asList.add(getSmallArmorStand(location, type));
             location.subtract(vect);
         }
         final BukkitTask task = Bukkit.getScheduler().runTaskTimer(Valorant.getInstance().getPlugin(), () -> {
@@ -107,9 +109,9 @@ public class Effects {
         }, (long) (duration * 20L));
     }
 
-    private static ArmorStand getArmorStand(Location location, Type type) {
+    private static ArmorStand createArmorStand(Location location) {
         ArmorStand as = (ArmorStand) location.getWorld().spawnEntity(location, EntityType.ARMOR_STAND);
-        as.setArms(false);
+        spawnedArmorStands.add(as);
         as.setBasePlate(false);
         as.setMarker(false);
         as.setSmall(false);
@@ -127,8 +129,28 @@ public class Effects {
         as.addEquipmentLock(EquipmentSlot.HAND, ArmorStand.LockType.REMOVING_OR_CHANGING);
         as.addEquipmentLock(EquipmentSlot.OFF_HAND, ArmorStand.LockType.ADDING_OR_CHANGING);
         as.addEquipmentLock(EquipmentSlot.OFF_HAND, ArmorStand.LockType.REMOVING_OR_CHANGING);
+        return as;
+    }
+
+    public static ArmorStand getArmorStand(Location location, Agent type) {
+        ArmorStand as = createArmorStand(location);
+        as.setSmall(false);
+        as.setArms(false);
         as.getEquipment().setHelmet(new ItemStack(type.wool));
-        spawnedArmorStands.add(as);
+        return as;
+    }
+
+    public static ArmorStand getSmallArmorStand(Location location, Agent type) {
+        ArmorStand as = getArmorStand(location, type);
+        as.setSmall(true);
+        return as;
+    }
+
+    public static ArmorStand getBladeStormArmorStand(Location location) {
+        ArmorStand as = createArmorStand(location);
+        as.setArms(true);
+        as.setSmall(true);
+        as.getEquipment().setItemInMainHand(new ItemStack(Material.DIAMOND_SWORD));
         return as;
     }
 
@@ -139,21 +161,5 @@ public class Effects {
         spawnedArmorStands.clear();
         smokeSphere.clear();
         flashSphere.clear();
-    }
-
-    public enum Type {
-        JETT(Color.AQUA),
-        REYNA(Color.PURPLE);
-        Color color;
-        Material wool;
-        Type(Color color) {
-            this.color = color;
-            wool = Material.WHITE_WOOL;
-            if (color.toString().equals(Color.AQUA.toString())) {
-                wool = Material.CYAN_WOOL;
-            } else if (color.toString().equals(Color.PURPLE.toString())) {
-                wool = Material.PURPLE_WOOL;
-            }
-        }
     }
 }

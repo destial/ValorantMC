@@ -6,7 +6,7 @@ public interface Site {
     BoundingBox getBounds();
     Type getSiteType();
 
-    public enum Type {
+    enum Type {
         A,
         B,
         C,
