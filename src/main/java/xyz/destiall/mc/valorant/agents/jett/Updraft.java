@@ -28,7 +28,7 @@ public class Updraft extends Ability {
     }
 
     @Override
-    public void update() {
+    public void remove() {
 
     }
 

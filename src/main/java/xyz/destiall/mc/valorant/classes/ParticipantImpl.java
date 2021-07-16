@@ -4,8 +4,10 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import xyz.destiall.mc.valorant.agents.jett.BladeStorm;
 import xyz.destiall.mc.valorant.agents.jett.CloudBurst;
 import xyz.destiall.mc.valorant.agents.jett.Updraft;
+import xyz.destiall.mc.valorant.agents.reyna.Leer;
 import xyz.destiall.mc.valorant.api.*;
 import xyz.destiall.mc.valorant.api.abilities.Ability;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
@@ -28,6 +30,8 @@ public class ParticipantImpl implements Participant {
     private int assists;
     private boolean dead;
     private boolean flashed;
+    private boolean ultimate;
+    private boolean usingUlt;
     private Spike spike;
     public ParticipantImpl(Player player, Team team) {
         this.player = player;
@@ -44,6 +48,8 @@ public class ParticipantImpl implements Participant {
         agent = null;
         flashed = false;
         dead = false;
+        ultimate = false;
+        usingUlt = false;
         spike = null;
         econ = new Economy();
     }
@@ -95,6 +101,11 @@ public class ParticipantImpl implements Participant {
     @Override
     public HashMap<Integer, Ability> getAbilities() {
         return abilities;
+    }
+
+    @Override
+    public Ultimate getUlt() {
+        return (Ultimate) abilities.values().stream().filter(a -> a instanceof Ultimate).findFirst().orElse(null);
     }
 
     @Override
@@ -158,12 +169,27 @@ public class ParticipantImpl implements Participant {
     }
 
     @Override
+    public void setAwaitUlt(boolean ult) {
+        this.ultimate = ult;
+    }
+
+    @Override
+    public void setUseUlt(boolean ult) {
+        this.usingUlt = ult;
+    }
+
+    @Override
     public void chooseAgent(Agent agent) {
         abilities.clear();
         switch (agent) {
             case JETT: {
-                abilities.put(5, new CloudBurst());
-                abilities.put(4, new Updraft());
+                abilities.put(5, new Updraft());
+                abilities.put(6, new CloudBurst());
+                abilities.put(7, new BladeStorm());
+                break;
+            }
+            case REYNA: {
+                abilities.put(5, new Leer());
                 break;
             }
             default: break;
@@ -173,6 +199,16 @@ public class ParticipantImpl implements Participant {
     @Override
     public boolean isDead() {
         return dead;
+    }
+
+    @Override
+    public boolean isAwaitingUlt() {
+        return ultimate;
+    }
+
+    @Override
+    public boolean isUsingUlt() {
+        return usingUlt;
     }
 
     @Override

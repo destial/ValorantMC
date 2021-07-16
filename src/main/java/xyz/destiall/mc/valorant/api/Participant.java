@@ -2,7 +2,10 @@ package xyz.destiall.mc.valorant.api;
 
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 import xyz.destiall.mc.valorant.api.abilities.Ability;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
 import xyz.destiall.mc.valorant.factories.ItemFactory;
@@ -20,6 +23,7 @@ public interface Participant {
     Integer getAssists();
     Agent getAgent();
     HashMap<Integer, Ability> getAbilities();
+    Ultimate getUlt();
     Gun getPrimaryGun();
     Gun getSecondaryGun();
     Knife getKnife();
@@ -27,6 +31,8 @@ public interface Participant {
     boolean isHoldingSpike();
     boolean isFlashed();
     boolean isDead();
+    boolean isAwaitingUlt();
+    boolean isUsingUlt();
 
     void setPrimaryGun(Gun gun);
     void setSecondaryGun(Gun gun);
@@ -37,6 +43,8 @@ public interface Participant {
     void setDead(boolean dead);
     void holdSpike(Spike spike);
     void setFlashed(boolean flashed);
+    void setAwaitUlt(boolean ult);
+    void setUseUlt(boolean ult);
     void chooseAgent(Agent agent);
 
     default void addArmour(Integer armour) {
@@ -51,11 +59,23 @@ public interface Participant {
     default Match getMatch() {
         return getTeam().getMatch();
     }
-    default void showActionBar(String message) {
-        getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message));
+    default void showHotbar(String message) {
+        getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&', message)));
+    }
+    default void showTitle(String message) {
+        getPlayer().sendTitle(ChatColor.translateAlternateColorCodes('&', message), null);
     }
     default void sendMessage(String message) {
-        getPlayer().sendMessage(message);
+        getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+    }
+    default Location getLocation() {
+        return getPlayer().getLocation();
+    }
+    default Location getEyeLocation() {
+        return getPlayer().getEyeLocation();
+    }
+    default Vector getDirection() {
+        return getLocation().getDirection();
     }
     default UUID getUUID() {
         return getPlayer().getUniqueId();

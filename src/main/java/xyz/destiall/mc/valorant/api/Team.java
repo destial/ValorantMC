@@ -9,7 +9,7 @@ public interface Team {
     Match getMatch();
     Side getSide();
     void setSide(Side side);
-    public enum Side {
+    enum Side {
         ATTACKER,
         DEFENDER
     }

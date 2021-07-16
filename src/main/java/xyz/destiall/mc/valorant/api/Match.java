@@ -16,24 +16,23 @@ public interface Match {
     HashMap<UUID, Participant> getPlayers();
     Integer getRound();
     Map getMap();
+
     void switchSides();
     void nextRound();
     void start();
     void end();
+
     default boolean isComplete() {
         return getRound() > 12 && (getAttacker().getScore() > getDefender().getScore() + 1
                 || getDefender().getScore() > getAttacker().getScore() + 1);
     }
-
     default Team getWinningTeam() {
         if (!isComplete()) return null;
-        return getTeams().stream().sorted(Comparator.comparingInt(Team::getScore).reversed()).findFirst().orElse(null);
+        return getTeams().stream().max(Comparator.comparingInt(Team::getScore)).orElse(null);
     }
-
     default boolean isInMatch(Player player) {
         return getPlayers().keySet().stream().anyMatch(k -> k.equals(player.getUniqueId()));
     }
-
     default void callEvent(Event event) {
         Bukkit.getPluginManager().callEvent(event);
     }

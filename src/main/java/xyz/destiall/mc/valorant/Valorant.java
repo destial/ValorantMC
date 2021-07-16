@@ -3,7 +3,7 @@ package xyz.destiall.mc.valorant;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
 import xyz.destiall.mc.valorant.commands.ValorantCommand;
-import xyz.destiall.mc.valorant.listeners.HotbarSwapListener;
+import xyz.destiall.mc.valorant.listeners.InventoryListener;
 import xyz.destiall.mc.valorant.listeners.TestListener;
 import xyz.destiall.mc.valorant.managers.MapManager;
 import xyz.destiall.mc.valorant.managers.MatchManager;
@@ -47,7 +47,7 @@ public class Valorant {
 
     private void registerListeners() {
         Bukkit.getPluginManager().registerEvents(new TestListener(), plugin);
-        Bukkit.getPluginManager().registerEvents(new HotbarSwapListener(), plugin);
+        Bukkit.getPluginManager().registerEvents(new InventoryListener(), plugin);
     }
 
     private void registerCommands() {

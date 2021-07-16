@@ -4,6 +4,9 @@ import xyz.destiall.mc.valorant.api.Map;
 import xyz.destiall.mc.valorant.api.Match;
 import xyz.destiall.mc.valorant.api.Participant;
 import xyz.destiall.mc.valorant.api.Team;
+import xyz.destiall.mc.valorant.api.events.match.MatchCompleteEvent;
+import xyz.destiall.mc.valorant.api.events.match.MatchInterruptEvent;
+import xyz.destiall.mc.valorant.api.events.match.MatchStartEvent;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -67,11 +70,19 @@ public class MatchImpl implements Match {
 
     @Override
     public void start() {
-
+        MatchStartEvent e = new MatchStartEvent(this);
+        callEvent(e);
+        if (e.isCancelled()) {
+            callEvent(new MatchInterruptEvent(this));
+        }
     }
 
     @Override
     public void end() {
-
+        if (isComplete()) {
+            callEvent(new MatchCompleteEvent(this));
+            return;
+        }
+        callEvent(new MatchInterruptEvent(this));
     }
 }

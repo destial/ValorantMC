@@ -13,7 +13,7 @@ public abstract class Ability implements ShopItem {
 
     public abstract void use(Player player, Vector direction);
     public abstract String getName();
-    public abstract void update();
+    public abstract void remove();
 
     public Integer getMaxUses() {
         return maxUses;

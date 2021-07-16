@@ -6,17 +6,20 @@ import org.bukkit.Material;
 public enum Agent {
     JETT(Color.WHITE),
     REYNA(Color.PURPLE),
-    SOVA(Color.BLUE),
+    SOVA(Color.NAVY),
+    CYPHER(Color.BLUE),
+    SAGE(Color.AQUA),
     PHOENIX(Color.ORANGE),
     KILLJOY(Color.YELLOW),
     SKYE(Color.LIME),
+    VIPER(Color.GREEN),
+    BRIMSTONE(Color.ORANGE),
     OMEN(Color.BLACK);
 
-    public Color color;
-    public Material wool;
+    public final Color color;
+    public final Material wool;
     Agent(Color color) {
         this.color = color;
-        wool = Material.WHITE_WOOL;
         if (color.toString().equals(Color.AQUA.toString())) {
             wool = Material.CYAN_WOOL;
         } else if (color.toString().equals(Color.PURPLE.toString())) {
@@ -29,6 +32,10 @@ public enum Agent {
             wool = Material.LIME_WOOL;
         } else if (color.toString().equals(Color.BLUE.toString())) {
             wool = Material.BLUE_WOOL;
+        } else if (color.toString().equals(Color.GREEN.toString())) {
+            wool = Material.GREEN_WOOL;
+        } else {
+            wool = Material.WHITE_WOOL;
         }
     }
 }

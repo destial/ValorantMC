@@ -12,7 +12,7 @@ public class BladeStorm extends Ultimate {
     }
     @Override
     public void use(Player player, Vector direction) {
-        
+
     }
 
     @Override
@@ -21,7 +21,7 @@ public class BladeStorm extends Ultimate {
     }
 
     @Override
-    public void update() {
+    public void remove() {
 
     }
 

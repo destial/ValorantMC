@@ -62,7 +62,7 @@ public class Leer extends Ability implements Flash {
     }
 
     @Override
-    public void update() {
+    public void remove() {
 
     }
 
@@ -74,10 +74,5 @@ public class Leer extends Ability implements Flash {
     @Override
     public Integer getPrice() {
         return 250;
-    }
-
-    @Override
-    public void updateFlash() {
-
     }
 }

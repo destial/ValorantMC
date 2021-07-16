@@ -9,5 +9,4 @@ public interface Smoke {
     void dissipate();
     Duration getSmokeDuration();
     int getSmokeRange();
-    Duration getSmokeLastingDuration();
 }

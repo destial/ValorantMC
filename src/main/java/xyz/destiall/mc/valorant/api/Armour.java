@@ -15,7 +15,7 @@ public class Armour implements ShopItem, Giveable {
         this.price = price;
     }
 
-    public Integer getArmount() {
+    public Integer getAmount() {
         return armour;
     }
 
@@ -26,7 +26,7 @@ public class Armour implements ShopItem, Giveable {
 
     @Override
     public void give(Participant participant) {
-
+        participant.addArmour(getAmount());
     }
 
     @Override
