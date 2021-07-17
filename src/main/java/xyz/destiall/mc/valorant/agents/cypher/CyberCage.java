@@ -1,48 +1,31 @@
-package xyz.destiall.mc.valorant.agents.jett;
+package xyz.destiall.mc.valorant.agents.cypher;
 
-import com.google.common.util.concurrent.AtomicDouble;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
-import xyz.destiall.mc.valorant.Valorant;
 import xyz.destiall.mc.valorant.api.abilities.Ability;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
 import xyz.destiall.mc.valorant.api.abilities.Smoke;
 import xyz.destiall.mc.valorant.utils.Effects;
 
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.util.*;
 
-public class CloudBurst extends Ability implements Smoke {
+public class CyberCage extends Ability implements Smoke {
     private int smokeTravelTask;
-    public CloudBurst() {
-        maxUses = 3;
-        agent = Agent.JETT;
+    public CyberCage() {
         smokeTravelTask = -1;
-        hold = false;
+        agent = Agent.CYPHER;
     }
-
     @Override
     public void use(Player player, Vector direction) {
-        final Location l = player.getEyeLocation().clone();
-        final Vector gravity = new Vector(0, -1F, 0);
-        final AtomicDouble time = new AtomicDouble(0D);
-        smokeTravelTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(Valorant.getInstance().getPlugin(), () -> {
-            l.add(direction).add(gravity.multiply(time.get()));
-            time.addAndGet(0.1D);
-            Effects.smokeTravel(l, agent);
-            if (!l.getBlock().isPassable()) {
-                this.appear(l);
-            }
-        }, 0L, 1L);
+        this.appear(player.getLocation());
     }
 
     @Override
     public String getName() {
-        return "CloudBurst";
+        return null;
     }
 
     @Override
@@ -57,7 +40,7 @@ public class CloudBurst extends Ability implements Smoke {
 
     @Override
     public Integer getPrice() {
-        return 400;
+        return null;
     }
 
     @Override
@@ -75,11 +58,11 @@ public class CloudBurst extends Ability implements Smoke {
 
     @Override
     public Duration getSmokeDuration() {
-        return Duration.of(4, ChronoUnit.SECONDS).plus(Duration.of(500, ChronoUnit.MILLIS));
+        return null;
     }
 
     @Override
     public int getSmokeRange() {
-        return 4;
+        return 0;
     }
 }

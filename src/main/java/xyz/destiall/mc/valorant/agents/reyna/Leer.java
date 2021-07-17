@@ -17,14 +17,12 @@ import xyz.destiall.mc.valorant.utils.Effects;
 public class Leer extends Ability implements Flash {
     private int leerTravelTask;
     public Leer() {
-        uses = 0;
         maxUses = 2;
         agent = Agent.REYNA;
         hold = true;
     }
     @Override
     public void use(Player player, Vector direction) {
-        if (uses >= maxUses) return;
         final Location l = player.getEyeLocation().clone();
         final ArmorStand as = Effects.getSmallArmorStand(l, agent);
         leerTravelTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(Valorant.getInstance().getPlugin(), () -> {
@@ -54,7 +52,6 @@ public class Leer extends Ability implements Flash {
             }
             as.remove();
         }, 20L);
-        uses++;
     }
 
     @Override

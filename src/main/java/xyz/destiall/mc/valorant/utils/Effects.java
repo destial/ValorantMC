@@ -1,7 +1,7 @@
 package xyz.destiall.mc.valorant.utils;
 
+import com.github.fierioziy.particlenativeapi.api.ParticleNativeAPI;
 import com.github.fierioziy.particlenativeapi.api.Particles_1_13;
-import com.github.fierioziy.particlenativeapi.plugin.ParticleNativePlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -21,20 +21,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Effects {
+    private static ParticleNativeAPI api;
     private static Particles_1_13 particles;
     private static final List<Vector> smokeSphere = new ArrayList<>();
     private static final List<Vector> flashSphere = new ArrayList<>();
+    private static final List<Vector> smokeCylinder = new ArrayList<>();
     private static final List<ArmorStand> spawnedArmorStands = new ArrayList<>();
-    public Effects() {
-        particles = ParticleNativePlugin.getAPI().getParticles_1_13();
+    public Effects(ParticleNativeAPI api) {
+        Effects.api = api;
+        particles = api.getParticles_1_13();
         createSmokeSphere();
         createFlashSphere();
+        createSmokeCylinder();
     }
     private void createSmokeSphere() {
         smokeSphere.clear();
+        double r = 2.1;
         for (double phi = 0; phi <= Math.PI; phi += Math.PI / 11) {
             for (double theta = 0; theta <= 2 * Math.PI; theta += Math.PI / 10) {
-                double r = 2.1;
                 double x = r * Math.cos(theta) * Math.sin(phi);
                 double y = r * Math.cos(phi);
                 double z = r * Math.sin(theta) * Math.sin(phi);
@@ -43,11 +47,24 @@ public class Effects {
         }
     }
 
+    private void createSmokeCylinder() {
+        smokeCylinder.clear();
+        double r = 3.1;
+        double h = 2.1;
+        for (double height = 0; height < h; height += Math.PI / 5) {
+            for (double theta = 0; theta <= 2 * Math.PI; theta += Math.PI / 15) {
+                double x = r * Math.cos(theta);
+                double z = r * Math.sin(theta);
+                smokeCylinder.add(new Vector(x, height, z));
+            }
+        }
+    }
+
     private void createFlashSphere() {
         flashSphere.clear();
+        double r = 1;
         for (double phi = 0; phi <= Math.PI; phi += Math.PI / 7) {
             for (double theta = 0; theta <= 2 * Math.PI; theta += Math.PI / 10) {
-                double r = 1;
                 double x = r * Math.cos(theta) * Math.sin(phi);
                 double y = r * Math.cos(phi) - r;
                 double z = r * Math.sin(theta) * Math.sin(phi);
@@ -58,17 +75,24 @@ public class Effects {
 
     public static void smoke(Location location, Agent type, double duration) {
         final List<ArmorStand> asList = new ArrayList<>();
-        for (Vector vect : smokeSphere) {
-            location.add(vect);
-            location.setDirection(vect);
-            asList.add(getArmorStand(location, type));
-            location.subtract(vect);
+        if (type.equals(Agent.CYPHER)) {
+            for (Vector vect : smokeCylinder) {
+                location.add(vect);
+                location.setDirection(vect);
+                asList.add(getArmorStand(location, type));
+                location.subtract(vect);
+            }
+        } else {
+            for (Vector vect : smokeSphere) {
+                location.add(vect);
+                location.setDirection(vect);
+                asList.add(getArmorStand(location, type));
+                location.subtract(vect);
+            }
         }
         Bukkit.getScheduler().runTaskLater(Valorant.getInstance().getPlugin(), () -> {
-            int i = 0;
             for (final ArmorStand as : asList) {
-                Bukkit.getScheduler().runTaskLater(Valorant.getInstance().getPlugin(), as::remove, i);
-                i++;
+                as.remove();
                 spawnedArmorStands.remove(as);
             }
             asList.clear();
@@ -76,18 +100,22 @@ public class Effects {
     }
 
     public static void smokeTravel(Location location, Agent type) {
-        Object packet = particles.DUST_COLOR_TRANSITION().color(type.color, type.color, 2).packet(false, location);
+        Object packet = particles.DUST_COLOR_TRANSITION().color(type.COLOR, type.COLOR, 2).packet(false, location);
         particles.sendPacket(location, 50D, packet);
     }
 
     public static void flashTravel(Location location, Agent type) {
-        Object packet = particles.DUST_COLOR_TRANSITION().color(type.color, type.color, 2).packet(false, location);
+        Object packet = particles.DUST_COLOR_TRANSITION().color(type.COLOR, type.COLOR, 2).packet(false, location);
         particles.sendPacket(location, 50D, packet);
+    }
+
+    public static void wall(Location location, Agent type) {
+
     }
 
     public static void flash(Player player, Agent type, double duration) {
         Location location = player.getEyeLocation();
-        player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, (int) duration, 1, false));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, (int) duration + 2, 1));
         final List<ArmorStand> asList = new ArrayList<>();
         for (Vector vect : flashSphere) {
             location.add(vect);
@@ -162,6 +190,7 @@ public class Effects {
         }
         spawnedArmorStands.clear();
         smokeSphere.clear();
+        smokeCylinder.clear();
         flashSphere.clear();
     }
 }

@@ -6,9 +6,8 @@ import xyz.destiall.mc.valorant.api.ShopItem;
 
 public abstract class Ability implements ShopItem {
     protected Integer maxUses;
-    protected int uses;
-    protected int slot;
     protected Agent agent;
+    protected int slot;
     protected boolean hold;
 
     public abstract void use(Player player, Vector direction);

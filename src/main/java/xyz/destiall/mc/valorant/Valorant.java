@@ -1,7 +1,11 @@
 package xyz.destiall.mc.valorant;
 
+import com.github.fierioziy.particlenativeapi.api.ParticleNativeAPI;
+import com.github.fierioziy.particlenativeapi.api.utils.ParticleException;
+import com.github.fierioziy.particlenativeapi.core.ParticleNativeCore;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
 import xyz.destiall.mc.valorant.commands.ValorantCommand;
 import xyz.destiall.mc.valorant.listeners.InventoryListener;
 import xyz.destiall.mc.valorant.listeners.TestListener;
@@ -13,8 +17,8 @@ import java.io.File;
 
 public class Valorant {
     private static Valorant instance;
-    private final Plugin plugin;
-    public Valorant(Plugin plugin) {
+    private final JavaPlugin plugin;
+    public Valorant(JavaPlugin plugin) {
         instance = this;
         this.plugin = plugin;
     }
@@ -40,7 +44,12 @@ public class Valorant {
         }
         new MapManager();
         new MatchManager();
-        new Effects();
+        try {
+            ParticleNativeAPI api = ParticleNativeCore.loadAPI(plugin);
+            new Effects(api);
+        } catch (ParticleException e) {
+            e.printStackTrace();
+        }
         registerListeners();
         registerCommands();
     }

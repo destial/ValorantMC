@@ -10,6 +10,8 @@ import xyz.destiall.mc.valorant.agents.jett.BladeStorm;
 import xyz.destiall.mc.valorant.agents.jett.CloudBurst;
 import xyz.destiall.mc.valorant.agents.jett.Updraft;
 import xyz.destiall.mc.valorant.agents.reyna.Leer;
+import xyz.destiall.mc.valorant.api.abilities.Agent;
+import xyz.destiall.mc.valorant.utils.Effects;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,6 +50,10 @@ public class ValorantCommand implements CommandExecutor, TabExecutor {
                     bs.use(player, player.getLocation().getDirection());
                     break;
                 }
+                case "cybercage": {
+                    Effects.smoke(player.getLocation(), Agent.CYPHER, 5);
+                    break;
+                }
                 default: break;
             }
         }
@@ -56,8 +62,8 @@ public class ValorantCommand implements CommandExecutor, TabExecutor {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (args.length == 0) return new ArrayList<>();
-        List<String> tab = Arrays.asList("cloudburst", "updraft", "leer", "bladestorm");
+        if (args == null || args.length == 0) return new ArrayList<>();
+        List<String> tab = Arrays.asList("cloudburst", "updraft", "leer", "bladestorm", "cybercage");
         return tab.stream().filter(a -> a.toLowerCase().contains(args[0].toLowerCase())).collect(Collectors.toList());
     }
 }

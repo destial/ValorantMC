@@ -7,7 +7,7 @@ public enum Agent {
     JETT(Color.WHITE),
     REYNA(Color.PURPLE),
     SOVA(Color.NAVY),
-    CYPHER(Color.BLUE),
+    CYPHER(Color.SILVER),
     SAGE(Color.AQUA),
     PHOENIX(Color.ORANGE),
     KILLJOY(Color.YELLOW),
@@ -16,26 +16,38 @@ public enum Agent {
     BRIMSTONE(Color.ORANGE),
     OMEN(Color.BLACK);
 
-    public final Color color;
-    public final Material wool;
+    public final Color COLOR;
+    public final Material WOOL;
     Agent(Color color) {
-        this.color = color;
+        this.COLOR = color;
         if (color.toString().equals(Color.AQUA.toString())) {
-            wool = Material.CYAN_WOOL;
+            WOOL = Material.CYAN_WOOL;
         } else if (color.toString().equals(Color.PURPLE.toString())) {
-            wool = Material.PURPLE_WOOL;
+            WOOL = Material.PURPLE_WOOL;
         } else if (color.toString().equals(Color.BLACK.toString())) {
-            wool = Material.BLACK_WOOL;
+            WOOL = Material.BLACK_WOOL;
         } else if (color.toString().equals(Color.ORANGE.toString())) {
-            wool = Material.ORANGE_WOOL;
+            WOOL = Material.ORANGE_WOOL;
         } else if (color.toString().equals(Color.LIME.toString())) {
-            wool = Material.LIME_WOOL;
+            WOOL = Material.LIME_WOOL;
         } else if (color.toString().equals(Color.BLUE.toString())) {
-            wool = Material.BLUE_WOOL;
+            WOOL = Material.BLUE_WOOL;
         } else if (color.toString().equals(Color.GREEN.toString())) {
-            wool = Material.GREEN_WOOL;
+            WOOL = Material.GREEN_WOOL;
+        } else if (color.toString().equals(Color.GRAY.toString())) {
+            WOOL = Material.GRAY_WOOL;
+        } else if (color.toString().equals(Color.SILVER.toString())) {
+            WOOL = Material.LIGHT_GRAY_WOOL;
+        } else if (color.toString().equals(Color.RED.toString())) {
+            WOOL = Material.RED_WOOL;
+        } else if (color.toString().equals(Color.YELLOW.toString())) {
+            WOOL = Material.YELLOW_WOOL;
+        } else if (color.toString().equals(Color.MAROON.toString())) {
+            WOOL = Material.RED_WOOL;
+        } else if (color.toString().equals(Color.TEAL.toString())) {
+            WOOL = Material.CYAN_WOOL;
         } else {
-            wool = Material.WHITE_WOOL;
+            WOOL = Material.WHITE_WOOL;
         }
     }
 }
