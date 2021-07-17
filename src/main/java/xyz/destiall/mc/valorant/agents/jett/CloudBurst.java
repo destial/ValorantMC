@@ -65,7 +65,7 @@ public class CloudBurst extends Ability implements Smoke {
         if (smokeTravelTask != -1) {
             Bukkit.getScheduler().cancelTask(smokeTravelTask);
         }
-        Effects.smoke(location, agent, getSmokeDuration().getSeconds());
+        Effects.smoke(location, agent, getSmokeDuration().toMillis() / 1000D);
     }
 
     @Override
@@ -75,11 +75,11 @@ public class CloudBurst extends Ability implements Smoke {
 
     @Override
     public Duration getSmokeDuration() {
-        return Duration.of(4, ChronoUnit.SECONDS).plus(Duration.of(500, ChronoUnit.MILLIS));
+        return Duration.ofSeconds(4).plus(Duration.ofMillis(500));
     }
 
     @Override
-    public int getSmokeRange() {
+    public double getSmokeRange() {
         return 4;
     }
 }

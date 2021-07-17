@@ -8,5 +8,5 @@ public interface Smoke {
     void appear(Location location);
     void dissipate();
     Duration getSmokeDuration();
-    int getSmokeRange();
+    double getSmokeRange();
 }

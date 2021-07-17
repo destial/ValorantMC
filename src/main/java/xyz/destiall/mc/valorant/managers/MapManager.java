@@ -4,6 +4,8 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import xyz.destiall.mc.valorant.Valorant;
 import xyz.destiall.mc.valorant.api.Map;
+import xyz.destiall.mc.valorant.factories.MatchFactory;
+import xyz.destiall.mc.valorant.utils.Debugger;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -22,8 +24,8 @@ public class MapManager {
     }
 
     public void loadMaps() {
-        File mapFolder = new File(Valorant.getInstance().getPlugin().getDataFolder(), "maps/");
-        if (mapFolder.exists()) {
+        File mapFolder = new File(Valorant.getInstance().getPlugin().getDataFolder(), "maps" + File.separator);
+        if (!mapFolder.exists()) {
             mapFolder.mkdir();
         }
         if (mapFolder.list() == null) return;
@@ -31,6 +33,9 @@ public class MapManager {
             if (!mapFileName.toLowerCase().endsWith(".yml")) continue;
             File mapFile = new File(mapFolder, mapFileName);
             FileConfiguration mapConfig = YamlConfiguration.loadConfiguration(mapFile);
+            Map map = MatchFactory.createMap(mapConfig);
+            Debugger.debug("Loaded Valorant Map " + map.getName());
+            maps.add(map);
         }
     }
 
@@ -41,5 +46,9 @@ public class MapManager {
             return map;
         }
         return null;
+    }
+
+    public void unloadMaps() {
+        maps.clear();
     }
 }

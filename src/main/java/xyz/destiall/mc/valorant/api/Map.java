@@ -9,6 +9,7 @@ import java.util.List;
 public interface Map {
     World getWorld();
     BoundingBox getBounds();
+    String getName();
     List<Site> getSites();
     Location getAttackerSpawn();
     Location getDefenderSpawn();

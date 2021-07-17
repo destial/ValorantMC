@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface Match {
+    int getID();
     List<Team> getTeams();
     Team getAttacker();
     Team getDefender();
@@ -21,6 +22,7 @@ public interface Match {
     void nextRound();
     void start();
     void end();
+    void joinTeam(Team.Side side, Player player);
 
     default boolean isComplete() {
         return getRound() > 12 && (getAttacker().getScore() > getDefender().getScore() + 1

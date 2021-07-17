@@ -166,7 +166,7 @@ public class Effects {
         ArmorStand as = createArmorStand(location);
         as.setSmall(false);
         as.setArms(false);
-        as.getEquipment().setHelmet(new ItemStack(type.wool));
+        as.getEquipment().setHelmet(new ItemStack(type.WOOL));
         return as;
     }
 

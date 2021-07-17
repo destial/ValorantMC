@@ -13,15 +13,15 @@ public class TestListener implements Listener {
     @EventHandler
     public void onPlayerLeftClick(PlayerInteractEvent e) {
         if (e.getAction().equals(Action.LEFT_CLICK_AIR)) {
-            Debugger.debug("left click");
+            //Debugger.debug("left click");
             if (e.getPlayer().getInventory().getItemInMainHand().getType().equals(Material.SPYGLASS)) {
-                Debugger.debug("left click sniper");
+                //Debugger.debug("left click sniper");
             }
         }
         if (e.getAction().equals(Action.RIGHT_CLICK_AIR)) {
-            Debugger.debug("right click");
+            //Debugger.debug("right click");
             if (e.getPlayer().getInventory().getItemInMainHand().getType().equals(Material.SPYGLASS)) {
-                Debugger.debug("right click sniper");
+                //Debugger.debug("right click sniper");
             }
         }
     }

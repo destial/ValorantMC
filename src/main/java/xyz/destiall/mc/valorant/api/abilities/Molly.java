@@ -4,7 +4,6 @@ import java.time.Duration;
 
 public interface Molly {
     Duration getMollyDuration();
-    void updateMolly();
-    int getMollyRange();
+    double getMollyRange();
     Duration getMollyLastingDuration();
 }

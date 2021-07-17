@@ -4,6 +4,8 @@ import com.github.fierioziy.particlenativeapi.api.ParticleNativeAPI;
 import com.github.fierioziy.particlenativeapi.api.utils.ParticleException;
 import com.github.fierioziy.particlenativeapi.core.ParticleNativeCore;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandExecutor;
+import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import xyz.destiall.mc.valorant.commands.ValorantCommand;
@@ -33,7 +35,10 @@ public class Valorant {
 
     public void disable() {
         MatchManager.getInstance().disable();
+        MapManager.getInstance().unloadMaps();
         Effects.disable();
+        HandlerList.unregisterAll(plugin);
+        plugin.getServer().getPluginCommand("valorant").setExecutor(null);
     }
 
     public void enable() {

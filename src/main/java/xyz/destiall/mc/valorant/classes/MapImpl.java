@@ -11,13 +11,15 @@ import java.util.List;
 
 public class MapImpl implements Map {
     private final World world;
+    private final String name;
     private final float spawnRadius;
     private final Location attacker;
     private final Location defender;
     private final BoundingBox bounds;
     private boolean inUse;
     private final List<Site> sites = new ArrayList<>();
-    public MapImpl(World world, BoundingBox bounds, float spawnRadius, Location attacker, Location defender, List<Site> sites) {
+    public MapImpl(String name, World world, BoundingBox bounds, float spawnRadius, Location attacker, Location defender, List<Site> sites) {
+        this.name = name;
         this.world = world;
         this.bounds = bounds;
         this.spawnRadius = spawnRadius;
@@ -34,6 +36,11 @@ public class MapImpl implements Map {
     @Override
     public BoundingBox getBounds() {
         return bounds;
+    }
+
+    @Override
+    public String getName() {
+        return name;
     }
 
     @Override
