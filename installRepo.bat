@@ -1,0 +1,1 @@
+mvn install:install-file -Dfile:./localrepo/CrackShot-0.98.11.jar -DgroupId=com.shamppagon.crackshot -DartifactId=crackshot -Dversion=0.98.11 -Dpackaging=jar
