@@ -5,18 +5,20 @@ import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
-import xyz.destiall.mc.valorant.Valorant;
 import xyz.destiall.mc.valorant.api.Participant;
 import xyz.destiall.mc.valorant.api.abilities.Ability;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
 import xyz.destiall.mc.valorant.api.abilities.Flash;
 import xyz.destiall.mc.valorant.managers.MatchManager;
 import xyz.destiall.mc.valorant.utils.Effects;
+import xyz.destiall.mc.valorant.utils.Scheduler;
 
 public class Leer extends Ability implements Flash {
-    private int leerTravelTask;
+    private BukkitTask leerTravelTask;
     public Leer() {
+        leerTravelTask = null;
         maxUses = 2;
         agent = Agent.REYNA;
         hold = true;
@@ -25,14 +27,14 @@ public class Leer extends Ability implements Flash {
     public void use(Player player, Vector direction) {
         final Location l = player.getEyeLocation().clone();
         final ArmorStand as = Effects.getSmallArmorStand(l, agent);
-        leerTravelTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(Valorant.getInstance().getPlugin(), () -> {
+        leerTravelTask = Scheduler.repeat(() -> {
             Vector vel = l.getDirection().multiply(1 / 20);
             l.add(vel);
             Effects.flashTravel(l, agent);
             as.teleport(l);
-        }, 0L, 1L);
-        Bukkit.getScheduler().runTaskLater(Valorant.getInstance().getPlugin(), () -> {
-            Bukkit.getScheduler().cancelTask(leerTravelTask);
+        }, 1L);
+        Scheduler.delay(() -> {
+            Scheduler.cancel(leerTravelTask);
             Effects.flashTravel(l, agent);
             Participant participant = MatchManager.getInstance().getParticipant(player);
             if (participant != null) {

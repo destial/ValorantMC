@@ -3,9 +3,12 @@ package xyz.destiall.mc.valorant.utils;
 import com.github.fierioziy.particlenativeapi.api.ParticleNativeAPI;
 import com.github.fierioziy.particlenativeapi.api.Particles_1_13;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -17,8 +20,13 @@ import org.bukkit.util.Vector;
 import xyz.destiall.mc.valorant.Valorant;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 public class Effects {
     private static ParticleNativeAPI api;
@@ -90,7 +98,7 @@ public class Effects {
                 location.subtract(vect);
             }
         }
-        Bukkit.getScheduler().runTaskLater(Valorant.getInstance().getPlugin(), () -> {
+        Scheduler.delay(() -> {
             for (final ArmorStand as : asList) {
                 as.remove();
                 spawnedArmorStands.remove(as);
@@ -123,13 +131,13 @@ public class Effects {
             asList.add(getSmallArmorStand(location, type));
             location.subtract(vect);
         }
-        final BukkitTask task = Bukkit.getScheduler().runTaskTimer(Valorant.getInstance().getPlugin(), () -> {
+        final BukkitTask task = Scheduler.repeat(() -> {
             for (ArmorStand as : asList) {
                 Vector dist = player.getEyeLocation().subtract(as.getLocation()).toVector();
                 as.teleport(as.getLocation().add(dist));
             }
-        }, 0L, 1L);
-        Bukkit.getScheduler().runTaskLater(Valorant.getInstance().getPlugin(), () -> {
+        }, 1L);
+        Scheduler.delay(() -> {
             for (ArmorStand as : asList) {
                 as.remove();
                 spawnedArmorStands.remove(as);

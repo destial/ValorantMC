@@ -5,23 +5,25 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 import xyz.destiall.mc.valorant.Valorant;
 import xyz.destiall.mc.valorant.api.abilities.Ability;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
 import xyz.destiall.mc.valorant.api.abilities.Smoke;
 import xyz.destiall.mc.valorant.utils.Effects;
+import xyz.destiall.mc.valorant.utils.Scheduler;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 public class CloudBurst extends Ability implements Smoke {
-    private int smokeTravelTask;
+    private BukkitTask smokeTravelTask;
     public CloudBurst() {
         maxUses = 3;
         agent = Agent.JETT;
-        smokeTravelTask = -1;
+        smokeTravelTask = null;
         hold = false;
     }
 
@@ -30,14 +32,14 @@ public class CloudBurst extends Ability implements Smoke {
         final Location l = player.getEyeLocation().clone();
         final Vector gravity = new Vector(0, -1F, 0);
         final AtomicDouble time = new AtomicDouble(0D);
-        smokeTravelTask = Bukkit.getScheduler().scheduleSyncRepeatingTask(Valorant.getInstance().getPlugin(), () -> {
+        smokeTravelTask = Scheduler.repeat(() -> {
             l.add(direction).add(gravity.multiply(time.get()));
             time.addAndGet(0.1D);
             Effects.smokeTravel(l, agent);
             if (!l.getBlock().isPassable()) {
                 this.appear(l);
             }
-        }, 0L, 1L);
+        }, 1L);
     }
 
     @Override
@@ -62,8 +64,8 @@ public class CloudBurst extends Ability implements Smoke {
 
     @Override
     public void appear(Location location) {
-        if (smokeTravelTask != -1) {
-            Bukkit.getScheduler().cancelTask(smokeTravelTask);
+        if (smokeTravelTask != null) {
+            Scheduler.cancel(smokeTravelTask);
         }
         Effects.smoke(location, agent, getSmokeDuration().toMillis() / 1000D);
     }

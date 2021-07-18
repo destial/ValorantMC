@@ -20,15 +20,14 @@ import xyz.destiall.mc.valorant.api.abilities.Smoke;
 import xyz.destiall.mc.valorant.managers.MatchManager;
 import xyz.destiall.mc.valorant.utils.Debugger;
 import xyz.destiall.mc.valorant.utils.Effects;
+import xyz.destiall.mc.valorant.utils.Scheduler;
 
 import java.time.Duration;
 
 public class CyberCage extends Ability implements Smoke, Listener {
-    private int smokeTravelTask;
     private Location finalLoc;
     private Team team;
     public CyberCage() {
-        smokeTravelTask = -1;
         agent = Agent.CYPHER;
         finalLoc = null;
         team = null;
@@ -64,13 +63,10 @@ public class CyberCage extends Ability implements Smoke, Listener {
 
     @Override
     public void appear(Location location) {
-        if (smokeTravelTask != -1) {
-            Bukkit.getScheduler().cancelTask(smokeTravelTask);
-        }
         finalLoc = location;
         Bukkit.getPluginManager().registerEvents(this, Valorant.getInstance().getPlugin());
         Effects.smoke(location, agent, getSmokeDuration().getSeconds());
-        Bukkit.getScheduler().runTaskLater(Valorant.getInstance().getPlugin(), this::dissipate, getSmokeDuration().toMillis() / 1000L * 20L);
+        Scheduler.delay(this::dissipate, getSmokeDuration().toMillis() / 1000L * 20L);
     }
 
     @Override
@@ -80,8 +76,8 @@ public class CyberCage extends Ability implements Smoke, Listener {
 
     @EventHandler
     public void onWalkThrough(PlayerMoveEvent e) {
-        if (e.getTo() == null) return;
         Debugger.debug("walking");
+        if (e.getTo() == null) return;
         if (e.getTo().toVector().isInSphere(finalLoc.toVector(), getSmokeRange())) {
             Debugger.debug("walking in cybercage");
             Participant participant = MatchManager.getInstance().getParticipant(e.getPlayer());
