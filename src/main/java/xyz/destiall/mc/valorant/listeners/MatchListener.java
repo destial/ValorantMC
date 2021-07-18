@@ -31,6 +31,10 @@ public class MatchListener implements Listener {
         e.setNewExp(0);
         e.setNewLevel(0);
         e.getDrops().clear();
+        victim.addDeath();
+        if (victim != killer) {
+            killer.addKill();
+        }
         victim.getMatch().callEvent(new DeathEvent(victim, killer));
     }
 }

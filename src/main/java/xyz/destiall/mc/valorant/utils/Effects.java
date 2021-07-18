@@ -143,7 +143,7 @@ public class Effects {
                 spawnedArmorStands.remove(as);
             }
             asList.clear();
-            task.cancel();
+            Scheduler.cancel(task);
         }, (long) (duration * 20L));
     }
 

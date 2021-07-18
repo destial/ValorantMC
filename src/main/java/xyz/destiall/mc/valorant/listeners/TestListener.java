@@ -12,6 +12,7 @@ public class TestListener implements Listener {
 
     @EventHandler
     public void onPlayerLeftClick(PlayerInteractEvent e) {
+        // TODO: Figure out sniper
         if (e.getAction().equals(Action.LEFT_CLICK_AIR)) {
             //Debugger.debug("left click");
             if (e.getPlayer().getInventory().getItemInMainHand().getType().equals(Material.SPYGLASS)) {

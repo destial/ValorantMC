@@ -5,10 +5,9 @@ import org.bukkit.scheduler.BukkitTask;
 import xyz.destiall.mc.valorant.Valorant;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class Scheduler {
-    private static final List<BukkitTask> TASKS = new ArrayList<>();
+    private static final ArrayList<BukkitTask> TASKS = new ArrayList<>();
 
     public static BukkitTask delay(Runnable runnable, long delay) {
         BukkitTask task = Bukkit.getScheduler().runTaskLater(Valorant.getInstance().getPlugin(), runnable, delay);
@@ -37,13 +36,13 @@ public class Scheduler {
     }
 
     public static void cancel(BukkitTask task) {
-        task.cancel();
+        if (!task.isCancelled()) task.cancel();
         TASKS.remove(task);
     }
 
     public static void cancelAll() {
         for (BukkitTask task : TASKS) {
-            task.cancel();
+            if (!task.isCancelled()) task.cancel();
         }
         TASKS.clear();
     }

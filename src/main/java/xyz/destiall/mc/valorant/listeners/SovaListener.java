@@ -13,8 +13,8 @@ public class SovaListener implements Listener {
         Arrow arrow = (Arrow) e.getEntity();
         boolean isSovaArrow = !arrow.getMetadata("valorant_sova").isEmpty();
         int rebounds = arrow.getMetadata("valorant_sova_rebounds").get(0).asInt();
+        // TODO: Add Sova arrows
         if (e.getHitBlock() != null) {
-
             return;
         }
         if (e.getHitEntity() != null) {

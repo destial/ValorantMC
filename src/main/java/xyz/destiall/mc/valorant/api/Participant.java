@@ -63,7 +63,10 @@ public interface Participant {
         getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&', message)));
     }
     default void showTitle(String message) {
-        getPlayer().sendTitle(ChatColor.translateAlternateColorCodes('&', message), null);
+        showTitle(message, null);
+    }
+    default void showTitle(String message, String subtitle) {
+        getPlayer().sendTitle(ChatColor.translateAlternateColorCodes('&', message), subtitle);
     }
     default void sendMessage(String message) {
         getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', message));
