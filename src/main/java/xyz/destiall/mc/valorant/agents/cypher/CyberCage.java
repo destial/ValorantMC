@@ -80,13 +80,11 @@ public class CyberCage extends Ability implements Smoke, Listener {
         if (e.getTo() == null) return;
         if (e.getTo().toVector().isInSphere(finalLoc.toVector(), getSmokeRange())) {
             Debugger.debug("walking in cybercage");
-            Participant participant = MatchManager.getInstance().getParticipant(e.getPlayer());
-            if (participant != null) {
-                for (Participant p : participant.getMatch().getPlayers().values()) {
-                    if (participant == p) continue;
-                    if (participant.getTeam() == p.getTeam()) continue;
-                    p.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 2, 1));
-                }
+            if (team != null) {
+                Participant p = MatchManager.getInstance().getParticipant(e.getPlayer());
+                if (p == null) return;
+                if (p.getTeam() == team) return;
+                p.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 2, 1));
                 return;
             }
             Player player = e.getPlayer();
@@ -101,6 +99,6 @@ public class CyberCage extends Ability implements Smoke, Listener {
 
     @Override
     public double getSmokeRange() {
-        return 2;
+        return 2.1;
     }
 }

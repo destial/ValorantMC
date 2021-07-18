@@ -6,9 +6,11 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import xyz.destiall.mc.valorant.Valorant;
+import xyz.destiall.mc.valorant.agents.cypher.CyberCage;
 import xyz.destiall.mc.valorant.agents.jett.BladeStorm;
 import xyz.destiall.mc.valorant.agents.jett.CloudBurst;
 import xyz.destiall.mc.valorant.agents.jett.Updraft;
+import xyz.destiall.mc.valorant.agents.phoenix.Blaze;
 import xyz.destiall.mc.valorant.agents.reyna.Leer;
 import xyz.destiall.mc.valorant.api.Match;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
@@ -56,7 +58,13 @@ public class ValorantCommand implements CommandExecutor, TabExecutor {
                         break;
                     }
                     case "cybercage": {
-                        Effects.smoke(player.getLocation(), Agent.CYPHER, 5);
+                        CyberCage cc = new CyberCage();
+                        cc.use(player, player.getLocation().getDirection());
+                        break;
+                    }
+                    case "blaze": {
+                        Blaze b = new Blaze();
+                        b.use(player, player.getLocation().getDirection());
                         break;
                     }
                     default:
@@ -94,7 +102,7 @@ public class ValorantCommand implements CommandExecutor, TabExecutor {
             return tab.stream().filter(a -> a.toLowerCase().contains(args[0].toLowerCase())).collect(Collectors.toList());
         }
         if (args[0].equalsIgnoreCase("ability")) {
-            List<String> tab = Arrays.asList("cloudburst", "updraft", "leer", "bladestorm", "cybercage");
+            List<String> tab = Arrays.asList("cloudburst", "updraft", "leer", "bladestorm", "cybercage", "blaze");
             return tab.stream().filter(a -> a.toLowerCase().contains(args[1].toLowerCase())).collect(Collectors.toList());
         }
         if (args[0].equalsIgnoreCase("match")) {

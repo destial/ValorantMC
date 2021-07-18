@@ -13,6 +13,7 @@ import xyz.destiall.mc.valorant.listeners.InventoryListener;
 import xyz.destiall.mc.valorant.listeners.MatchListener;
 import xyz.destiall.mc.valorant.listeners.SovaListener;
 import xyz.destiall.mc.valorant.listeners.TestListener;
+import xyz.destiall.mc.valorant.managers.ConfigManager;
 import xyz.destiall.mc.valorant.managers.MapManager;
 import xyz.destiall.mc.valorant.managers.MatchManager;
 import xyz.destiall.mc.valorant.utils.Effects;
@@ -23,6 +24,7 @@ import java.io.File;
 public class Valorant {
     private static Valorant instance;
     private final JavaPlugin plugin;
+    public static final String VERSION = "1";
     public Valorant(JavaPlugin plugin) {
         instance = this;
         this.plugin = plugin;
@@ -46,7 +48,7 @@ public class Valorant {
     }
 
     public void enable() {
-        plugin.saveDefaultConfig();
+        ConfigManager.getInstance();
         File shopFile = new File(plugin.getDataFolder(), "shop.yml");
         if (!shopFile.exists()) {
             plugin.saveResource("shop.yml", true);

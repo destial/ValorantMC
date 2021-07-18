@@ -1,31 +1,32 @@
-package xyz.destiall.mc.valorant.agents.jett;
+package xyz.destiall.mc.valorant.agents.phoenix;
 
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 import xyz.destiall.mc.valorant.api.abilities.Ability;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
+import xyz.destiall.mc.valorant.utils.Effects;
 
-public class Updraft extends Ability {
-    public Updraft() {
-        maxUses = 2;
-        agent = Agent.JETT;
+public class Blaze extends Ability {
+    public Blaze() {
+        agent = Agent.PHOENIX;
+        maxUses = 1;
         hold = false;
     }
     @Override
     public void use(Player player, Vector direction) {
-        Vector velocity = player.getVelocity();
-        velocity.add(new Vector(0, 1, 0));
-        player.setVelocity(velocity);
+        Effects.wall(player.getLocation(), direction, Agent.PHOENIX, 20, 4, 8);
     }
 
     @Override
     public String getName() {
-        return "Updraft";
+        return "Blaze";
     }
 
     @Override
-    public void remove() {}
+    public void remove() {
+
+    }
 
     @Override
     public ItemStack getShopDisplay() {
@@ -34,6 +35,6 @@ public class Updraft extends Ability {
 
     @Override
     public Integer getPrice() {
-        return 150;
+        return 200;
     }
 }

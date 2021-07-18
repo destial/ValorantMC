@@ -5,6 +5,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
 
 public interface Flash {
+    void flash();
+    double getFlashDuration();
+    double getFlashRange();
     static boolean isSeen(Player player, Entity flash, int range) {
         if (player.getLocation().getWorld() != flash.getWorld()) return false;
         if (player.getLocation().distanceSquared(flash.getLocation()) > range * range) return false;

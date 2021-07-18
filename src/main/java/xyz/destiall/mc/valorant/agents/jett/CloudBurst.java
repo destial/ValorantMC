@@ -20,6 +20,9 @@ import java.util.*;
 
 public class CloudBurst extends Ability implements Smoke {
     private BukkitTask smokeTravelTask;
+    private Location l;
+    private final Vector gravity = new Vector(0, -1F, 0);
+    private final AtomicDouble time = new AtomicDouble(0D);
     public CloudBurst() {
         maxUses = 3;
         agent = Agent.JETT;
@@ -29,9 +32,7 @@ public class CloudBurst extends Ability implements Smoke {
 
     @Override
     public void use(Player player, Vector direction) {
-        final Location l = player.getEyeLocation().clone();
-        final Vector gravity = new Vector(0, -1F, 0);
-        final AtomicDouble time = new AtomicDouble(0D);
+        l = player.getEyeLocation().clone();
         smokeTravelTask = Scheduler.repeat(() -> {
             l.add(direction).add(gravity.multiply(time.get()));
             time.addAndGet(0.1D);
@@ -49,7 +50,7 @@ public class CloudBurst extends Ability implements Smoke {
 
     @Override
     public void remove() {
-
+        this.dissipate();
     }
 
     @Override
