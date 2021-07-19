@@ -1,12 +1,12 @@
 package xyz.destiall.mc.valorant.factories;
 
+import com.shampaggon.crackshot.CSUtility;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import xyz.destiall.mc.valorant.api.Armour;
 import xyz.destiall.mc.valorant.api.Gun;
-import com.shampaggon.crackshot.CSUtility;
 
 public class ItemFactory {
     private static Gun CLASSIC;

@@ -6,23 +6,24 @@ import xyz.destiall.mc.valorant.api.Participant;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class DeadBody {
     private static final HashMap<Participant, DeadBody> DEAD_BODIES = new HashMap<>();
-    private final List<ArmorStand> armorStands;
+    private final Set<ArmorStand> armorStands;
     private final Location location;
-    private Participant participant;
+    private final Participant participant;
     public DeadBody(Participant participant) {
         this.participant = participant;
         this.location = participant.getPlayer().getLocation().clone();
-        participant.setDead(true);
-        armorStands = new ArrayList<>();
-        DEAD_BODIES.put(participant, this);
+        armorStands = new HashSet<>();
     }
 
     public void die() {
-
+        participant.setDead(true);
+        DEAD_BODIES.put(participant, this);
     }
 
     public void despawn() {

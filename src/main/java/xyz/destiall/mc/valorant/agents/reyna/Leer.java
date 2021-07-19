@@ -5,7 +5,6 @@ import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 import xyz.destiall.mc.valorant.api.Participant;
 import xyz.destiall.mc.valorant.api.abilities.Ability;
@@ -13,10 +12,11 @@ import xyz.destiall.mc.valorant.api.abilities.Agent;
 import xyz.destiall.mc.valorant.api.abilities.Flash;
 import xyz.destiall.mc.valorant.managers.MatchManager;
 import xyz.destiall.mc.valorant.utils.Effects;
+import xyz.destiall.mc.valorant.utils.ScheduledTask;
 import xyz.destiall.mc.valorant.utils.Scheduler;
 
 public class Leer extends Ability implements Flash {
-    private BukkitTask leerTravelTask;
+    private ScheduledTask leerTravelTask;
     private Location l;
     private Player player;
     private ArmorStand as;
@@ -31,8 +31,8 @@ public class Leer extends Ability implements Flash {
     }
     @Override
     public void use(Player player, Vector direction) {
-        l = player.getEyeLocation().clone();
         this.player = player;
+        l = player.getEyeLocation().clone();
         as = Effects.getSmallArmorStand(l, agent);
         leerTravelTask = Scheduler.repeat(() -> {
             Vector vel = l.getDirection().multiply(1 / 20);

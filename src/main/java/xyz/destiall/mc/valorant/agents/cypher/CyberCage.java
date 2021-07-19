@@ -20,6 +20,7 @@ import xyz.destiall.mc.valorant.api.abilities.Smoke;
 import xyz.destiall.mc.valorant.managers.MatchManager;
 import xyz.destiall.mc.valorant.utils.Debugger;
 import xyz.destiall.mc.valorant.utils.Effects;
+import xyz.destiall.mc.valorant.utils.ScheduledTask;
 import xyz.destiall.mc.valorant.utils.Scheduler;
 
 import java.time.Duration;
@@ -27,8 +28,10 @@ import java.time.Duration;
 public class CyberCage extends Ability implements Smoke, Listener {
     private Location finalLoc;
     private Team team;
+    private ScheduledTask cageTask;
     public CyberCage() {
         agent = Agent.CYPHER;
+        cageTask = null;
         finalLoc = null;
         team = null;
     }
@@ -48,7 +51,9 @@ public class CyberCage extends Ability implements Smoke, Listener {
 
     @Override
     public void remove() {
-
+        if (cageTask == null) return;
+        Scheduler.cancel(cageTask);
+        dissipate();
     }
 
     @Override
@@ -65,7 +70,7 @@ public class CyberCage extends Ability implements Smoke, Listener {
     public void appear(Location location) {
         finalLoc = location;
         Bukkit.getPluginManager().registerEvents(this, Valorant.getInstance().getPlugin());
-        Effects.smoke(location, agent, getSmokeDuration().getSeconds());
+        cageTask = Effects.smoke(location, agent, getSmokeDuration().getSeconds());
         Scheduler.delay(this::dissipate, getSmokeDuration().toMillis() / 1000L * 20L);
     }
 

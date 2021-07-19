@@ -11,20 +11,21 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class Effects {
     private static ParticleNativeAPI PARTICLES_API;
     private static Particles_1_13 PARTICLES;
-    private static final List<Vector> SMOKE_SPHERE = new ArrayList<>();
-    private static final List<Vector> FLASH_SPHERE = new ArrayList<>();
-    private static final List<Vector> SMOKE_CYLINDER = new ArrayList<>();
-    private static final List<ArmorStand> SPAWNED_ARMOR_STANDS = new ArrayList<>();
+    private static final Set<Vector> SMOKE_SPHERE = new HashSet<>();
+    private static final Set<Vector> FLASH_SPHERE = new HashSet<>();
+    private static final Set<Vector> SMOKE_CYLINDER = new HashSet<>();
+    private static final Set<ArmorStand> SPAWNED_ARMOR_STANDS = new HashSet<>();
     public Effects(ParticleNativeAPI api) {
         Effects.PARTICLES_API = api;
         PARTICLES = api.getParticles_1_13();
@@ -71,8 +72,8 @@ public class Effects {
         }
     }
 
-    public static BukkitTask smoke(Location location, Agent type, double duration) {
-        final List<ArmorStand> asList = new ArrayList<>();
+    public static ScheduledTask smoke(Location location, Agent type, double duration) {
+        final Set<ArmorStand> asList = new HashSet<>();
         for (Vector vect : type.equals(Agent.CYPHER) ? SMOKE_CYLINDER : SMOKE_SPHERE) {
             location.add(vect);
             location.setDirection(vect);
@@ -98,9 +99,9 @@ public class Effects {
         PARTICLES.sendPacket(location, 50D, packet);
     }
 
-    public static BukkitTask wall(Location origin, Vector direction, Agent type, double l, double h, double d) {
+    public static ScheduledTask wall(Location origin, Vector direction, Agent type, double l, double h, double d) {
         final Vector dir = direction.clone().normalize();
-        final List<Vector> locationList = new ArrayList<>();
+        final Set<Vector> locationList = new HashSet<>();
         for (double i = 0; i <= l; i += 0.5) {
             Vector vect = new Vector(dir.getX() * i, 0, dir.getZ() * i);
             Location location = origin.clone().add(vect);
@@ -114,7 +115,7 @@ public class Effects {
                 locationList.add(vect);
             }
         }
-        final List<ArmorStand> asList = new ArrayList<>();
+        final Set<ArmorStand> asList = new HashSet<>();
         for (Vector vect : locationList) {
             Location loc = origin.clone().add(vect);
             ArmorStand as = getArmorStand(loc, type);
@@ -130,17 +131,17 @@ public class Effects {
         }, (long) (d * 20L));
     }
 
-    public static BukkitTask flash(Player player, Agent type, double duration) {
+    public static ScheduledTask flash(Player player, Agent type, double duration) {
         Location location = player.getEyeLocation();
         player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, (int) duration + 2, 1));
-        final List<ArmorStand> asList = new ArrayList<>();
+        final Set<ArmorStand> asList = new HashSet<>();
         for (Vector vect : FLASH_SPHERE) {
             location.add(vect);
             location.setDirection(vect);
             asList.add(getSmallArmorStand(location, type));
             location.subtract(vect);
         }
-        final BukkitTask task = Scheduler.repeat(() -> {
+        final ScheduledTask task = Scheduler.repeat(() -> {
             for (ArmorStand as : asList) {
                 Vector dist = player.getEyeLocation().subtract(as.getLocation()).toVector();
                 as.teleport(as.getLocation().add(dist));

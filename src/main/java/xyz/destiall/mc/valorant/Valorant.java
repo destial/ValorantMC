@@ -4,7 +4,6 @@ import com.github.fierioziy.particlenativeapi.api.ParticleNativeAPI;
 import com.github.fierioziy.particlenativeapi.api.utils.ParticleException;
 import com.github.fierioziy.particlenativeapi.core.ParticleNativeCore;
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -13,6 +12,7 @@ import xyz.destiall.mc.valorant.listeners.InventoryListener;
 import xyz.destiall.mc.valorant.listeners.MatchListener;
 import xyz.destiall.mc.valorant.listeners.SovaListener;
 import xyz.destiall.mc.valorant.listeners.TestListener;
+import xyz.destiall.mc.valorant.managers.AbilityManager;
 import xyz.destiall.mc.valorant.managers.ConfigManager;
 import xyz.destiall.mc.valorant.managers.MapManager;
 import xyz.destiall.mc.valorant.managers.MatchManager;
@@ -41,6 +41,7 @@ public class Valorant {
     public void disable() {
         MatchManager.getInstance().disable();
         MapManager.getInstance().unloadMaps();
+        AbilityManager.stopAll();
         Effects.disable();
         HandlerList.unregisterAll(plugin);
         Scheduler.cancelAll();

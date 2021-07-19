@@ -1,22 +1,22 @@
 package xyz.destiall.mc.valorant.agents.jett;
 
-import org.bukkit.Bukkit;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.util.Vector;
-import xyz.destiall.mc.valorant.Valorant;
 import xyz.destiall.mc.valorant.api.Ultimate;
 import xyz.destiall.mc.valorant.utils.Effects;
+import xyz.destiall.mc.valorant.utils.ScheduledTask;
 import xyz.destiall.mc.valorant.utils.Scheduler;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class BladeStorm extends Ultimate {
-    private BukkitTask task;
+    private ScheduledTask task;
     public BladeStorm() {
         maxUses = -1;
         hold = true;
@@ -30,7 +30,7 @@ public class BladeStorm extends Ultimate {
 
         Vector right = new Vector(0, 1, 0).crossProduct(target).normalize();
 
-        final List<ArmorStand> asList = new ArrayList<>();
+        final Set<ArmorStand> asList = new HashSet<>();
         ArmorStand as1 = Effects.getBladeStormArmorStand(player.getLocation());
         as1.setRightArmPose(Position.LOWER_RIGHT.ANGLE);
         as1.teleport(player.getEyeLocation().add(right).subtract(0, 0.1, 0));
