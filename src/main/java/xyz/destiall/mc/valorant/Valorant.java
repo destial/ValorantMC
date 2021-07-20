@@ -1,5 +1,7 @@
 package xyz.destiall.mc.valorant;
 
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
 import com.github.fierioziy.particlenativeapi.api.ParticleNativeAPI;
 import com.github.fierioziy.particlenativeapi.api.utils.ParticleException;
 import com.github.fierioziy.particlenativeapi.core.ParticleNativeCore;
@@ -58,7 +60,8 @@ public class Valorant {
         new MatchManager();
         try {
             ParticleNativeAPI api = ParticleNativeCore.loadAPI(plugin);
-            new Effects(api);
+            ProtocolManager pm = ProtocolLibrary.getProtocolManager();
+            new Effects(api, pm);
         } catch (ParticleException e) {
             e.printStackTrace();
         }

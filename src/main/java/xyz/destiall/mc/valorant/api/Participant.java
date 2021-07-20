@@ -22,7 +22,7 @@ public interface Participant {
     Integer getDeaths();
     Integer getAssists();
     Agent getAgent();
-    HashMap<Integer, Ability> getAbilities();
+    HashMap<Ability, Integer> getAbilities();
     Ultimate getUlt();
     Gun getPrimaryGun();
     Gun getSecondaryGun();

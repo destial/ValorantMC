@@ -5,11 +5,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.List;
 
-public class Armour implements ShopItem, Giveable {
+public class Armor implements ShopItem, Giveable {
     private final Integer armour;
     private final ItemStack display;
     private final Integer price;
-    public Armour(ItemStack display, Integer amount, Integer price) {
+    public Armor(ItemStack display, Integer amount, Integer price) {
         this.armour = amount;
         this.display = display;
         this.price = price;

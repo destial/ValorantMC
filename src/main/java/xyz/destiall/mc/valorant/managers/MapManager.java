@@ -1,6 +1,5 @@
 package xyz.destiall.mc.valorant.managers;
 
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import xyz.destiall.mc.valorant.Valorant;
 import xyz.destiall.mc.valorant.api.Map;
@@ -13,6 +12,7 @@ import java.util.List;
 
 public class MapManager {
     private final List<Map> maps = new ArrayList<>();
+    private final File mapFolder;
     private static MapManager instance;
 
     public static MapManager getInstance() {
@@ -20,20 +20,24 @@ public class MapManager {
     }
     public MapManager() {
         instance = this;
+        mapFolder = new File(Valorant.getInstance().getPlugin().getDataFolder(), "maps" + File.separator);
         loadMaps();
     }
 
+    public File getMapFolder() {
+        return mapFolder;
+    }
+
     public void loadMaps() {
-        File mapFolder = new File(Valorant.getInstance().getPlugin().getDataFolder(), "maps" + File.separator);
         if (!mapFolder.exists()) {
             mapFolder.mkdir();
         }
-        if (mapFolder.list() == null) return;
-        for (String mapFileName : mapFolder.list()) {
-            if (!mapFileName.toLowerCase().endsWith(".yml")) continue;
-            File mapFile = new File(mapFolder, mapFileName);
-            FileConfiguration mapConfig = YamlConfiguration.loadConfiguration(mapFile);
-            Map map = MatchFactory.createMap(mapConfig);
+        String[] list = mapFolder.list();
+        if (list == null) return;
+        for (String mapFileName : list) {
+            if (!mapFileName.toLowerCase().endsWith(".yml") || !mapFileName.toLowerCase().endsWith(".yaml")) continue;
+            Map map = MatchFactory.createMap(YamlConfiguration.loadConfiguration(new File(mapFolder, mapFileName)));
+            if (map == null) continue;
             Debugger.debug("Loaded Valorant Map " + map.getName());
             maps.add(map);
         }

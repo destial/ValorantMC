@@ -1,7 +1,11 @@
 package xyz.destiall.mc.valorant.utils;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.events.PacketContainer;
 import com.github.fierioziy.particlenativeapi.api.ParticleNativeAPI;
 import com.github.fierioziy.particlenativeapi.api.Particles_1_13;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.ArmorStand;
@@ -14,20 +18,20 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class Effects {
     private static ParticleNativeAPI PARTICLES_API;
+    private static ProtocolManager PROTOCOL_LIB;
     private static Particles_1_13 PARTICLES;
     private static final Set<Vector> SMOKE_SPHERE = new HashSet<>();
     private static final Set<Vector> FLASH_SPHERE = new HashSet<>();
     private static final Set<Vector> SMOKE_CYLINDER = new HashSet<>();
     private static final Set<ArmorStand> SPAWNED_ARMOR_STANDS = new HashSet<>();
-    public Effects(ParticleNativeAPI api) {
+    public Effects(ParticleNativeAPI api, ProtocolManager pm) {
         Effects.PARTICLES_API = api;
+        Effects.PROTOCOL_LIB = pm;
         PARTICLES = api.getParticles_1_13();
         createSmokeSphere();
         createFlashSphere();
@@ -72,6 +76,14 @@ public class Effects {
         }
     }
 
+    public static void shockDart(Location location) {
+        for (Vector vect : SMOKE_SPHERE) {
+            location.add(vect);
+            smokeTravel(location, Agent.SOVA);
+            location.subtract(vect);
+        }
+    }
+
     public static ScheduledTask smoke(Location location, Agent type, double duration) {
         final Set<ArmorStand> asList = new HashSet<>();
         for (Vector vect : type.equals(Agent.CYPHER) ? SMOKE_CYLINDER : SMOKE_SPHERE) {
@@ -92,6 +104,14 @@ public class Effects {
     public static void smokeTravel(Location location, Agent type) {
         Object packet = PARTICLES.DUST_COLOR_TRANSITION().color(type.COLOR, type.COLOR, 2).packet(false, location);
         PARTICLES.sendPacket(location, 50D, packet);
+    }
+
+    public static void bullet(Location origin, Vector direction) {
+        while (origin.getBlock().isPassable()) {
+            origin.add(direction);
+            Object packet = PARTICLES.DUST_COLOR_TRANSITION().color(Color.WHITE, Color.WHITE, 1).packet(false, origin);
+            PARTICLES.sendPacket(origin, 50D, packet);
+        }
     }
 
     public static void flashTravel(Location location, Agent type) {

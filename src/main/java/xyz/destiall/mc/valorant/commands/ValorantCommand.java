@@ -6,109 +6,72 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import xyz.destiall.mc.valorant.Valorant;
-import xyz.destiall.mc.valorant.agents.cypher.CyberCage;
-import xyz.destiall.mc.valorant.agents.jett.BladeStorm;
-import xyz.destiall.mc.valorant.agents.jett.CloudBurst;
-import xyz.destiall.mc.valorant.agents.jett.Updraft;
-import xyz.destiall.mc.valorant.agents.phoenix.Blaze;
-import xyz.destiall.mc.valorant.agents.reyna.Leer;
-import xyz.destiall.mc.valorant.managers.MatchManager;
+import xyz.destiall.mc.valorant.commands.map.MapCommand;
 
-import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ValorantCommand implements CommandExecutor, TabExecutor {
     private final Valorant valorant;
+    private final Set<SubCommand> commands = new HashSet<>();
     public ValorantCommand() {
         valorant = Valorant.getInstance();
+        commands.add(new AbilityCommand());
+        commands.add(new MatchCommand());
+        commands.add(new MapCommand());
+        commands.add(new GunCommand());
+        commands.add(new ReloadCommand());
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (sender instanceof Player) {
-            if (args.length == 0) return false;
-            Player player = (Player) sender;
-            if (args[0].equalsIgnoreCase("ability") && args.length > 1) {
-                switch (args[1].toLowerCase()) {
-                    case "cloudburst": {
-                        CloudBurst cb = new CloudBurst();
-                        cb.use(player, player.getLocation().getDirection());
-                        break;
-                    }
-                    case "leer": {
-                        Leer leer = new Leer();
-                        leer.use(player, player.getLocation().getDirection());
-                        break;
-                    }
-                    case "updraft": {
-                        Updraft ud = new Updraft();
-                        ud.use(player, player.getLocation().getDirection());
-                        break;
-                    }
-                    case "bladestorm": {
-                        BladeStorm bs = new BladeStorm();
-                        bs.use(player, player.getLocation().getDirection());
-                        break;
-                    }
-                    case "cybercage": {
-                        CyberCage cc = new CyberCage();
-                        cc.use(player, player.getLocation().getDirection());
-                        break;
-                    }
-                    case "blaze": {
-                        Blaze b = new Blaze();
-                        b.use(player, player.getLocation().getDirection());
-                        break;
-                    }
-                    default:
-                        break;
-                }
-            } else if (args[0].equalsIgnoreCase("match") && args.length > 1) {
-                switch (args[1].toLowerCase()) {
-                    case "start": {
-                        //Match match = MatchManager.getInstance().createNewMatch();
-                        break;
-                    }
-                    case "end": {
-                        if (args.length > 2) {
-                            try {
-                                int id = Integer.parseInt(args[2]);
-                            } catch (NumberFormatException ignored) {}
-                        }
-                        break;
-                    }
-                    default: break;
-                }
-            } else if (args[0].equalsIgnoreCase("reload")) {
-                Valorant.getInstance().disable();
-                Valorant.getInstance().enable();
-            }
+        if (args.length == 0) {
+            sendHelp(sender);
+            return false;
         }
-        return false;
+        SubCommand cmd = commands.stream().filter(c -> c.getName().equalsIgnoreCase(args[0])).findFirst().orElse(null);
+        if (cmd == null) {
+            sendError(sender);
+            return false;
+        }
+        if (sender instanceof Player) {
+            Player player = (Player) sender;
+            cmd.runPlayer(player, Arrays.copyOfRange(args, 1, args.length));
+        } else {
+            cmd.runConsole(sender, Arrays.copyOfRange(args, 1, args.length));
+        }
+        return true;
     }
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (args == null || args.length == 0) return new ArrayList<>();
+        if (args == null || args.length == 0) return new LinkedList<>();
         if (args.length == 1) {
-            List<String> tab = Arrays.asList("match", "ability", "reload");
-            return tab.stream().filter(a -> a.toLowerCase().contains(args[0].toLowerCase())).collect(Collectors.toList());
+            return commands.stream().filter(c -> c.getName().toLowerCase().contains(args[0])).map(SubCommand::getName).collect(Collectors.toList());
         }
-        if (args[0].equalsIgnoreCase("ability")) {
-            List<String> tab = Arrays.asList("cloudburst", "updraft", "leer", "bladestorm", "cybercage", "blaze");
-            return tab.stream().filter(a -> a.toLowerCase().contains(args[1].toLowerCase())).collect(Collectors.toList());
+        SubCommand cmd = commands.stream().filter(c -> c.getName().toLowerCase().contains(args[0])).findFirst().orElse(null);
+        if (cmd == null) return new LinkedList<>();
+        String arg = args[1];
+        for (int i = 1; i <= args.length - 1; ++i) {
+            arg = args[i];
+            final String finalArg = arg;
+            cmd = cmd.getSubCommands().stream().filter(c -> c.getName().equalsIgnoreCase(finalArg)).findFirst().orElse(null);
+            if (cmd == null) break;
         }
-        if (args[0].equalsIgnoreCase("match")) {
-            if (args.length == 2) {
-                List<String> tab = Arrays.asList("start", "end");
-                return tab.stream().filter(a -> a.toLowerCase().contains(args[1].toLowerCase())).collect(Collectors.toList());
-            }
-            if (args[1].equalsIgnoreCase("end")) {
-                return MatchManager.getInstance().getAllMatches().stream().map(m -> String.valueOf(m.getID())).collect(Collectors.toList());
-            }
-        }
-        return new ArrayList<>();
+        if (cmd == null) return new LinkedList<>();
+        final String finalArg1 = arg;
+        return cmd.getTab().stream().filter(c -> c.toLowerCase().contains(finalArg1)).collect(Collectors.toList());
+    }
+
+    public void sendHelp(CommandSender sender) {
+        sender.sendMessage("Command is: /valorant");
+    }
+
+    public void sendError(CommandSender sender) {
+        sender.sendMessage("Error while using command!");
     }
 }

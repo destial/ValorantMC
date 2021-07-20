@@ -26,7 +26,7 @@ public class ParticipantImpl implements Participant {
     private final Team team;
     private final Economy econ;
     private final Knife knife;
-    private final HashMap<Integer, Ability> abilities = new HashMap<>();
+    private final HashMap<Ability, Integer> abilities = new HashMap<>();
     private Gun primary;
     private Gun secondary;
     private Agent agent;
@@ -104,13 +104,13 @@ public class ParticipantImpl implements Participant {
     }
 
     @Override
-    public HashMap<Integer, Ability> getAbilities() {
+    public HashMap<Ability, Integer> getAbilities() {
         return abilities;
     }
 
     @Override
     public Ultimate getUlt() {
-        return (Ultimate) abilities.values().stream().filter(a -> a instanceof Ultimate).findFirst().orElse(null);
+        return (Ultimate) abilities.keySet().stream().filter(a -> a instanceof Ultimate).findFirst().orElse(null);
     }
 
     @Override
@@ -185,16 +185,20 @@ public class ParticipantImpl implements Participant {
 
     @Override
     public void chooseAgent(Agent agent) {
-        abilities.clear();
+        if (abilities.size() != 0) return;
+        this.agent = agent;
         switch (agent) {
             case JETT: {
-                abilities.put(5, new Updraft());
-                abilities.put(6, new CloudBurst());
-                abilities.put(7, new BladeStorm());
+                Updraft up = new Updraft();
+                abilities.put(up, up.getMaxUses());
+                CloudBurst cb = new CloudBurst();
+                abilities.put(cb, cb.getMaxUses());
+                abilities.put(new BladeStorm(), 0);
                 break;
             }
             case REYNA: {
-                abilities.put(5, new Leer());
+                Leer l = new Leer();
+                abilities.put(l, l.getMaxUses());
                 break;
             }
             default: break;

@@ -6,19 +6,20 @@ import org.bukkit.event.Event;
 
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 public interface Match {
     int getID();
-    List<Team> getTeams();
-    Team getAttacker();
-    Team getDefender();
-    HashMap<UUID, Participant> getPlayers();
+    Set<Team> getTeams();
     Integer getRound();
     Map getMap();
+    Shop getShop();
+    boolean isBuyPeriod();
+    boolean isWaitingForPlayers();
 
     void switchSides();
+    void endRound();
     void nextRound();
     void start();
     void end();
@@ -35,7 +36,22 @@ public interface Match {
     default boolean isInMatch(Player player) {
         return getPlayers().keySet().stream().anyMatch(k -> k.equals(player.getUniqueId()));
     }
+    default HashMap<UUID, Participant> getPlayers() {
+        HashMap<UUID, Participant> players = new HashMap<>();
+        for (Team team : getTeams()) {
+            for (Participant participant : team.getMembers()) {
+                players.put(participant.getUUID(), participant);
+            }
+        }
+        return players;
+    }
     default void callEvent(Event event) {
         Bukkit.getPluginManager().callEvent(event);
+    }
+    default Team getAttacker() {
+        return getTeams().stream().filter(t -> t.getSide().equals(Team.Side.ATTACKER)).findFirst().orElse(null);
+    }
+    default Team getDefender() {
+        return getTeams().stream().filter(t -> t.getSide().equals(Team.Side.DEFENDER)).findFirst().orElse(null);
     }
 }

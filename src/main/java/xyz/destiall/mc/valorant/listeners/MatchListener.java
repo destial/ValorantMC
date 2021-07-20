@@ -1,5 +1,6 @@
 package xyz.destiall.mc.valorant.listeners;
 
+import com.shampaggon.crackshot.events.WeaponDamageEntityEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -36,5 +37,19 @@ public class MatchListener implements Listener {
             killer.addKill();
         }
         victim.getMatch().callEvent(new DeathEvent(victim, killer));
+    }
+
+    @EventHandler
+    public void onWeaponDamage(WeaponDamageEntityEvent e) {
+        if (!(e.getVictim() instanceof Player)) return;
+        Participant victim = MatchManager.getInstance().getParticipant((Player) e.getVictim());
+        if (victim == null) return;
+        Participant damager = MatchManager.getInstance().getParticipant(e.getPlayer());
+        if (damager == null) return;
+        if (victim.getTeam() == damager.getTeam()) {
+            e.setCancelled(true);
+            e.setDamage(0);
+            e.getDamager().teleport(e.getDamager().getLocation().clone().add(e.getDamager().getVelocity().clone().normalize()));
+        }
     }
 }

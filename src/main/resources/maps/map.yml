@@ -37,4 +37,18 @@ sites:
     zmx: 30
     xmn: 20
     zmn: 20
-  
+walls:
+  '1':
+    xmx: 10
+    ymx: 10
+    zmx: 10
+    xmn: 0
+    ymn: 0
+    zmn: 0
+  '2':
+    xmx: 20
+    ymx: 20
+    zmx: 20
+    xmn: 10
+    ymn: 10
+    zmn: 10

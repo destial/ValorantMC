@@ -1,5 +1,6 @@
 package xyz.destiall.mc.valorant.agents.jett;
 
+import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -10,13 +11,12 @@ import xyz.destiall.mc.valorant.utils.Effects;
 import xyz.destiall.mc.valorant.utils.ScheduledTask;
 import xyz.destiall.mc.valorant.utils.Scheduler;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class BladeStorm extends Ultimate {
     private ScheduledTask task;
+    private final Set<ArmorStand> asList = new HashSet<>();
     public BladeStorm() {
         maxUses = -1;
         hold = true;
@@ -29,37 +29,42 @@ public class BladeStorm extends Ultimate {
         target.normalize();
 
         Vector right = new Vector(0, 1, 0).crossProduct(target).normalize();
+        Location eyeLocation = player.getLocation().clone();
+        eyeLocation.add(0, 2, 0);
 
-        final Set<ArmorStand> asList = new HashSet<>();
-        ArmorStand as1 = Effects.getBladeStormArmorStand(player.getLocation());
+        ArmorStand as1 = Effects.getBladeStormArmorStand(eyeLocation.clone());
+        as1.setInvisible(false);
         as1.setRightArmPose(Position.LOWER_RIGHT.ANGLE);
-        as1.teleport(player.getEyeLocation().add(right).subtract(0, 0.1, 0));
+        as1.teleport(eyeLocation.clone().add(right).subtract(0, 1, 0));
         asList.add(as1);
 
-        ArmorStand as2 = Effects.getBladeStormArmorStand(player.getLocation());
+        ArmorStand as2 = Effects.getBladeStormArmorStand(eyeLocation.clone());
         as2.setRightArmPose(Position.UPPER_RIGHT.ANGLE);
-        as2.teleport(player.getEyeLocation().add(right).add(0, 0.1, 0));
+        as2.teleport(eyeLocation.clone().add(right).add(0, 1, 0));
         asList.add(as2);
 
-        ArmorStand as3 = Effects.getBladeStormArmorStand(player.getLocation());
+        ArmorStand as3 = Effects.getBladeStormArmorStand(eyeLocation.clone());
         as3.setRightArmPose(Position.MIDDLE.ANGLE);
-        as3.teleport(player.getEyeLocation().add(0, 0.1, 0));
+        as3.teleport(eyeLocation.clone().add(0, 1, 0));
         asList.add(as3);
 
-        ArmorStand as4 = Effects.getBladeStormArmorStand(player.getLocation());
+        ArmorStand as4 = Effects.getBladeStormArmorStand(eyeLocation.clone());
         as4.setRightArmPose(Position.LOWER_LEFT.ANGLE);
-        as4.teleport(player.getEyeLocation().add(new Vector(-right.getX(), -0.1, -right.getZ())));
+        as4.teleport(eyeLocation.clone().add(new Vector(-right.getX(), -1, -right.getZ())));
         asList.add(as4);
 
-        ArmorStand as5 = Effects.getBladeStormArmorStand(player.getLocation());
+        ArmorStand as5 = Effects.getBladeStormArmorStand(eyeLocation.clone());
         as5.setRightArmPose(Position.UPPER_LEFT.ANGLE);
-        as5.teleport(player.getEyeLocation().add(new Vector(-right.getX(), 0.1, -right.getZ())));
+        as5.teleport(eyeLocation.clone().add(new Vector(-right.getX(), 1, -right.getZ())));
         asList.add(as5);
 
         task = Scheduler.repeat(() -> {
             for (ArmorStand a : asList) {
-                Vector dist = player.getEyeLocation().subtract(a.getLocation()).toVector();
-                a.teleport(a.getLocation().add(dist).setDirection(player.getLocation().getDirection()));
+                Location eye = player.getLocation().clone();
+                eye.add(0, 2, 0);
+                Vector dist = eye.clone().subtract(a.getLocation().clone()).toVector();
+                Vector d = eye.getDirection().clone();
+                a.teleport(a.getLocation().clone().add(dist).setDirection(d));
             }
         }, 1L);
         Scheduler.delay(() -> {
@@ -100,7 +105,7 @@ public class BladeStorm extends Ultimate {
 
         public final EulerAngle ANGLE;
         Position() {
-            this.ANGLE = new EulerAngle(Math.PI, -Math.PI * 2, 0);
+            this.ANGLE = new EulerAngle(0, 0, 0);
         }
     }
 }

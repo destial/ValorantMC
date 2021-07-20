@@ -4,17 +4,20 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.util.BoundingBox;
 
-import java.util.List;
+import java.util.Set;
 
 public interface Map {
     World getWorld();
     BoundingBox getBounds();
     String getName();
-    List<Site> getSites();
+    Set<Site> getSites();
+    Set<BoundingBox> getWalls();
     Location getAttackerSpawn();
     Location getDefenderSpawn();
     float getSpawnRadius();
     boolean isInUse();
+    void pullDownWalls();
+    void pullUpWalls();
 
     void setUse(boolean use);
 

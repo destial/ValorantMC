@@ -2,9 +2,12 @@ package xyz.destiall.mc.valorant.classes;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import xyz.destiall.mc.valorant.api.AgentPicker;
 import xyz.destiall.mc.valorant.api.Map;
 import xyz.destiall.mc.valorant.api.Match;
 import xyz.destiall.mc.valorant.api.Participant;
+import xyz.destiall.mc.valorant.api.Shop;
 import xyz.destiall.mc.valorant.api.Team;
 import xyz.destiall.mc.valorant.api.events.match.MatchCompleteEvent;
 import xyz.destiall.mc.valorant.api.events.match.MatchInterruptEvent;
@@ -14,22 +17,28 @@ import xyz.destiall.mc.valorant.api.events.round.RoundFinishEvent;
 import xyz.destiall.mc.valorant.api.events.round.RoundStartEvent;
 import xyz.destiall.mc.valorant.managers.MatchManager;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.HashSet;
+import java.util.Set;
 
 public class MatchImpl implements Match {
+    private final Set<Team> teams = new HashSet<>();
+    private final HashMap<Participant, ItemStack[]> inventories = new HashMap<>();
     private final Map map;
+    private final Shop shop;
     private final int id;
     private int round;
-    private final List<Team> teams = new ArrayList<>();
+    private boolean buyPeriod;
+    private AgentPicker agentPicker;
     public MatchImpl(Map map, int id) {
         this.id = id;
         this.map = map;
+        this.shop = new Shop(this);
         teams.add(new TeamImpl(this, Team.Side.ATTACKER));
         teams.add(new TeamImpl(this, Team.Side.DEFENDER));
         round = 0;
+        buyPeriod = true;
+        this.agentPicker = new AgentPicker(this);
     }
 
     @Override
@@ -38,29 +47,8 @@ public class MatchImpl implements Match {
     }
 
     @Override
-    public List<Team> getTeams() {
+    public Set<Team> getTeams() {
         return teams;
-    }
-
-    @Override
-    public Team getAttacker() {
-        return teams.stream().filter(t -> t.getSide().equals(Team.Side.ATTACKER)).findFirst().orElse(null);
-    }
-
-    @Override
-    public Team getDefender() {
-        return teams.stream().filter(t -> t.getSide().equals(Team.Side.DEFENDER)).findFirst().orElse(null);
-    }
-
-    @Override
-    public HashMap<UUID, Participant> getPlayers() {
-        HashMap<UUID, Participant> players = new HashMap<>();
-        for (Team team : teams) {
-            for (Participant participant : team.getMembers()) {
-                players.put(participant.getUUID(), participant);
-            }
-        }
-        return players;
     }
 
     @Override
@@ -71,6 +59,21 @@ public class MatchImpl implements Match {
     @Override
     public Map getMap() {
         return map;
+    }
+
+    @Override
+    public Shop getShop() {
+        return shop;
+    }
+
+    @Override
+    public boolean isBuyPeriod() {
+        return buyPeriod;
+    }
+
+    @Override
+    public boolean isWaitingForPlayers() {
+        return agentPicker != null;
     }
 
     @Override
@@ -89,17 +92,30 @@ public class MatchImpl implements Match {
     }
 
     @Override
+    public void endRound() {
+
+    }
+
+    @Override
     public void nextRound() {
         callEvent(new RoundFinishEvent(this));
         round++;
         callEvent(new RoundStartEvent(this));
+        buyPeriod = true;
     }
 
     @Override
     public void start() {
         MatchStartEvent e = new MatchStartEvent(this);
         callEvent(e);
-        if (!e.isCancelled()) return;
+        if (!e.isCancelled()) {
+            agentPicker.close();
+            agentPicker = null;
+            for (Participant p : getPlayers().values()) {
+                p.applyDefaultSet();
+            }
+            return;
+        }
         end();
     }
 
@@ -109,9 +125,13 @@ public class MatchImpl implements Match {
         Location loc = MatchManager.getInstance().getLobby();
         for (Participant p : getPlayers().values()) {
             p.getPlayer().getInventory().clear();
+            ItemStack[] stacks = inventories.get(p);
+            p.getPlayer().getInventory().addItem(stacks);
             p.getPlayer().teleport(loc);
         }
+        inventories.clear();
         teams.clear();
+        buyPeriod = false;
         if (isComplete()) {
             callEvent(new MatchCompleteEvent(this));
             return;
@@ -125,5 +145,7 @@ public class MatchImpl implements Match {
         if (team == null) return;
         Participant participant = new ParticipantImpl(player, team);
         team.getMembers().add(participant);
+        inventories.put(participant, player.getInventory().getContents().clone());
+        player.getInventory().clear();
     }
 }

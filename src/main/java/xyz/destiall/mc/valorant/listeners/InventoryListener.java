@@ -3,6 +3,7 @@ package xyz.destiall.mc.valorant.listeners;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
@@ -25,7 +26,7 @@ public class InventoryListener implements Listener {
         if (participant.isAwaitingUlt()) {
             participant.getUlt().remove();
         }
-        Ability ability = participant.getAbilities().get(e.getNewSlot());
+        Ability ability = participant.getAbilities().keySet().stream().filter(a -> a.getSlot() == e.getNewSlot()).findFirst().orElse(null);
         if (ability == null) {
             if (e.getPlayer().getInventory().getItemInMainHand().getType().isAir()) {
                 e.setCancelled(true);
@@ -66,6 +67,15 @@ public class InventoryListener implements Listener {
         if (!e.getPlayer().getInventory().equals(e.getInventory())) return;
         if (!(e.getPlayer() instanceof Player)) return;
         Player p = (Player) e.getPlayer();
+        Participant participant = MatchManager.getInstance().getParticipant(p);
+        if (participant == null) return;
+        e.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onInventoryMove(InventoryInteractEvent e) {
+        if (!(e.getWhoClicked() instanceof Player)) return;
+        Player p = (Player) e.getWhoClicked();
         Participant participant = MatchManager.getInstance().getParticipant(p);
         if (participant == null) return;
         e.setCancelled(true);

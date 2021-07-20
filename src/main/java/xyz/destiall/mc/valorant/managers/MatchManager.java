@@ -2,34 +2,38 @@ package xyz.destiall.mc.valorant.managers;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 import xyz.destiall.mc.valorant.api.Map;
 import xyz.destiall.mc.valorant.api.Match;
 import xyz.destiall.mc.valorant.api.Participant;
+import xyz.destiall.mc.valorant.api.Shop;
 import xyz.destiall.mc.valorant.factories.MatchFactory;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class MatchManager {
-    private final List<Match> matches = new ArrayList<>();
+    private final Set<Match> matches = new HashSet<>();
     private Location lobby;
     private static MatchManager instance;
 
     public MatchManager() {
         instance = this;
         lobby = null;
+        Shop.setup();
     }
 
     public void disable() {
         for (Match match : matches) {
+            match.getShop().close();
             match.end();
         }
         matches.clear();
     }
 
     public Location getLobby() {
-        return lobby == null ? Bukkit.getWorld("world").getSpawnLocation() : lobby;
+        return lobby == null ? Bukkit.getWorlds().stream().filter(w -> w.getEnvironment().equals(World.Environment.NORMAL)).findFirst().get().getSpawnLocation() : lobby;
     }
 
     public void setLobby(Location lobby) {
@@ -64,7 +68,7 @@ public class MatchManager {
         return matches.stream().filter(m -> m.getID() == id).findFirst().orElse(null);
     }
 
-    public List<Match> getAllMatches() {
+    public Set<Match> getAllMatches() {
         return matches;
     }
 }
