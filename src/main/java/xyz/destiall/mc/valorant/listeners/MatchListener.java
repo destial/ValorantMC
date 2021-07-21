@@ -2,6 +2,7 @@ package xyz.destiall.mc.valorant.listeners;
 
 import com.shampaggon.crackshot.events.WeaponDamageEntityEvent;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -70,9 +71,14 @@ public class MatchListener implements Listener {
 
     @EventHandler
     public void onPlayerScope(PlayerInteractEvent e) {
-        if (e.getAction().equals(Action.RIGHT_CLICK_AIR) && e.getPlayer().getInventory().getItemInMainHand().getType().equals(Material.SPYGLASS)) {
-            ItemMeta meta = e.getPlayer().getInventory().getItemInMainHand().getItemMeta();
-            if (!meta.getDisplayName().toLowerCase().contains(Gun.Name.OPERATOR.name().toLowerCase())) return;
+        if (e.getAction() != Action.LEFT_CLICK_AIR || e.getAction() != Action.RIGHT_CLICK_AIR) return;
+        if (!e.getPlayer().getInventory().getItemInMainHand().getType().equals(Material.SPYGLASS)) return;
+        ItemMeta meta = e.getPlayer().getInventory().getItemInMainHand().getItemMeta();
+        if (!meta.hasLore()) return;
+        if (!meta.getLore().get(0).toUpperCase().contains(Gun.Type.SNIPER.name())) return;
+        String dmgRaw = meta.getLore().get(1).substring(("Damage: " + ChatColor.RED).length());
+        double dmg = Double.parseDouble(dmgRaw);
+        if (e.getAction() == Action.RIGHT_CLICK_AIR) {
             Boolean isHolding = list.computeIfAbsent(e.getPlayer(), k -> true);
             if (isHolding) {
                 list2.put(e.getPlayer(), false);
@@ -83,7 +89,7 @@ public class MatchListener implements Listener {
                         list.put(e.getPlayer(), false);
                         if (list2.get(e.getPlayer())) return;
                         list2.put(e.getPlayer(), true);
-                        Shooter.snipe(e.getPlayer(), e.getPlayer().getEyeLocation(), e.getPlayer().getLocation().getDirection(), 50, 0);
+                        Shooter.snipe(e.getPlayer(), e.getPlayer().getEyeLocation(), e.getPlayer().getLocation().getDirection(), dmg, 0);
                         t.cancel();
                     }
                 }, 1L);
@@ -92,6 +98,16 @@ public class MatchListener implements Listener {
                 list.put(e.getPlayer(), true);
                 Bukkit.getPluginManager().callEvent(new PlayerInteractEvent(e.getPlayer(), e.getAction(), e.getItem(), e.getClickedBlock(), e.getBlockFace()));
             }
+            return;
         }
+        if (e.getPlayer().isSneaking()) {
+            Shooter.snipe(e.getPlayer(), e.getPlayer().getEyeLocation(), e.getPlayer().getLocation().getDirection(), dmg, 1);
+            return;
+        }
+        if (e.getPlayer().isSprinting()) {
+            Shooter.snipe(e.getPlayer(), e.getPlayer().getEyeLocation(), e.getPlayer().getLocation().getDirection(), dmg, 3);
+            return;
+        }
+        Shooter.snipe(e.getPlayer(), e.getPlayer().getEyeLocation(), e.getPlayer().getLocation().getDirection(), dmg, 2);
     }
 }

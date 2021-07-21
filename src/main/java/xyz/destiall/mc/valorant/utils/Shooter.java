@@ -39,7 +39,7 @@ public class Shooter {
         for (Entity entity : hitEntities) {
             if (entity instanceof LivingEntity) {
                 LivingEntity live = (LivingEntity) entity;
-                double dmg = live.getHealth();
+                double dmg = damage;
                 if (current.clone().subtract(live.getEyeLocation().clone()).length() < 1) {
                     dmg = live.getHealth() + live.getAbsorptionAmount();
                 }

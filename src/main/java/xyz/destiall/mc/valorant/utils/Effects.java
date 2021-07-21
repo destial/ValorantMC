@@ -16,8 +16,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
+import xyz.destiall.mc.valorant.api.Match;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
 
+import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -101,17 +103,15 @@ public class Effects {
         }, (long) (duration * 20L));
     }
 
+    public static void dartTravel(Location origin, @Nullable Match match) {
+        Object packet = PARTICLES.DUST_COLOR_TRANSITION().color(Color.BLUE, Color.BLUE, 1).packet(false, origin);
+        if (match == null) {
+        }
+    }
+
     public static void smokeTravel(Location location, Agent type) {
         Object packet = PARTICLES.DUST_COLOR_TRANSITION().color(type.COLOR, type.COLOR, 2).packet(false, location);
         PARTICLES.sendPacket(location, 50D, packet);
-    }
-
-    public static void bullet(Location origin, Vector direction) {
-        while (origin.getBlock().isPassable()) {
-            origin.add(direction);
-            Object packet = PARTICLES.DUST_COLOR_TRANSITION().color(Color.WHITE, Color.WHITE, 1).packet(false, origin);
-            PARTICLES.sendPacket(origin, 50D, packet);
-        }
     }
 
     public static void flashTravel(Location location, Agent type) {

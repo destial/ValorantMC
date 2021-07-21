@@ -9,6 +9,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import xyz.destiall.mc.valorant.api.Gun;
 import xyz.destiall.mc.valorant.listeners.SovaListener;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 public class GunCommand extends SubCommand {
@@ -26,7 +27,10 @@ public class GunCommand extends SubCommand {
             ItemStack bow = new ItemStack(Material.BOW, 1);
             ItemMeta meta = bow.getItemMeta();
             meta.setDisplayName(SovaListener.SOVA_BOW_NAME + "«0»");
-            meta.setLore(Collections.singletonList(ChatColor.YELLOW + "Bow Type: " + ChatColor.GOLD + "RADAR"));
+            meta.setLore(Arrays.asList(
+                    ChatColor.YELLOW + "Bow Type: " + ChatColor.GOLD + "RADAR",
+                    ChatColor.YELLOW + "Charges: " + ChatColor.RED + "2"
+            ));
             bow.setItemMeta(meta);
             player.getInventory().addItem(bow);
             return;
@@ -35,7 +39,10 @@ public class GunCommand extends SubCommand {
             ItemStack bow = new ItemStack(Material.BOW, 1);
             ItemMeta meta = bow.getItemMeta();
             meta.setDisplayName(SovaListener.SOVA_BOW_NAME + "«0»");
-            meta.setLore(Collections.singletonList(ChatColor.YELLOW + "Bow Type: " + ChatColor.GOLD + "RADAR"));
+            meta.setLore(Arrays.asList(
+                    ChatColor.YELLOW + "Bow Type: " + ChatColor.GOLD + "SHOCK",
+                    ChatColor.YELLOW + "Charges: " + ChatColor.RED + "2"
+            ));
             bow.setItemMeta(meta);
             player.getInventory().addItem(bow);
             return;
@@ -47,7 +54,10 @@ public class GunCommand extends SubCommand {
             name = name.toLowerCase();
             name = name.substring(0, 1).toUpperCase() + name.substring(1);
             meta.setDisplayName(ChatColor.YELLOW + name);
-            meta.setLore(Collections.singletonList(ChatColor.YELLOW + "Type: " + ChatColor.GOLD + Gun.Name.OPERATOR.getType().name()));
+            meta.setLore(Arrays.asList(
+                    ChatColor.YELLOW + "Type: " + ChatColor.GOLD + Gun.Name.OPERATOR.getType().name(),
+                    ChatColor.YELLOW + "Damage: " + ChatColor.RED + "-1"
+            ));
             operator.setItemMeta(meta);
             player.getInventory().addItem(operator);
         }
