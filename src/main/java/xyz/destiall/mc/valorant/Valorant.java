@@ -10,10 +10,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import xyz.destiall.mc.valorant.commands.ValorantCommand;
-import xyz.destiall.mc.valorant.listeners.InventoryListener;
-import xyz.destiall.mc.valorant.listeners.MatchListener;
-import xyz.destiall.mc.valorant.listeners.SovaListener;
-import xyz.destiall.mc.valorant.listeners.TestListener;
+import xyz.destiall.mc.valorant.listeners.*;
 import xyz.destiall.mc.valorant.managers.AbilityManager;
 import xyz.destiall.mc.valorant.managers.ConfigManager;
 import xyz.destiall.mc.valorant.managers.MapManager;
@@ -48,6 +45,7 @@ public class Valorant {
         HandlerList.unregisterAll(plugin);
         Scheduler.cancelAll();
         plugin.getServer().getPluginCommand("valorant").setExecutor(null);
+        Bukkit.getScheduler().cancelTasks(plugin);
     }
 
     public void enable() {
@@ -56,8 +54,8 @@ public class Valorant {
         if (!shopFile.exists()) {
             plugin.saveResource("shop.yml", true);
         }
-        new MapManager();
-        new MatchManager();
+        MapManager.getInstance();
+        MatchManager.getInstance();
         try {
             ParticleNativeAPI api = ParticleNativeCore.loadAPI(plugin);
             ProtocolManager pm = ProtocolLibrary.getProtocolManager();
@@ -74,6 +72,7 @@ public class Valorant {
         Bukkit.getPluginManager().registerEvents(new InventoryListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new SovaListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new MatchListener(), plugin);
+        Bukkit.getPluginManager().registerEvents(new GunListener(), plugin);
     }
 
     private void registerCommands() {

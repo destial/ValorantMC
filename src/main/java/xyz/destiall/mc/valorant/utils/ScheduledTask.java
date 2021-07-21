@@ -5,10 +5,12 @@ import org.bukkit.scheduler.BukkitTask;
 public class ScheduledTask {
     private final BukkitTask task;
     private final Runnable runnable;
+    private final TaskType type;
     private boolean runOnCancel;
-    public ScheduledTask(BukkitTask task, Runnable runnable) {
+    public ScheduledTask(BukkitTask task, Runnable runnable, TaskType type) {
         this.runnable = runnable;
         this.task = task;
+        this.type = type;
         runOnCancel = false;
     }
 
@@ -20,6 +22,10 @@ public class ScheduledTask {
         if (task.isCancelled()) return;
         task.cancel();
         if (runOnCancel) runnable.run();
+    }
+
+    public TaskType getTaskType() {
+        return type;
     }
 
     public void run() {
@@ -36,5 +42,10 @@ public class ScheduledTask {
 
     public boolean willRunOnCancel() {
         return runOnCancel;
+    }
+
+    enum TaskType {
+        DELAY,
+        REPEATED
     }
 }

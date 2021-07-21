@@ -10,7 +10,6 @@ import xyz.destiall.mc.valorant.api.Gun;
 import xyz.destiall.mc.valorant.listeners.SovaListener;
 
 import java.util.Arrays;
-import java.util.Collections;
 
 public class GunCommand extends SubCommand {
     public GunCommand() {

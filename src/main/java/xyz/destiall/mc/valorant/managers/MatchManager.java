@@ -14,46 +14,49 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class MatchManager {
-    private final Set<Match> matches = new HashSet<>();
+    private final Set<Match> MATCHES = new HashSet<>();
     private Location lobby;
     private static MatchManager instance;
 
-    public MatchManager() {
+    public static MatchManager getInstance() {
+        if (instance == null) {
+            instance = new MatchManager();
+            Shop.setup();
+        }
+        return instance;
+    }
+
+    private MatchManager() {
         instance = this;
         lobby = null;
-        Shop.setup();
     }
 
     public void disable() {
-        for (Match match : matches) {
+        for (Match match : MATCHES) {
             match.getShop().close();
             match.end();
         }
-        matches.clear();
+        MATCHES.clear();
     }
 
     public Location getLobby() {
-        return lobby == null ? Bukkit.getWorlds().stream().filter(w -> w.getEnvironment().equals(World.Environment.NORMAL)).findFirst().get().getSpawnLocation() : lobby;
+        return lobby == null ? Bukkit.getWorlds().stream().filter(w -> w.getEnvironment() == World.Environment.NORMAL).findFirst().get().getSpawnLocation() : lobby;
     }
 
     public void setLobby(Location lobby) {
         this.lobby = lobby;
     }
 
-    public static MatchManager getInstance() {
-        return instance;
-    }
-
     public Match createNewMatch() {
         Map map = MapManager.getInstance().getRandomMap();
         if (map == null) return null;
         Match match = MatchFactory.createMatch(map);
-        matches.add(match);
+        MATCHES.add(match);
         return match;
     }
 
     public Participant getParticipant(Player player) {
-        Match match = matches.stream().filter(m -> m.isInMatch(player)).findFirst().orElse(null);
+        Match match = MATCHES.stream().filter(m -> m.isInMatch(player)).findFirst().orElse(null);
         if (match == null) return null;
         return match.getPlayers().get(player.getUniqueId());
     }
@@ -65,10 +68,18 @@ public class MatchManager {
     }
 
     public Match getMatch(int id) {
-        return matches.stream().filter(m -> m.getID() == id).findFirst().orElse(null);
+        return MATCHES.stream().filter(m -> m.getID() == id).findFirst().orElse(null);
+    }
+
+    public Match getMatch(Location location) {
+        return MATCHES.stream().filter(m -> m.getMap().getBounds().contains(location.toVector())).findFirst().orElse(null);
+    }
+
+    public Match getMatch(Map map) {
+        return MATCHES.stream().filter(m -> m.getMap() == map).findFirst().orElse(null);
     }
 
     public Set<Match> getAllMatches() {
-        return matches;
+        return MATCHES;
     }
 }
