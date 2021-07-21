@@ -1,11 +1,13 @@
 package xyz.destiall.mc.valorant.listeners;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
 import org.bukkit.entity.AbstractArrow;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -91,7 +93,14 @@ public class SovaListener implements Listener {
             if (type == 1) {
                 Effects.shockDart(arrow.getLocation());
                 for (Entity entity : arrow.getNearbyEntities(4, 4, 4)) {
-                    entity.setLastDamageCause(new EntityDamageEvent(arrow, EntityDamageEvent.DamageCause.ENTITY_ATTACK, 15));
+                    EntityDamageEvent edmg = new EntityDamageEvent(arrow, EntityDamageEvent.DamageCause.PROJECTILE, 15);
+                    entity.setLastDamageCause(edmg);
+                    Bukkit.getPluginManager().callEvent(edmg);
+                    if (edmg.isCancelled()) continue;
+                    if (entity instanceof LivingEntity) {
+                        LivingEntity live = (LivingEntity) entity;
+                        live.damage(15);
+                    }
                 }
             } else {
                 for (Entity entity : arrow.getNearbyEntities(5, 5, 5)) {

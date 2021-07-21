@@ -39,15 +39,17 @@ public class Shooter {
         for (Entity entity : hitEntities) {
             if (entity instanceof LivingEntity) {
                 LivingEntity live = (LivingEntity) entity;
-                double dmg = damage;
+                double dmg = live.getHealth();
                 if (current.clone().subtract(live.getEyeLocation().clone()).length() < 1) {
-                    dmg *= 2;
+                    dmg = live.getHealth() + live.getAbsorptionAmount();
                 }
                 EntityDamageEvent e = new EntityDamageEvent(shooter, EntityDamageEvent.DamageCause.ENTITY_ATTACK, dmg);
-                entity.setLastDamageCause(e);
+                live.setLastDamageCause(e);
                 Bukkit.getPluginManager().callEvent(e);
+                if (e.isCancelled()) continue;
+                live.damage(dmg);
             } else {
-                entity.getWorld().playEffect(entity.getLocation(), Effect.ANVIL_BREAK, 1);
+                entity.getWorld().playEffect(entity.getLocation(), Effect.STEP_SOUND, 1);
                 entity.remove();
             }
         }
@@ -55,6 +57,6 @@ public class Shooter {
 
     private static boolean isPassable(Block block) {
         Material type = block.getType();
-        return block.isPassable() || block.isEmpty() || !type.isAir() || !type.isSolid();
+        return (block.isPassable() || block.isEmpty()) && (type.isAir() || !type.isSolid());
     }
 }
