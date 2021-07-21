@@ -1,29 +1,19 @@
 package xyz.destiall.mc.valorant.listeners;
 
-import com.comphenix.protocol.PacketType;
-import com.github.fierioziy.particlenativeapi.api.PlayerConnection;
 import org.bukkit.ChatColor;
-import org.bukkit.Color;
-import org.bukkit.Effect;
-import org.bukkit.FireworkEffect;
 import org.bukkit.Sound;
 import org.bukkit.entity.AbstractArrow;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
-import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.block.EntityBlockFormEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityEnterBlockEvent;
-import org.bukkit.event.entity.EntityEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
@@ -35,11 +25,9 @@ import xyz.destiall.mc.valorant.utils.ScheduledTask;
 import xyz.destiall.mc.valorant.utils.Scheduler;
 
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Set;
 
 public class SovaListener implements Listener {
-    public static final String SOVA_BOW_NAME = ChatColor.BLUE + "SOVA BOW ";
+    public static final String SOVA_BOW_NAME = ChatColor.BLUE + "Sova Bow " + ChatColor.AQUA;
     private final HashMap<Arrow, ScheduledTask> arrows = new HashMap<>();
 
     @EventHandler
@@ -48,21 +36,24 @@ public class SovaListener implements Listener {
         if (!(e.getProjectile() instanceof Arrow)) return;
         ItemMeta meta = e.getBow().getItemMeta();
         Arrow arrow = (Arrow) e.getProjectile();
-        int index = meta.getDisplayName().indexOf("(");
+        int index = meta.getDisplayName().indexOf("«");
         int amt = Integer.parseInt(String.valueOf(meta.getDisplayName().charAt(++index)));
         int type = 1;
         if (meta.hasLore()) {
             String string = meta.getLore().get(0);
-            if (string.toLowerCase().contains("radar")) {
+            if (string.contains("RADAR")) {
                 type = 0;
             }
         }
         arrow.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
-        arrow.setCustomName(e.getEntity().getName() + "'s " + ChatColor.BLUE + (type == 1 ? "Shock Dart" : "Radar Dart"));
+        arrow.setCustomName(ChatColor.BLUE + (type == 1 ? "Shock Dart" : "Radar Dart"));
         arrow.setMetadata("valorant_sova_rebounds", new FixedMetadataValue(Valorant.getInstance().getPlugin(), amt));
         arrow.setMetadata("valorant_sova_type", new FixedMetadataValue(Valorant.getInstance().getPlugin(), type));
         ScheduledTask task = Scheduler.repeat(() -> {
            Effects.smokeTravel(arrow.getLocation(), Agent.SOVA);
+           if (arrow.isDead()) {
+               arrows.get(arrow).cancel();
+           }
         }, 1L);
         arrows.put(arrow, task);
     }
@@ -74,12 +65,12 @@ public class SovaListener implements Listener {
         if (!e.getItem().getItemMeta().getDisplayName().startsWith(SOVA_BOW_NAME)) return;
         e.getPlayer().playSound(e.getPlayer().getEyeLocation(), Sound.BLOCK_LEVER_CLICK, 1, 1);
         ItemMeta meta = e.getItem().getItemMeta();
-        int index = meta.getDisplayName().indexOf("(");
+        int index = meta.getDisplayName().indexOf("«");
         int amt = Integer.parseInt(String.valueOf(meta.getDisplayName().charAt(++index)));
-        if (amt == 1) {
-            amt = 2;
-        } else if (amt == 2) {
-            amt = 1;
+        if (amt == 2) {
+            amt = 0;
+        } else {
+            ++amt;
         }
         String displayName = meta.getDisplayName();
         displayName = displayName.replace(String.valueOf(amt == 1 ? 2 : 1), String.valueOf(amt));
@@ -138,35 +129,16 @@ public class SovaListener implements Listener {
             v.multiply(0.6);
             e.setCancelled(true);
             arrow.remove();
-            Arrow arrow1 = (Arrow) arrow.getWorld().spawnEntity(arrow.getLocation().add(v), EntityType.ARROW);
+            Arrow arrow1 = copyArrow(arrow);
             arrow1.setVelocity(v);
             arrow1.getLocation().setDirection(v.clone().normalize());
-            arrow1.getLocation().setWorld(arrow.getWorld());
-            arrow1.setShooter(arrow.getShooter());
-            arrow1.setDamage(arrow.getDamage());
-            arrow1.setGravity(arrow.hasGravity());
-            arrow1.setFallDistance(arrow.getFallDistance());
-            arrow1.setSilent(arrow.isSilent());
-            arrow1.setVisualFire(arrow.isVisualFire());
-            arrow1.setBounce(arrow.doesBounce());
-            arrow1.setShotFromCrossbow(arrow.isShotFromCrossbow());
-            arrow1.setPierceLevel(arrow.getPierceLevel());
-            arrow1.setInvulnerable(arrow.isInvulnerable());
-            arrow1.setKnockbackStrength(arrow.getKnockbackStrength());
-            arrow1.setCritical(arrow.isCritical());
-            arrow1.setCustomName(arrow.getCustomName());
-            arrow1.setCustomNameVisible(arrow.isCustomNameVisible());
-            arrow1.setPersistent(arrow.isPersistent());
-            arrow1.setGlowing(arrow.isGlowing());
-            arrow1.setTicksLived(arrow.getTicksLived());
-            arrow1.setFreezeTicks(arrow.getFreezeTicks());
-            arrow1.setFireTicks(arrow.getFireTicks());
-            arrow1.setOp(arrow.isOp());
-            arrow1.setPickupStatus(arrow.getPickupStatus());
             arrow1.setMetadata("valorant_sova_rebounds", new FixedMetadataValue(Valorant.getInstance().getPlugin(), rebounds));
             arrow1.setMetadata("valorant_sova_type", new FixedMetadataValue(Valorant.getInstance().getPlugin(), type));
             ScheduledTask task = Scheduler.repeat(() -> {
                 Effects.smokeTravel(arrow1.getLocation(), Agent.SOVA);
+                if (arrow1.isDead()) {
+                    arrows.get(arrow1).cancel();
+                }
             }, 1L);
             arrows.put(arrow1, task);
             return;
@@ -181,5 +153,32 @@ public class SovaListener implements Listener {
     private Integer getArrowType(Entity arrow) {
         MetadataValue reboundMetaValue = arrow.getMetadata("valorant_sova_type").stream().filter(m -> m.getOwningPlugin() == Valorant.getInstance().getPlugin()).findFirst().orElse(null);
         return reboundMetaValue == null ? null : reboundMetaValue.asInt();
+    }
+
+    private Arrow copyArrow(Arrow arrow) {
+        Arrow arrow1 = (Arrow) arrow.getWorld().spawnEntity(arrow.getLocation(), EntityType.ARROW);
+        arrow1.getLocation().setWorld(arrow.getWorld());
+        arrow1.setShooter(arrow.getShooter());
+        arrow1.setDamage(arrow.getDamage());
+        arrow1.setGravity(arrow.hasGravity());
+        arrow1.setFallDistance(arrow.getFallDistance());
+        arrow1.setSilent(arrow.isSilent());
+        arrow1.setVisualFire(arrow.isVisualFire());
+        arrow1.setBounce(arrow.doesBounce());
+        arrow1.setShotFromCrossbow(arrow.isShotFromCrossbow());
+        arrow1.setPierceLevel(arrow.getPierceLevel());
+        arrow1.setInvulnerable(arrow.isInvulnerable());
+        arrow1.setKnockbackStrength(arrow.getKnockbackStrength());
+        arrow1.setCritical(arrow.isCritical());
+        arrow1.setCustomName(arrow.getCustomName());
+        arrow1.setCustomNameVisible(arrow.isCustomNameVisible());
+        arrow1.setPersistent(arrow.isPersistent());
+        arrow1.setGlowing(arrow.isGlowing());
+        arrow1.setTicksLived(arrow.getTicksLived());
+        arrow1.setFreezeTicks(arrow.getFreezeTicks());
+        arrow1.setFireTicks(arrow.getFireTicks());
+        arrow1.setOp(arrow.isOp());
+        arrow1.setPickupStatus(arrow.getPickupStatus());
+        return arrow1;
     }
 }
