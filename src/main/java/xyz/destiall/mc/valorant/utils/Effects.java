@@ -1,8 +1,6 @@
 package xyz.destiall.mc.valorant.utils;
 
-import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.PacketContainer;
 import com.github.fierioziy.particlenativeapi.api.ParticleNativeAPI;
 import com.github.fierioziy.particlenativeapi.api.Particles_1_13;
 import org.bukkit.Color;
@@ -16,9 +14,14 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
+import xyz.destiall.mc.valorant.api.Participant;
+import xyz.destiall.mc.valorant.api.Team;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
 
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class Effects {
@@ -101,17 +104,27 @@ public class Effects {
         }, (long) (duration * 20L));
     }
 
+    public static void dartTravel(Location location, @Nullable Participant participant) {
+        Object packet = PARTICLES.DUST_COLOR_TRANSITION().color(Color.BLUE, Color.BLUE, 1).packet(false, location);
+        if (participant != null) {
+            for (Participant own : participant.getTeam().getMembers()) {
+                PARTICLES.sendPacket(own.getPlayer(), packet);
+            }
+            packet = PARTICLES.DUST_COLOR_TRANSITION().color(Color.RED, Color.RED, 1).packet(false, location);
+            Team otherTeam = participant.getMatch().getTeams().stream().filter(t -> t != participant.getTeam()).findFirst().orElse(null);
+            if (otherTeam != null) {
+                for (Participant enemy : otherTeam.getMembers()) {
+                    PARTICLES.sendPacket(enemy.getPlayer(), packet);
+                }
+            }
+        } else {
+            PARTICLES.sendPacket(location, 50D, packet);
+        }
+    }
+
     public static void smokeTravel(Location location, Agent type) {
         Object packet = PARTICLES.DUST_COLOR_TRANSITION().color(type.COLOR, type.COLOR, 2).packet(false, location);
         PARTICLES.sendPacket(location, 50D, packet);
-    }
-
-    public static void bullet(Location origin, Vector direction) {
-        while (origin.getBlock().isPassable()) {
-            origin.add(direction);
-            Object packet = PARTICLES.DUST_COLOR_TRANSITION().color(Color.WHITE, Color.WHITE, 1).packet(false, origin);
-            PARTICLES.sendPacket(origin, 50D, packet);
-        }
     }
 
     public static void flashTravel(Location location, Agent type) {
@@ -121,7 +134,7 @@ public class Effects {
 
     public static ScheduledTask wall(Location origin, Vector direction, Agent type, double l, double h, double d) {
         final Vector dir = direction.clone().normalize();
-        final Set<Vector> locationList = new HashSet<>();
+        final List<Vector> locationList = new ArrayList<>();
         for (double i = 0; i <= l; i += 0.5) {
             Vector vect = new Vector(dir.getX() * i, 0, dir.getZ() * i);
             Location location = origin.clone().add(vect);
@@ -137,7 +150,7 @@ public class Effects {
         }
         final Set<ArmorStand> asList = new HashSet<>();
         for (Vector vect : locationList) {
-            Location loc = origin.clone().add(vect);
+            Location loc = origin.clone().add(vect).clone();
             ArmorStand as = getArmorStand(loc, type);
             as.teleport(loc);
             asList.add(as);

@@ -11,7 +11,7 @@ public class Scheduler {
 
     public static ScheduledTask delay(Runnable runnable, long delay) {
         BukkitTask task = Bukkit.getScheduler().runTaskLater(Valorant.getInstance().getPlugin(), runnable, delay);
-        ScheduledTask scheduledTask = new ScheduledTask(task, runnable);
+        ScheduledTask scheduledTask = new ScheduledTask(task, runnable, ScheduledTask.TaskType.DELAY);
         TASKS.add(scheduledTask);
         Bukkit.getScheduler().runTaskLater(Valorant.getInstance().getPlugin(), () -> TASKS.remove(scheduledTask), delay);
         return scheduledTask;
@@ -19,7 +19,7 @@ public class Scheduler {
 
     public static ScheduledTask repeat(Runnable runnable, long period) {
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(Valorant.getInstance().getPlugin(), runnable, 0L, period);
-        ScheduledTask scheduledTask = new ScheduledTask(task, runnable);
+        ScheduledTask scheduledTask = new ScheduledTask(task, runnable, ScheduledTask.TaskType.REPEATED);
         scheduledTask.setRunOnCancel(true);
         TASKS.add(scheduledTask);
         return scheduledTask;
@@ -27,7 +27,7 @@ public class Scheduler {
 
     public static ScheduledTask delayAsync(Runnable runnable, long delay) {
         BukkitTask task = Bukkit.getScheduler().runTaskLaterAsynchronously(Valorant.getInstance().getPlugin(), runnable, delay);
-        ScheduledTask scheduledTask = new ScheduledTask(task, runnable);
+        ScheduledTask scheduledTask = new ScheduledTask(task, runnable, ScheduledTask.TaskType.DELAY);
         TASKS.add(scheduledTask);
         Bukkit.getScheduler().runTaskLater(Valorant.getInstance().getPlugin(), () -> TASKS.remove(scheduledTask), delay);
         return scheduledTask;
@@ -35,7 +35,7 @@ public class Scheduler {
 
     public static ScheduledTask repeatAsync(Runnable runnable, long period) {
         BukkitTask task = Bukkit.getScheduler().runTaskTimerAsynchronously(Valorant.getInstance().getPlugin(), runnable, 0L, period);;
-        ScheduledTask scheduledTask = new ScheduledTask(task, runnable);
+        ScheduledTask scheduledTask = new ScheduledTask(task, runnable, ScheduledTask.TaskType.REPEATED);
         TASKS.add(scheduledTask);
         scheduledTask.setRunOnCancel(true);
         return scheduledTask;

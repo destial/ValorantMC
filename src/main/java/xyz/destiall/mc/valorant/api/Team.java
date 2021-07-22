@@ -1,9 +1,9 @@
 package xyz.destiall.mc.valorant.api;
 
-import java.util.List;
+import java.util.Set;
 
 public interface Team {
-    List<Participant> getMembers();
+    Set<Participant> getMembers();
     Integer getScore();
     void addScore();
     Match getMatch();

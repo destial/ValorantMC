@@ -7,21 +7,24 @@ import xyz.destiall.mc.valorant.factories.MatchFactory;
 import xyz.destiall.mc.valorant.utils.Debugger;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class MapManager {
-    private final List<Map> maps = new ArrayList<>();
+    private final Set<Map> MAPS = new HashSet<>();
     private final File mapFolder;
     private static MapManager instance;
 
     public static MapManager getInstance() {
+        if (instance == null) {
+            instance = new MapManager();
+            instance.loadMaps();
+        }
         return instance;
     }
-    public MapManager() {
+    private MapManager() {
         instance = this;
         mapFolder = new File(Valorant.getInstance().getPlugin().getDataFolder(), "maps" + File.separator);
-        loadMaps();
     }
 
     public File getMapFolder() {
@@ -39,12 +42,12 @@ public class MapManager {
             Map map = MatchFactory.createMap(YamlConfiguration.loadConfiguration(new File(mapFolder, mapFileName)));
             if (map == null) continue;
             Debugger.debug("Loaded Valorant Map " + map.getName());
-            maps.add(map);
+            MAPS.add(map);
         }
     }
 
     public Map getRandomMap() {
-        for (Map map : maps) {
+        for (Map map : MAPS) {
             if (map.isInUse()) continue;
             map.setUse(true);
             return map;
@@ -53,6 +56,6 @@ public class MapManager {
     }
 
     public void unloadMaps() {
-        maps.clear();
+        MAPS.clear();
     }
 }

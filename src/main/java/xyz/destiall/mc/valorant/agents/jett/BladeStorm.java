@@ -1,22 +1,27 @@
 package xyz.destiall.mc.valorant.agents.jett;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.util.Vector;
+import xyz.destiall.mc.valorant.Valorant;
 import xyz.destiall.mc.valorant.api.Ultimate;
 import xyz.destiall.mc.valorant.utils.Effects;
 import xyz.destiall.mc.valorant.utils.ScheduledTask;
 import xyz.destiall.mc.valorant.utils.Scheduler;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
-public class BladeStorm extends Ultimate {
+public class BladeStorm extends Ultimate implements Listener {
     private ScheduledTask task;
-    private final Set<ArmorStand> asList = new HashSet<>();
+    private ScheduledTask removalTask;
+    private final List<ArmorStand> asList = new ArrayList<>();
     public BladeStorm() {
         maxUses = -1;
         hold = true;
@@ -57,7 +62,7 @@ public class BladeStorm extends Ultimate {
         as5.setRightArmPose(Position.UPPER_LEFT.ANGLE);
         as5.teleport(eyeLocation.clone().add(new Vector(-right.getX(), 1, -right.getZ())));
         asList.add(as5);
-
+        Bukkit.getPluginManager().registerEvents(this, Valorant.getInstance().getPlugin());
         task = Scheduler.repeat(() -> {
             for (ArmorStand a : asList) {
                 Location eye = player.getLocation().clone();
@@ -67,7 +72,7 @@ public class BladeStorm extends Ultimate {
                 a.teleport(a.getLocation().clone().add(dist).setDirection(d));
             }
         }, 1L);
-        Scheduler.delay(() -> {
+        removalTask = Scheduler.delay(() -> {
             task.cancel();
             for (final ArmorStand a : asList) {
                 a.remove();
@@ -83,7 +88,14 @@ public class BladeStorm extends Ultimate {
 
     @Override
     public void remove() {
-
+        HandlerList.unregisterAll(this);
+        if (task != null) {
+            task.cancel();
+        }
+        if (removalTask != null) {
+            removalTask.run();
+            removalTask.cancel();
+        }
     }
 
     @Override

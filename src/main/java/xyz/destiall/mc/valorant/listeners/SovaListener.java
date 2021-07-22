@@ -3,12 +3,7 @@ package xyz.destiall.mc.valorant.listeners;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Sound;
-import org.bukkit.entity.AbstractArrow;
-import org.bukkit.entity.Arrow;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -21,12 +16,14 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.util.Vector;
 import xyz.destiall.mc.valorant.Valorant;
-import xyz.destiall.mc.valorant.api.abilities.Agent;
+import xyz.destiall.mc.valorant.api.Participant;
+import xyz.destiall.mc.valorant.managers.MatchManager;
 import xyz.destiall.mc.valorant.utils.Effects;
 import xyz.destiall.mc.valorant.utils.ScheduledTask;
 import xyz.destiall.mc.valorant.utils.Scheduler;
 
 import java.util.HashMap;
+import java.util.stream.Collectors;
 
 public class SovaListener implements Listener {
     public static final String SOVA_BOW_NAME = ChatColor.BLUE + "Sova Bow " + ChatColor.AQUA;
@@ -36,37 +33,51 @@ public class SovaListener implements Listener {
     public void onSovaShoot(EntityShootBowEvent e) {
         if (!e.getBow().getItemMeta().getDisplayName().startsWith(SOVA_BOW_NAME)) return;
         if (!(e.getProjectile() instanceof Arrow)) return;
+        if (!(e.getEntity() instanceof Player)) return;
+        Player player = (Player) e.getEntity();
         ItemMeta meta = e.getBow().getItemMeta();
-        Arrow arrow = (Arrow) e.getProjectile();
+        String chrgRaw = meta.getLore().get(1).substring((ChatColor.YELLOW + "Charges: " + ChatColor.RED).length());
+        double charges = Double.parseDouble(chrgRaw);
+        if (charges == 0) {
+            e.setCancelled(true);
+            return;
+        }
+        --charges;
+        meta.getLore().remove(1);
+        meta.getLore().add(ChatColor.YELLOW + "Charges: " + ChatColor.RED + charges);
         int index = meta.getDisplayName().indexOf("«");
         int amt = Integer.parseInt(String.valueOf(meta.getDisplayName().charAt(++index)));
         int type = 1;
-        if (meta.hasLore()) {
-            String string = meta.getLore().get(0);
-            if (string.contains("RADAR")) {
-                type = 0;
-            }
+        String string = meta.getLore().get(0);
+        if (string.contains("RADAR")) {
+            type = 0;
         }
+        e.getBow().setItemMeta(meta);
+        Arrow arrow = (Arrow) e.getProjectile();
         arrow.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
         arrow.setCustomName(ChatColor.BLUE + (type == 1 ? "Shock Dart" : "Radar Dart"));
         arrow.setMetadata("valorant_sova_rebounds", new FixedMetadataValue(Valorant.getInstance().getPlugin(), amt));
         arrow.setMetadata("valorant_sova_type", new FixedMetadataValue(Valorant.getInstance().getPlugin(), type));
         ScheduledTask task = Scheduler.repeat(() -> {
-           Effects.smokeTravel(arrow.getLocation(), Agent.SOVA);
-           if (arrow.isDead()) {
-               arrows.get(arrow).cancel();
-           }
+            Participant participant = MatchManager.getInstance().getParticipant(player);
+            Effects.dartTravel(arrow.getLocation(), participant);
+            if (arrow.isDead()) {
+                arrows.get(arrow).cancel();
+            }
         }, 1L);
         arrows.put(arrow, task);
     }
 
     @EventHandler
     public void onSovaChangeRebound(PlayerInteractEvent e) {
-        if (e.getAction() != Action.LEFT_CLICK_AIR) return;
+        if (e.getAction() != Action.LEFT_CLICK_AIR) {
+            onSovaDrawBow(e);
+            return;
+        }
         if (e.getItem() == null) return;
-        if (!e.getItem().getItemMeta().getDisplayName().startsWith(SOVA_BOW_NAME)) return;
-        e.getPlayer().playSound(e.getPlayer().getEyeLocation(), Sound.BLOCK_LEVER_CLICK, 1, 1);
         ItemMeta meta = e.getItem().getItemMeta();
+        if (!meta.getDisplayName().startsWith(SOVA_BOW_NAME)) return;
+        e.getPlayer().playSound(e.getPlayer().getEyeLocation(), Sound.BLOCK_LEVER_CLICK, 1, 1);
         int index = meta.getDisplayName().indexOf("«");
         int amt = Integer.parseInt(String.valueOf(meta.getDisplayName().charAt(++index)));
         if (amt == 2) {
@@ -80,10 +91,24 @@ public class SovaListener implements Listener {
         e.getItem().setItemMeta(meta);
     }
 
+    public void onSovaDrawBow(PlayerInteractEvent e) {
+        if (e.getAction() != Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) return;
+        if (e.getPlayer().getItemInUse() == null) return;
+        if (e.getItem() == null) return;
+        if (!e.getItem().equals(e.getPlayer().getItemInUse())) return;
+        ItemMeta meta = e.getItem().getItemMeta();
+        if (!meta.getDisplayName().startsWith(SOVA_BOW_NAME)) return;
+        String chrgRaw = meta.getLore().get(1).substring((ChatColor.YELLOW + "Charges: " + ChatColor.RED).length());
+        double charges = Double.parseDouble(chrgRaw);
+        if (charges == 0) e.setCancelled(true);
+    }
+
     @EventHandler
     public void onSovaArrow(ProjectileHitEvent e) {
         if (!(e.getEntity() instanceof Arrow)) return;
+        if (!(e.getEntity().getShooter() instanceof Player)) return;
         Arrow arrow = (Arrow) e.getEntity();
+        Player player = (Player) e.getEntity().getShooter();
         Integer rebounds = getRebounds(arrow);
         Integer type = getArrowType(arrow);
         if (rebounds == null) return;
@@ -92,33 +117,32 @@ public class SovaListener implements Listener {
             // 1: Shock, 0: Radar
             if (type == 1) {
                 Effects.shockDart(arrow.getLocation());
-                for (Entity entity : arrow.getNearbyEntities(4, 4, 4)) {
+                for (Entity entity : arrow.getNearbyEntities(4, 4, 4).stream().filter(en -> en instanceof LivingEntity).collect(Collectors.toList())) {
+                    LivingEntity live = (LivingEntity) entity;
                     EntityDamageEvent edmg = new EntityDamageEvent(arrow, EntityDamageEvent.DamageCause.PROJECTILE, 15);
-                    entity.setLastDamageCause(edmg);
+                    live.setLastDamageCause(edmg);
                     Bukkit.getPluginManager().callEvent(edmg);
                     if (edmg.isCancelled()) continue;
-                    if (entity instanceof LivingEntity) {
-                        LivingEntity live = (LivingEntity) entity;
-                        live.damage(15);
-                    }
+                    live.damage(15);
                 }
             } else {
-                for (Entity entity : arrow.getNearbyEntities(5, 5, 5)) {
+                for (Entity entity : arrow.getNearbyEntities(5, 5, 5).stream().filter(en -> en instanceof LivingEntity).collect(Collectors.toList())) {
+                    LivingEntity live = (LivingEntity) entity;
                     if (entity instanceof Player) {
-                        Player p = (Player) entity;
+                        Player p = (Player) live;
                         p.playSound(p.getEyeLocation(), Sound.BLOCK_LEVER_CLICK, 1, 9);
                     }
-                    entity.setGlowing(true);
+                    live.setGlowing(true);
                     Scheduler.delay(() -> {
-                        entity.setGlowing(false);
+                        live.setGlowing(false);
                         Scheduler.delay(() -> {
-                            if (entity instanceof Player) {
-                                Player p = (Player) entity;
+                            if (live instanceof Player) {
+                                Player p = (Player) live;
                                 p.playSound(p.getEyeLocation(), Sound.BLOCK_LEVER_CLICK, 1, 9);
                             }
-                            entity.setGlowing(true);
+                            live.setGlowing(true);
                             Scheduler.delay(() -> {
-                                entity.setGlowing(false);
+                                live.setGlowing(false);
                             }, 20L);
                         }, 20L);
                     }, 20L);
@@ -144,7 +168,8 @@ public class SovaListener implements Listener {
             arrow1.setMetadata("valorant_sova_rebounds", new FixedMetadataValue(Valorant.getInstance().getPlugin(), rebounds));
             arrow1.setMetadata("valorant_sova_type", new FixedMetadataValue(Valorant.getInstance().getPlugin(), type));
             ScheduledTask task = Scheduler.repeat(() -> {
-                Effects.smokeTravel(arrow1.getLocation(), Agent.SOVA);
+                Participant participant = MatchManager.getInstance().getParticipant(player);
+                Effects.dartTravel(arrow.getLocation(), participant);
                 if (arrow1.isDead()) {
                     arrows.get(arrow1).cancel();
                 }

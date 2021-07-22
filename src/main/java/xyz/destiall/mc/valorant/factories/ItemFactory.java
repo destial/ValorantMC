@@ -13,24 +13,46 @@ import xyz.destiall.mc.valorant.api.Gun;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 public class ItemFactory {
     private static Gun CLASSIC;
     private static final CSUtility CS_UTILITY = new CSUtility();
-    private static final CSDirector CS_DIRECTOR = CSDirector.getPlugin(CSDirector.class);
-    private static final File CS_WEAPON_FILE = new CSMinion(CS_DIRECTOR).grabDefaults("defaultWeapons.yml");
+    private static final CSDirector CS_DIRECTOR = CS_UTILITY.getHandle();
+    private static final CSMinion CS_MINION = new CSMinion(CS_DIRECTOR);
+    private static final File CS_WEAPON_FILE = CS_MINION.grabDefaults("defaultWeapons.yml");
     private static final YamlConfiguration CS_WEAPON_CONFIG = YamlConfiguration.loadConfiguration(CS_WEAPON_FILE);
+
     public static Gun createGun(String name, Integer price, Material material, int damage, int ammo, float reloadSpeed, float fireSpeed) {
         Gun.Name gunName = Gun.Name.valueOf(name);
-        ItemStack stack = new ItemStack(material);
-        ItemMeta meta = stack.getItemMeta();
-        meta.setDisplayName(ChatColor.AQUA + gunName.name().replace("_", " "));
-        stack.setItemMeta(meta);
-        Gun gun = new Gun(gunName, stack, damage, ammo, fireSpeed, reloadSpeed, price);
-        if (gunName.equals(Gun.Name.CLASSIC)) {
-            CLASSIC = gun;
+        String gname = gunName.name();
+        gname = gname.toLowerCase();
+        gname = gname.substring(0, 1).toUpperCase() + gname.substring(1);
+        gname = gname.replace("_", " ");
+        ItemStack stack;
+        Gun gun;
+        if (gunName.getType() == Gun.Type.SNIPER) {
+            stack = new ItemStack(Material.SPYGLASS, 1);
+            ItemMeta meta = stack.getItemMeta();
+            meta.setDisplayName(ChatColor.YELLOW + gname + ChatColor.WHITE + "«" + ammo + "»");
+            meta.setLore(Arrays.asList(
+                    ChatColor.YELLOW + "Type: " + ChatColor.GOLD + Gun.Type.SNIPER.name(),
+                    ChatColor.YELLOW + "Damage: " + ChatColor.RED + damage
+            ));
+            stack.setItemMeta(meta);
+            gun = new Gun(gunName, stack, damage, ammo, fireSpeed, reloadSpeed, price);
+        } else {
+            stack = new ItemStack(material);
+            ItemMeta meta = stack.getItemMeta();
+            meta.setDisplayName(ChatColor.YELLOW + gname + ChatColor.WHITE + "«" + ammo + "»");
+            stack.setItemMeta(meta);
+            gun = new Gun(gunName, stack, damage, ammo, fireSpeed, reloadSpeed, price);
+            if (gunName.equals(Gun.Name.CLASSIC)) {
+                CLASSIC = gun;
+            }
+            // TODO: Stop using crackshot as dependency
+            generateCrackshotGun(gun);
         }
-        generateCrackshotGun(gun);
         return gun;
     }
 
@@ -59,7 +81,7 @@ public class ItemFactory {
         CS_WEAPON_CONFIG.set(gun.getName().name() + ".Shooting.Recoil_Amount", 0);
         CS_WEAPON_CONFIG.set(gun.getName().name() + ".Shooting.Projectile_Amount", 1);
         CS_WEAPON_CONFIG.set(gun.getName().name() + ".Shooting.Projectile_Type", "snowball");
-        CS_WEAPON_CONFIG.set(gun.getName().name() + ".Shooting.Projectile_Speed", 1000);
+        CS_WEAPON_CONFIG.set(gun.getName().name() + ".Shooting.Projectile_Speed", 500);
         CS_WEAPON_CONFIG.set(gun.getName().name() + ".Shooting.Projectile_Damage", gun.getDamage());
         CS_WEAPON_CONFIG.set(gun.getName().name() + ".Shooting.Bullet_Spread", 1.5);
         CS_WEAPON_CONFIG.set(gun.getName().name() + ".Shooting.Sounds_Shoot", "IRONGOLEM_HIT-1-2-0,SKELETON_HURT-1-2-0,ZOMBIE_WOOD-1-2-0");
@@ -93,6 +115,7 @@ public class ItemFactory {
     public static void saveCSFile() {
         try {
             CS_WEAPON_CONFIG.save(CS_WEAPON_FILE);
+            CS_MINION.loadGeneralConfig();
         } catch (IOException e) {
             e.printStackTrace();
         }

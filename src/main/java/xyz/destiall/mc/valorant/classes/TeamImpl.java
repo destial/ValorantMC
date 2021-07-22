@@ -4,11 +4,11 @@ import xyz.destiall.mc.valorant.api.Match;
 import xyz.destiall.mc.valorant.api.Participant;
 import xyz.destiall.mc.valorant.api.Team;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 
 public class TeamImpl implements Team {
-    private final List<Participant> members = new ArrayList<>();
+    private final Set<Participant> members = new HashSet<>();
     private int score;
     private final Match match;
     private Side side;
@@ -17,7 +17,7 @@ public class TeamImpl implements Team {
         this.match = match;
     }
     @Override
-    public List<Participant> getMembers() {
+    public Set<Participant> getMembers() {
         return members;
     }
 

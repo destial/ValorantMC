@@ -4,7 +4,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -40,7 +39,7 @@ public class Shooter {
         for (Entity entity : hitEntities) {
             if (entity instanceof LivingEntity) {
                 LivingEntity live = (LivingEntity) entity;
-                double dmg = live.getHealth();
+                double dmg = damage;
                 if (current.clone().subtract(live.getEyeLocation().clone()).length() < 1) {
                     dmg = live.getHealth() + live.getAbsorptionAmount();
                 }
