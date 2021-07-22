@@ -15,7 +15,7 @@ public class Blaze extends Ability {
     }
     @Override
     public void use(Player player, Vector direction) {
-        Effects.wall(player.getLocation(), direction, Agent.PHOENIX, 20, 4, 8);
+        Effects.wall(player.getLocation().clone(), direction.clone(), Agent.PHOENIX, 20, 4, 8);
     }
 
     @Override

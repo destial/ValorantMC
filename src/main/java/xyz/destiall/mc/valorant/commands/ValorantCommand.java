@@ -8,7 +8,11 @@ import org.bukkit.entity.Player;
 import xyz.destiall.mc.valorant.Valorant;
 import xyz.destiall.mc.valorant.commands.map.MapCommand;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ValorantCommand implements CommandExecutor, TabExecutor {
@@ -51,23 +55,24 @@ public class ValorantCommand implements CommandExecutor, TabExecutor {
         }
         SubCommand cmd = commands.stream().filter(c -> c.getName().toLowerCase().contains(args[0])).findFirst().orElse(null);
         if (cmd == null) return new LinkedList<>();
-        String arg = args[1];
-        for (int i = 1; i <= args.length - 1; ++i) {
+        String arg;
+        for (int i = 0; i <= args.length - 1; ++i) {
             arg = args[i];
             final String finalArg = arg;
             cmd = cmd.getSubCommands().stream().filter(c -> c.getName().equalsIgnoreCase(finalArg)).findFirst().orElse(null);
             if (cmd == null) break;
         }
-        if (cmd == null) return new LinkedList<>();
-        final String finalArg1 = arg;
-        return cmd.getTab().stream().filter(c -> c.toLowerCase().contains(finalArg1)).collect(Collectors.toList());
+        if (cmd == null) {
+            return commands.stream().filter(c -> c.getName().toLowerCase().contains(args[args.length - 1])).map(SubCommand::getName).collect(Collectors.toList());
+        }
+        return cmd.getTab().stream().filter(c -> c.toLowerCase().contains(args[args.length - 1])).collect(Collectors.toList());
     }
 
-    public void sendHelp(CommandSender sender) {
+    public static void sendHelp(CommandSender sender) {
         sender.sendMessage("Command is: /valorant");
     }
 
-    public void sendError(CommandSender sender) {
+    public static void sendError(CommandSender sender) {
         sender.sendMessage("Error while using command!");
     }
 }

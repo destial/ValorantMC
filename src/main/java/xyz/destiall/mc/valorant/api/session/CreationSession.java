@@ -5,6 +5,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
 import xyz.destiall.mc.valorant.api.Site;
+import xyz.destiall.mc.valorant.factories.MatchFactory;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -59,16 +60,20 @@ public class CreationSession {
         return world;
     }
 
-    public void addWall(BoundingBox wall) {
+    public boolean addWall(BoundingBox wall) {
+        if (walls.stream().anyMatch(b -> b.contains(wall))) return false;
         this.walls.add(wall);
+        return true;
     }
 
     public Set<Site> getSites() {
         return sites;
     }
 
-    public void addSite(Site site) {
+    public boolean addSite(Site site) {
+        if (sites.stream().anyMatch(s -> s.getSiteType() == site.getSiteType())) return false;
         this.sites.add(site);
+        return true;
     }
 
     public void setAttackerSpawn(Location attackerSpawn) {
@@ -79,7 +84,7 @@ public class CreationSession {
         this.defenderSpawn = defenderSpawn;
     }
 
-    public void finish() {
-
+    public boolean finish() {
+        return MatchFactory.createMap(this) != null;
     }
 }

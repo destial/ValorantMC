@@ -10,7 +10,12 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import xyz.destiall.mc.valorant.commands.ValorantCommand;
-import xyz.destiall.mc.valorant.listeners.*;
+import xyz.destiall.mc.valorant.listeners.ChatListener;
+import xyz.destiall.mc.valorant.listeners.GunListener;
+import xyz.destiall.mc.valorant.listeners.InventoryListener;
+import xyz.destiall.mc.valorant.listeners.MatchListener;
+import xyz.destiall.mc.valorant.listeners.SovaListener;
+import xyz.destiall.mc.valorant.listeners.TestListener;
 import xyz.destiall.mc.valorant.managers.AbilityManager;
 import xyz.destiall.mc.valorant.managers.ConfigManager;
 import xyz.destiall.mc.valorant.managers.MapManager;
@@ -73,6 +78,7 @@ public class Valorant {
         Bukkit.getPluginManager().registerEvents(new SovaListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new MatchListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new GunListener(), plugin);
+        Bukkit.getPluginManager().registerEvents(new ChatListener(), plugin);
     }
 
     private void registerCommands() {

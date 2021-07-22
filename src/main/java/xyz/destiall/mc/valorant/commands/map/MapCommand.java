@@ -9,8 +9,20 @@ import java.util.Arrays;
 public class MapCommand extends SubCommand {
     public MapCommand() {
         super("map");
-        subCommands.add(new CreateMapCommand());
+        subCommands.add(new CreateCommand());
+        subCommands.add(new FinishCommand());
+        subCommands.add(new CancelCommand());
+        subCommands.add(new AddWallCommand());
+        subCommands.add(new AddSiteCommand());
+        subCommands.add(new SetAttackerCommand());
+        subCommands.add(new SetDefenderCommand());
         tab.add("create");
+        tab.add("finish");
+        tab.add("cancel");
+        tab.add("addwall");
+        tab.add("addsite");
+        tab.add("setattackers");
+        tab.add("setdefenders");
     }
 
     @Override

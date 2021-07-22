@@ -3,6 +3,7 @@ package xyz.destiall.mc.valorant.classes;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
 import xyz.destiall.mc.valorant.api.Map;
 import xyz.destiall.mc.valorant.api.Site;
@@ -26,7 +27,9 @@ public class MapImpl implements Map {
         this.bounds = bounds;
         this.spawnRadius = spawnRadius;
         this.attacker = attacker;
+        attacker.setWorld(world);
         this.defender = defender;
+        defender.setWorld(world);
         this.sites.addAll(sites);
         this.walls.addAll(walls);
         inUse = false;
@@ -63,11 +66,29 @@ public class MapImpl implements Map {
 
     @Override
     public Location getAttackerSpawn() {
+        for (double theta = 0; theta <= 2 * Math.PI; theta += Math.PI / 10) {
+            double x = spawnRadius * Math.cos(theta);
+            double z = spawnRadius * Math.sin(theta);
+            Location loc = attacker.clone();
+            loc.add(x, 0, z);
+            if (loc.getBlock().isEmpty() && world.getNearbyEntities(loc, 0.1, 0.1, 0.1).stream().noneMatch(e -> e instanceof Player)) {
+                return loc;
+            }
+        }
         return attacker;
     }
 
     @Override
     public Location getDefenderSpawn() {
+        for (double theta = 0; theta <= 2 * Math.PI; theta += Math.PI / 10) {
+            double x = spawnRadius * Math.cos(theta);
+            double z = spawnRadius * Math.sin(theta);
+            Location loc = defender.clone();
+            loc.add(x, 0, z);
+            if (loc.getBlock().isEmpty() && world.getNearbyEntities(loc, 0.1, 0.1, 0.1).stream().noneMatch(e -> e instanceof Player)) {
+                return loc;
+            }
+        }
         return defender;
     }
 

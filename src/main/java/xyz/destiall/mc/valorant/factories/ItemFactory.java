@@ -14,6 +14,8 @@ import xyz.destiall.mc.valorant.api.Gun;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ItemFactory {
     private static Gun CLASSIC;
@@ -23,8 +25,11 @@ public class ItemFactory {
     private static final File CS_WEAPON_FILE = CS_MINION.grabDefaults("defaultWeapons.yml");
     private static final YamlConfiguration CS_WEAPON_CONFIG = YamlConfiguration.loadConfiguration(CS_WEAPON_FILE);
 
+    public static final Set<Gun> ALL_GUNS = new HashSet<>();
+
     public static Gun createGun(String name, Integer price, Material material, int damage, int ammo, float reloadSpeed, float fireSpeed) {
         Gun.Name gunName = Gun.Name.valueOf(name);
+        if (ALL_GUNS.stream().anyMatch(g -> g.getName() == gunName)) return null;
         String gname = gunName.name();
         gname = gname.toLowerCase();
         gname = gname.substring(0, 1).toUpperCase() + gname.substring(1);
@@ -53,6 +58,7 @@ public class ItemFactory {
             // TODO: Stop using crackshot as dependency
             generateCrackshotGun(gun);
         }
+        ALL_GUNS.add(gun);
         return gun;
     }
 
@@ -119,6 +125,10 @@ public class ItemFactory {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static Gun getGun(ItemStack stack) {
+        return ALL_GUNS.stream().filter(g -> g.getItem().isSimilar(stack)).findFirst().orElse(null);
     }
 
     public static Gun GET_CLASSIC() {

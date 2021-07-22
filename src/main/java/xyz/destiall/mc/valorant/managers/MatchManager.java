@@ -8,6 +8,7 @@ import xyz.destiall.mc.valorant.api.Map;
 import xyz.destiall.mc.valorant.api.Match;
 import xyz.destiall.mc.valorant.api.Participant;
 import xyz.destiall.mc.valorant.api.Shop;
+import xyz.destiall.mc.valorant.api.events.match.MatchTerminateEvent;
 import xyz.destiall.mc.valorant.factories.MatchFactory;
 
 import java.util.HashSet;
@@ -34,7 +35,7 @@ public class MatchManager {
     public void disable() {
         for (Match match : MATCHES) {
             match.getShop().close();
-            match.end();
+            match.end(MatchTerminateEvent.Reason.FORCE);
         }
         MATCHES.clear();
     }

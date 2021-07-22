@@ -4,17 +4,17 @@ import org.bukkit.Location;
 import xyz.destiall.mc.valorant.api.events.spike.SpikeDefuseEvent;
 import xyz.destiall.mc.valorant.api.events.spike.SpikeDetonateEvent;
 import xyz.destiall.mc.valorant.api.events.spike.SpikePlaceEvent;
+import xyz.destiall.mc.valorant.utils.ScheduledTask;
+import xyz.destiall.mc.valorant.utils.Scheduler;
 
 import java.time.Duration;
-import java.util.Timer;
-import java.util.TimerTask;
 
 import static java.time.temporal.ChronoUnit.SECONDS;
 
 public class Spike {
     private Duration timer;
     private Long timePlaced;
-    private Timer spikeTimer;
+    private ScheduledTask spikeTimer;
     private final Match match;
     private Location plantedLocation;
     public Spike(Match match) {
@@ -29,18 +29,15 @@ public class Spike {
         plantedLocation = location;
         timer = Duration.of(45L, SECONDS);
         timePlaced = System.currentTimeMillis();
-        spikeTimer = new Timer();
         match.callEvent(new SpikePlaceEvent(this));
-        spikeTimer.scheduleAtFixedRate(new TimerTask() {
-            @Override
-            public void run() {
-                timer = timer.minusMillis(System.currentTimeMillis() - timePlaced);
-                if (timer.isZero() || timer.isNegative()) {
-                    detonate();
-                }
-                timePlaced = System.currentTimeMillis();
+        spikeTimer = Scheduler.repeat(() -> {
+            timer = timer.minusMillis(System.currentTimeMillis() - timePlaced);
+            if (timer.isZero() || timer.isNegative()) {
+                detonate();
+                spikeTimer.cancel();
             }
-        }, 0L, 1L);
+            timePlaced = System.currentTimeMillis();
+        }, 1L);
     }
 
     public void defuse() {

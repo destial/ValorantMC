@@ -122,6 +122,11 @@ public class Effects {
         }
     }
 
+    public static void bullet(Location location) {
+        Object packet = PARTICLES.DUST_COLOR_TRANSITION().color(Color.RED, Color.RED, 1).packet(false, location);
+        PARTICLES.sendPacket(location, 150D, packet);
+    }
+
     public static void smokeTravel(Location location, Agent type) {
         Object packet = PARTICLES.DUST_COLOR_TRANSITION().color(type.COLOR, type.COLOR, 2).packet(false, location);
         PARTICLES.sendPacket(location, 50D, packet);

@@ -73,11 +73,15 @@ public class MatchFactory {
             config.set("world", session.getWorld().getName());
             setBounds("bounds", config, session.getBounds());
             config.set("spawn.radius", 3);
+            if (session.getAttackerSpawn() == null) return null;
             setLocation("spawn.attacker", config, session.getAttackerSpawn());
+            if (session.getDefenderSpawn() == null) return null;
             setLocation("spawn.defender", config, session.getDefenderSpawn());
+            if (session.getSites().size() == 0) return null;
             for (Site site : session.getSites()) {
                 setBounds("sites." + site.getSiteType().name(), config, site.getBounds());
             }
+            if (session.getWalls().size() == 0) return null;
             int i = 1;
             for (BoundingBox wall : session.getWalls()) {
                 setBounds("walls." + i, config, wall);

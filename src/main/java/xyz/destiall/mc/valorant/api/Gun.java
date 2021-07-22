@@ -1,7 +1,9 @@
 package xyz.destiall.mc.valorant.api;
 
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import xyz.destiall.mc.valorant.utils.Shooter;
 
 import java.util.List;
 
@@ -58,7 +60,8 @@ public class Gun implements ShopItem, Giveable {
         return maxAmmo;
     }
 
-    public void shoot() {
+    public void shoot(Player player) {
+        Shooter.shoot(player, player.getLocation().clone(), player.getLocation().getDirection().clone(), damage, 1);
     }
 
     public void setAiming(boolean aiming) {

@@ -3,14 +3,20 @@ package xyz.destiall.mc.valorant.classes;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import xyz.destiall.mc.valorant.api.*;
+import xyz.destiall.mc.valorant.api.AgentPicker;
+import xyz.destiall.mc.valorant.api.Map;
+import xyz.destiall.mc.valorant.api.Match;
+import xyz.destiall.mc.valorant.api.Participant;
+import xyz.destiall.mc.valorant.api.Shop;
+import xyz.destiall.mc.valorant.api.Team;
 import xyz.destiall.mc.valorant.api.events.match.MatchCompleteEvent;
-import xyz.destiall.mc.valorant.api.events.match.MatchInterruptEvent;
 import xyz.destiall.mc.valorant.api.events.match.MatchStartEvent;
+import xyz.destiall.mc.valorant.api.events.match.MatchTerminateEvent;
 import xyz.destiall.mc.valorant.api.events.match.SwitchingSidesEvent;
 import xyz.destiall.mc.valorant.api.events.round.RoundFinishEvent;
 import xyz.destiall.mc.valorant.api.events.round.RoundStartEvent;
 import xyz.destiall.mc.valorant.managers.MatchManager;
+import xyz.destiall.mc.valorant.utils.Countdown;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,6 +28,7 @@ public class MatchImpl implements Match {
     private final Map map;
     private final Shop shop;
     private final int id;
+    private Countdown countdown;
     private int round;
     private boolean buyPeriod;
     private AgentPicker agentPicker;
@@ -34,6 +41,7 @@ public class MatchImpl implements Match {
         round = 0;
         buyPeriod = true;
         this.agentPicker = new AgentPicker(this);
+        this.countdown = null;
     }
 
     @Override
@@ -62,6 +70,11 @@ public class MatchImpl implements Match {
     }
 
     @Override
+    public Countdown getCountdown() {
+        return countdown;
+    }
+
+    @Override
     public boolean isBuyPeriod() {
         return buyPeriod;
     }
@@ -78,29 +91,48 @@ public class MatchImpl implements Match {
         if (attacker == defender) return;
         attacker.setSide(Team.Side.DEFENDER);
         defender.setSide(Team.Side.ATTACKER);
-        for (Team team : teams) {
-            for (Participant p : team.getMembers()) {
-                p.applyDefaultSet();
-            }
-        }
         callEvent(new SwitchingSidesEvent(this));
     }
 
     @Override
     public void endRound() {
-
+        callEvent(new RoundFinishEvent(this));
+        if (countdown != null) {
+            countdown.stop();
+        }
     }
 
     @Override
     public void nextRound() {
-        callEvent(new RoundFinishEvent(this));
-        round++;
-        callEvent(new RoundStartEvent(this));
-        buyPeriod = true;
+        countdown = new Countdown(Countdown.Context.ROUND_ENDING);
+        for (Participant participant : getPlayers().values()) {
+            countdown.getBossBar().addPlayer(participant.getPlayer());
+        }
+        countdown.onComplete(() -> {
+            round++;
+            if (round / 7 == 1) switchSides();
+            buyPeriod = true;
+            countdown = new Countdown(Countdown.Context.ROUND_STARTING);
+            for (Participant participant : getPlayers().values()) {
+                countdown.getBossBar().addPlayer(participant.getPlayer());
+                if (participant.isDead()) {
+                    if (participant.getPlayer().isDead()) {
+                        participant.getPlayer().spigot().respawn();
+                    }
+                    participant.applyDefaultSet();
+                }
+                participant.toTeam();
+            }
+            countdown.onComplete(() -> {
+                callEvent(new RoundStartEvent(this));
+                buyPeriod = false;
+            });
+        });
     }
 
     @Override
-    public void start() {
+    public boolean start() {
+        if (getPlayers().size() < 10) return false;
         MatchStartEvent e = new MatchStartEvent(this);
         callEvent(e);
         if (!e.isCancelled()) {
@@ -109,13 +141,14 @@ public class MatchImpl implements Match {
             for (Participant p : getPlayers().values()) {
                 p.applyDefaultSet();
             }
-            return;
+            return true;
         }
-        end();
+        end(MatchTerminateEvent.Reason.COMPLETE);
+        return false;
     }
 
     @Override
-    public void end() {
+    public void end(MatchTerminateEvent.Reason reason) {
         map.setUse(false);
         Location loc = MatchManager.getInstance().getLobby();
         for (Participant p : getPlayers().values()) {
@@ -131,7 +164,12 @@ public class MatchImpl implements Match {
             callEvent(new MatchCompleteEvent(this));
             return;
         }
-        callEvent(new MatchInterruptEvent(this));
+        callEvent(new MatchTerminateEvent(this, reason));
+    }
+
+    @Override
+    public void terminate() {
+        end(MatchTerminateEvent.Reason.HACK);
     }
 
     @Override
@@ -142,5 +180,10 @@ public class MatchImpl implements Match {
         team.getMembers().add(participant);
         inventories.put(participant, player.getInventory().getContents().clone());
         player.getInventory().clear();
+    }
+
+    @Override
+    public void setCountdown(Countdown countdown) {
+        this.countdown = countdown;
     }
 }

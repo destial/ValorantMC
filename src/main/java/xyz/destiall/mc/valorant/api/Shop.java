@@ -21,7 +21,6 @@ public class Shop {
     private final Match match;
     public Shop(Match match) {
         this.match = match;
-        create();
     }
 
     public static void setup() {
@@ -35,6 +34,7 @@ public class Shop {
             float fireSpeed = (float) config.getDouble("guns." + key + ".fireSpeed", 2D);
             float reloadSpeed = (float) config.getDouble("guns." + key + ".reloadSpeed", 5D);
             Gun gun = ItemFactory.createGun(name, price, material, damage, ammo, reloadSpeed, fireSpeed);
+            if (gun == null) continue;
             ITEMS.put(Integer.parseInt(key), gun);
         }
         ItemFactory.saveCSFile();
@@ -52,30 +52,32 @@ public class Shop {
         }
     }
 
-    public void create() {
-        for (Participant participant : match.getPlayers().values()) {
-            Inventory inv = Bukkit.createInventory(null, 36, "Buy Shop");
-            playerShop.put(participant, inv);
-            List<Integer> slots = new ArrayList<>();
-            for (Map.Entry<Integer, ShopItem> entry : ITEMS.entrySet()) {
-                if (entry.getValue() instanceof ShopItem.AbilityPlaceholder) {
-                    slots.add(entry.getKey());
-                    continue;
-                }
-                inv.setItem(entry.getKey(), entry.getValue().getShopDisplay());
-            }
-            int i = 0;
-            for (Ability ability : participant.getAbilities().keySet()) {
-                if (ability instanceof Ultimate) continue;
-                Integer slot = slots.get(i);
-                inv.setItem(slot, ability.getShopDisplay());
-                i++;
-            }
+    public Inventory create(Participant participant) {
+        if (playerShop.get(participant) != null) {
+            return playerShop.get(participant);
         }
+        Inventory inv = Bukkit.createInventory(null, 36, "Buy Shop");
+        playerShop.put(participant, inv);
+        List<Integer> slots = new ArrayList<>();
+        for (Map.Entry<Integer, ShopItem> entry : ITEMS.entrySet()) {
+            if (entry.getValue() instanceof ShopItem.AbilityPlaceholder) {
+                slots.add(entry.getKey());
+                continue;
+            }
+            inv.setItem(entry.getKey(), entry.getValue().getShopDisplay());
+        }
+        int i = 0;
+        for (Ability ability : participant.getAbilities().keySet()) {
+            if (ability instanceof Ultimate) continue;
+            Integer slot = slots.get(i);
+            inv.setItem(slot, ability.getShopDisplay());
+            i++;
+        }
+        return inv;
     }
 
     public void open(Participant participant) {
-        participant.getPlayer().openInventory(playerShop.get(participant));
+        participant.getPlayer().openInventory(create(participant));
     }
 
     public void close() {

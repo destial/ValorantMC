@@ -3,6 +3,8 @@ package xyz.destiall.mc.valorant.api;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
+import xyz.destiall.mc.valorant.api.events.match.MatchTerminateEvent;
+import xyz.destiall.mc.valorant.utils.Countdown;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -15,15 +17,18 @@ public interface Match {
     Integer getRound();
     Map getMap();
     Shop getShop();
+    Countdown getCountdown();
     boolean isBuyPeriod();
     boolean isWaitingForPlayers();
 
     void switchSides();
     void endRound();
     void nextRound();
-    void start();
-    void end();
+    boolean start();
+    void end(MatchTerminateEvent.Reason reason);
+    void terminate();
     void joinTeam(Team.Side side, Player player);
+    void setCountdown(Countdown countdown);
 
     default boolean isComplete() {
         return getRound() > 12 && (getAttacker().getScore() > getDefender().getScore() + 1

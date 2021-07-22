@@ -1,5 +1,6 @@
 package xyz.destiall.mc.valorant.classes;
 
+import org.bukkit.Location;
 import xyz.destiall.mc.valorant.api.Match;
 import xyz.destiall.mc.valorant.api.Participant;
 import xyz.destiall.mc.valorant.api.Team;
@@ -39,6 +40,11 @@ public class TeamImpl implements Team {
     @Override
     public Side getSide() {
         return side;
+    }
+
+    @Override
+    public Location getSpawn() {
+        return this.side == Side.ATTACKER ? match.getMap().getAttackerSpawn() : match.getMap().getDefenderSpawn();
     }
 
     @Override

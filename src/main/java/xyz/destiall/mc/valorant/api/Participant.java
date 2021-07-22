@@ -28,6 +28,7 @@ public interface Participant {
     Gun getSecondaryGun();
     Knife getKnife();
     Spike getSpike();
+    Settings.Chat getChatSettings();
     boolean isHoldingSpike();
     boolean isFlashed();
     boolean isDead();
@@ -40,8 +41,10 @@ public interface Participant {
     void addKill();
     void addDeath();
     void addAssist();
+    void toTeam();
     void setDead(boolean dead);
     void holdSpike(Spike spike);
+    void setChatSettings(Settings.Chat setting);
     void setFlashed(boolean flashed);
     void setAwaitUlt(boolean ult);
     void setUseUlt(boolean ult);

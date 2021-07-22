@@ -8,7 +8,13 @@ import xyz.destiall.mc.valorant.agents.jett.BladeStorm;
 import xyz.destiall.mc.valorant.agents.jett.CloudBurst;
 import xyz.destiall.mc.valorant.agents.jett.Updraft;
 import xyz.destiall.mc.valorant.agents.reyna.Leer;
-import xyz.destiall.mc.valorant.api.*;
+import xyz.destiall.mc.valorant.api.Gun;
+import xyz.destiall.mc.valorant.api.Knife;
+import xyz.destiall.mc.valorant.api.Participant;
+import xyz.destiall.mc.valorant.api.Settings;
+import xyz.destiall.mc.valorant.api.Spike;
+import xyz.destiall.mc.valorant.api.Team;
+import xyz.destiall.mc.valorant.api.Ultimate;
 import xyz.destiall.mc.valorant.api.abilities.Ability;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
 import xyz.destiall.mc.valorant.factories.ItemFactory;
@@ -25,6 +31,8 @@ public class ParticipantImpl implements Participant {
     private Gun primary;
     private Gun secondary;
     private Agent agent;
+    private Spike spike;
+    private Settings.Chat chatSettings;
     private int kills;
     private int deaths;
     private int assists;
@@ -32,7 +40,7 @@ public class ParticipantImpl implements Participant {
     private boolean flashed;
     private boolean ultimate;
     private boolean usingUlt;
-    private Spike spike;
+
     public ParticipantImpl(Player player, Team team) {
         this.player = player;
         this.team = team;
@@ -40,8 +48,8 @@ public class ParticipantImpl implements Participant {
         deaths = 0;
         assists = 0;
         primary = null;
-        secondary = ItemFactory.createGun("CLASSIC", 0, Material.WOODEN_HOE, 5, 30, 1.5F, 1.5F);
-        knife = new Knife(new ItemStack(Material.WOODEN_SWORD));
+        secondary = ItemFactory.GET_CLASSIC();
+        knife = new Knife(new ItemStack(Material.IRON_SWORD));
         ItemMeta meta = knife.getItem().getItemMeta();
         meta.setDisplayName("Knife");
         knife.getItem().setItemMeta(meta);
@@ -51,7 +59,8 @@ public class ParticipantImpl implements Participant {
         ultimate = false;
         usingUlt = false;
         spike = null;
-        econ = new Economy();
+        chatSettings = Settings.Chat.TEAM;
+        econ = new Economy(500);
     }
     @Override
     public Player getPlayer() {
@@ -91,6 +100,11 @@ public class ParticipantImpl implements Participant {
     @Override
     public void addAssist() {
         assists++;
+    }
+
+    @Override
+    public void toTeam() {
+        player.teleport(team.getSpawn());
     }
 
     @Override
@@ -144,8 +158,18 @@ public class ParticipantImpl implements Participant {
     }
 
     @Override
+    public Settings.Chat getChatSettings() {
+        return chatSettings;
+    }
+
+    @Override
     public void holdSpike(Spike spike) {
         this.spike = spike;
+    }
+
+    @Override
+    public void setChatSettings(Settings.Chat setting) {
+        this.chatSettings = setting;
     }
 
     @Override
