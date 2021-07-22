@@ -5,8 +5,8 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
-import xyz.destiall.mc.valorant.api.Map;
-import xyz.destiall.mc.valorant.api.Site;
+import xyz.destiall.mc.valorant.api.map.Map;
+import xyz.destiall.mc.valorant.api.map.Site;
 
 import java.util.HashSet;
 import java.util.Set;

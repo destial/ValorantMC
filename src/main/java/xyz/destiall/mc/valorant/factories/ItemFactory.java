@@ -8,8 +8,8 @@ import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import xyz.destiall.mc.valorant.api.Armor;
-import xyz.destiall.mc.valorant.api.Gun;
+import xyz.destiall.mc.valorant.api.items.Armor;
+import xyz.destiall.mc.valorant.api.items.Gun;
 
 import java.io.File;
 import java.io.IOException;

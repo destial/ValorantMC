@@ -15,21 +15,23 @@ import xyz.destiall.mc.valorant.commands.SubCommand;
 public class CreateCommand extends SubCommand {
     public CreateCommand() {
         super("create");
-        tab.add("create");
     }
 
     @Override
     public void runPlayer(Player player, String[] args) {
-        CreationSession session = CreationSession.getSession(player);
-        if (session != null) {
-            player.sendMessage(ChatColor.RED + "You are already in a creation session! To save your work, enter /valorant map finish");
-            player.sendMessage(ChatColor.RED + "To cancel the session, enter /valorant map cancel");
-            return;
-        }
-        if (args.length == 0) return;
-        String name = String.join(" ", args);
         try {
+            CreationSession session = CreationSession.getSession(player);
+            if (session != null) {
+                player.sendMessage(ChatColor.RED + "You are already in a creation session! To save your work, enter /valorant map finish");
+                player.sendMessage(ChatColor.RED + "To cancel the session, enter /valorant map cancel");
+                return;
+            }
             Region region = WorldEdit.getInstance().getSessionManager().get(BukkitAdapter.adapt(player)).getSelection(BukkitAdapter.adapt(player.getWorld()));
+            if (args.length == 0) {
+                player.sendMessage(ChatColor.RED + "You need to name the map!");
+                return;
+            }
+            String name = String.join(" ", args);
             BlockVector3 max = region.getMaximumPoint();
             BlockVector3 min = region.getMinimumPoint();
             BoundingBox boundingBox = new BoundingBox(max.getX(), max.getY(), max.getZ(), min.getX(), min.getY(), min.getZ());

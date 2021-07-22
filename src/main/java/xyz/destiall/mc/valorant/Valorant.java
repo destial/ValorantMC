@@ -20,6 +20,7 @@ import xyz.destiall.mc.valorant.managers.AbilityManager;
 import xyz.destiall.mc.valorant.managers.ConfigManager;
 import xyz.destiall.mc.valorant.managers.MapManager;
 import xyz.destiall.mc.valorant.managers.MatchManager;
+import xyz.destiall.mc.valorant.utils.Debugger;
 import xyz.destiall.mc.valorant.utils.Effects;
 import xyz.destiall.mc.valorant.utils.Scheduler;
 
@@ -44,13 +45,19 @@ public class Valorant {
 
     public void disable() {
         MatchManager.getInstance().disable();
+        Debugger.debug("Unloaded MatchManager");
         MapManager.getInstance().unloadMaps();
+        Debugger.debug("Unloaded MapManager");
         AbilityManager.stopAll();
+        Debugger.debug("Unloaded AbilityManager");
         Effects.disable();
+        Debugger.debug("Unloaded Effects");
         HandlerList.unregisterAll(plugin);
+        Debugger.debug("Unregistered Listeners");
         Scheduler.cancelAll();
-        plugin.getServer().getPluginCommand("valorant").setExecutor(null);
         Bukkit.getScheduler().cancelTasks(plugin);
+        Debugger.debug("Cancelled all tasks");
+        plugin.getServer().getPluginCommand("valorant").setExecutor(null);
     }
 
     public void enable() {
@@ -60,16 +67,21 @@ public class Valorant {
             plugin.saveResource("shop.yml", true);
         }
         MapManager.getInstance();
+        Debugger.debug("Loaded MapManager");
         MatchManager.getInstance();
+        Debugger.debug("Loaded MatchManager");
         try {
             ParticleNativeAPI api = ParticleNativeCore.loadAPI(plugin);
             ProtocolManager pm = ProtocolLibrary.getProtocolManager();
             new Effects(api, pm);
+            Debugger.debug("Loaded Effects");
         } catch (ParticleException e) {
             e.printStackTrace();
         }
         registerListeners();
+        Debugger.debug("Loaded Listeners");
         registerCommands();
+        Debugger.debug("Loaded Commands");
     }
 
     private void registerListeners() {

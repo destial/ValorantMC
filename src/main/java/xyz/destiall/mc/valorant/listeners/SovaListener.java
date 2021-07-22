@@ -21,7 +21,7 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.util.Vector;
 import xyz.destiall.mc.valorant.Valorant;
-import xyz.destiall.mc.valorant.api.Participant;
+import xyz.destiall.mc.valorant.api.player.Participant;
 import xyz.destiall.mc.valorant.managers.MatchManager;
 import xyz.destiall.mc.valorant.utils.Effects;
 import xyz.destiall.mc.valorant.utils.ScheduledTask;

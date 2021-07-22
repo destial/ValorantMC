@@ -1,6 +1,7 @@
-package xyz.destiall.mc.valorant.api;
+package xyz.destiall.mc.valorant.api.items;
 
 import org.bukkit.inventory.ItemStack;
+import xyz.destiall.mc.valorant.api.player.Participant;
 
 public class Knife implements Giveable {
     protected final ItemStack itemStack;

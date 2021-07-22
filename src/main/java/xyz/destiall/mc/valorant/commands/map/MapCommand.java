@@ -3,6 +3,7 @@ package xyz.destiall.mc.valorant.commands.map;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import xyz.destiall.mc.valorant.commands.SubCommand;
+import xyz.destiall.mc.valorant.commands.ValorantCommand;
 
 import java.util.Arrays;
 
@@ -28,14 +29,20 @@ public class MapCommand extends SubCommand {
     @Override
     public void runPlayer(Player player, String[] args) {
         SubCommand cmd = subCommands.stream().filter(c -> c.getName().equalsIgnoreCase(args[0])).findFirst().orElse(null);
-        if (cmd == null) return;
+        if (cmd == null) {
+            ValorantCommand.sendError(player);
+            return;
+        }
         cmd.runPlayer(player, Arrays.copyOfRange(args, 1, args.length));
     }
 
     @Override
     public void runConsole(CommandSender sender, String[] args) {
         SubCommand cmd = subCommands.stream().filter(c -> c.getName().equalsIgnoreCase(args[0])).findFirst().orElse(null);
-        if (cmd == null) return;
+        if (cmd == null) {
+            ValorantCommand.sendError(sender);
+            return;
+        }
         cmd.runConsole(sender, Arrays.copyOfRange(args, 1, args.length));
     }
 }

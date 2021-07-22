@@ -1,9 +1,9 @@
 package xyz.destiall.mc.valorant.classes;
 
 import org.bukkit.Location;
-import xyz.destiall.mc.valorant.api.Match;
-import xyz.destiall.mc.valorant.api.Participant;
-import xyz.destiall.mc.valorant.api.Team;
+import xyz.destiall.mc.valorant.api.items.Team;
+import xyz.destiall.mc.valorant.api.match.Match;
+import xyz.destiall.mc.valorant.api.player.Participant;
 
 import java.util.HashSet;
 import java.util.Set;

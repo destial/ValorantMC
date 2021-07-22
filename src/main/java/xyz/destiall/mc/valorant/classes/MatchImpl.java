@@ -3,33 +3,37 @@ package xyz.destiall.mc.valorant.classes;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import xyz.destiall.mc.valorant.api.AgentPicker;
-import xyz.destiall.mc.valorant.api.Map;
-import xyz.destiall.mc.valorant.api.Match;
-import xyz.destiall.mc.valorant.api.Participant;
-import xyz.destiall.mc.valorant.api.Shop;
-import xyz.destiall.mc.valorant.api.Team;
 import xyz.destiall.mc.valorant.api.events.match.MatchCompleteEvent;
 import xyz.destiall.mc.valorant.api.events.match.MatchStartEvent;
 import xyz.destiall.mc.valorant.api.events.match.MatchTerminateEvent;
 import xyz.destiall.mc.valorant.api.events.match.SwitchingSidesEvent;
 import xyz.destiall.mc.valorant.api.events.round.RoundFinishEvent;
 import xyz.destiall.mc.valorant.api.events.round.RoundStartEvent;
+import xyz.destiall.mc.valorant.api.items.Team;
+import xyz.destiall.mc.valorant.api.map.Map;
+import xyz.destiall.mc.valorant.api.match.AgentPicker;
+import xyz.destiall.mc.valorant.api.match.Match;
+import xyz.destiall.mc.valorant.api.match.MatchResult;
+import xyz.destiall.mc.valorant.api.match.Round;
+import xyz.destiall.mc.valorant.api.match.Shop;
+import xyz.destiall.mc.valorant.api.player.Participant;
 import xyz.destiall.mc.valorant.managers.MatchManager;
 import xyz.destiall.mc.valorant.utils.Countdown;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class MatchImpl implements Match {
     private final Set<Team> teams = new HashSet<>();
+    private final List<Round> rounds = new ArrayList<>();
     private final HashMap<Participant, ItemStack[]> inventories = new HashMap<>();
     private final Map map;
     private final Shop shop;
     private final int id;
     private Countdown countdown;
-    private int round;
     private boolean buyPeriod;
     private AgentPicker agentPicker;
     public MatchImpl(Map map, int id) {
@@ -38,7 +42,6 @@ public class MatchImpl implements Match {
         this.shop = new Shop(this);
         teams.add(new TeamImpl(this, Team.Side.ATTACKER));
         teams.add(new TeamImpl(this, Team.Side.DEFENDER));
-        round = 0;
         buyPeriod = true;
         this.agentPicker = new AgentPicker(this);
         this.countdown = null;
@@ -55,8 +58,14 @@ public class MatchImpl implements Match {
     }
 
     @Override
-    public Integer getRound() {
-        return round;
+    public Round getRound() {
+        if (rounds.size() == 0) return null;
+        return rounds.get(rounds.size() - 1);
+    }
+
+    @Override
+    public List<Round> getRounds() {
+        return rounds;
     }
 
     @Override
@@ -109,8 +118,8 @@ public class MatchImpl implements Match {
             countdown.getBossBar().addPlayer(participant.getPlayer());
         }
         countdown.onComplete(() -> {
-            round++;
-            if (round / 7 == 1) switchSides();
+            rounds.add(new RoundImpl(rounds.size() + 1));
+            if (rounds.size() / 7 == 1) switchSides();
             buyPeriod = true;
             countdown = new Countdown(Countdown.Context.ROUND_STARTING);
             for (Participant participant : getPlayers().values()) {
@@ -148,7 +157,7 @@ public class MatchImpl implements Match {
     }
 
     @Override
-    public void end(MatchTerminateEvent.Reason reason) {
+    public MatchResult end(MatchTerminateEvent.Reason reason) {
         map.setUse(false);
         Location loc = MatchManager.getInstance().getLobby();
         for (Participant p : getPlayers().values()) {
@@ -162,9 +171,10 @@ public class MatchImpl implements Match {
         buyPeriod = false;
         if (isComplete()) {
             callEvent(new MatchCompleteEvent(this));
-            return;
+            return new MatchResult(this);
         }
         callEvent(new MatchTerminateEvent(this, reason));
+        return null;
     }
 
     @Override

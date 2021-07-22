@@ -4,11 +4,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
-import xyz.destiall.mc.valorant.api.Map;
-import xyz.destiall.mc.valorant.api.Match;
-import xyz.destiall.mc.valorant.api.Participant;
-import xyz.destiall.mc.valorant.api.Shop;
 import xyz.destiall.mc.valorant.api.events.match.MatchTerminateEvent;
+import xyz.destiall.mc.valorant.api.map.Map;
+import xyz.destiall.mc.valorant.api.match.Match;
+import xyz.destiall.mc.valorant.api.match.Shop;
+import xyz.destiall.mc.valorant.api.player.Participant;
 import xyz.destiall.mc.valorant.factories.MatchFactory;
 
 import java.util.HashSet;

@@ -2,7 +2,7 @@ package xyz.destiall.mc.valorant.managers;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 import xyz.destiall.mc.valorant.Valorant;
-import xyz.destiall.mc.valorant.api.Map;
+import xyz.destiall.mc.valorant.api.map.Map;
 import xyz.destiall.mc.valorant.factories.MatchFactory;
 import xyz.destiall.mc.valorant.utils.Debugger;
 

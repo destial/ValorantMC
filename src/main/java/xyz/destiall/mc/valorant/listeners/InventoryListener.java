@@ -7,9 +7,9 @@ import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
-import xyz.destiall.mc.valorant.api.Participant;
-import xyz.destiall.mc.valorant.api.Ultimate;
 import xyz.destiall.mc.valorant.api.abilities.Ability;
+import xyz.destiall.mc.valorant.api.abilities.Ultimate;
+import xyz.destiall.mc.valorant.api.player.Participant;
 import xyz.destiall.mc.valorant.managers.MatchManager;
 
 public class InventoryListener implements Listener {

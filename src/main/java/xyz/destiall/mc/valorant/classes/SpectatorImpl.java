@@ -1,8 +1,8 @@
 package xyz.destiall.mc.valorant.classes;
 
 import org.bukkit.entity.Player;
-import xyz.destiall.mc.valorant.api.Match;
-import xyz.destiall.mc.valorant.api.Spectator;
+import xyz.destiall.mc.valorant.api.match.Match;
+import xyz.destiall.mc.valorant.api.match.Spectator;
 
 public class SpectatorImpl implements Spectator {
     private final Player player;

@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 public class Shooter {
     private static final Map<LivingEntity, ScheduledTask> TICKS = new HashMap<>();
     public static void shoot(Player shooter, Location origin, Vector direction, double damage, double spread) {
+        if (!shooter.isOnline()) return;
         Location current = origin.clone().add(direction.clone());
         Vector dir = direction.clone();
         dir.setX(direction.getX() + (Math.random() * spread - spread * 0.5) * 0.1);
@@ -33,14 +34,18 @@ public class Shooter {
             Effects.bullet(current.clone());
             hitEntities.addAll(current.getWorld().getNearbyEntities(current.clone(), 1, 1, 1).stream().filter(e -> e.getBoundingBox().contains(current.clone().toVector())).collect(Collectors.toList()));
         }
+        shooter.getLocation().getWorld().playSound(shooter.getEyeLocation(), Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 2, 3);
         for (Entity entity : hitEntities) {
             if (entity instanceof LivingEntity) {
                 LivingEntity live = (LivingEntity) entity;
                 double dmg = damage;
-                if (current.clone().subtract(live.getEyeLocation().clone()).length() < 1) {
-                    dmg = 100;
+                if (damage < 0) {
+                    dmg = 1000;
                 }
-                EntityDamageEvent e = new EntityDamageEvent(shooter, EntityDamageEvent.DamageCause.ENTITY_ATTACK, dmg);
+                if (current.clone().subtract(live.getEyeLocation().clone()).length() < 1) {
+                    dmg = 1000;
+                }
+                EntityDamageEvent e = new EntityDamageEvent(shooter, EntityDamageEvent.DamageCause.CUSTOM, dmg);
                 live.setLastDamageCause(e);
                 Bukkit.getPluginManager().callEvent(e);
                 if (e.isCancelled()) continue;
@@ -83,7 +88,7 @@ public class Shooter {
                 if (current.clone().subtract(live.getEyeLocation().clone()).length() < 1) {
                     dmg = 10000;
                 }
-                EntityDamageEvent e = new EntityDamageEvent(shooter, EntityDamageEvent.DamageCause.ENTITY_ATTACK, dmg);
+                EntityDamageEvent e = new EntityDamageEvent(shooter, EntityDamageEvent.DamageCause.CUSTOM, dmg);
                 live.setLastDamageCause(e);
                 Bukkit.getPluginManager().callEvent(e);
                 if (e.isCancelled()) continue;

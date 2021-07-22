@@ -2,7 +2,7 @@ package xyz.destiall.mc.valorant.api.abilities;
 
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
-import xyz.destiall.mc.valorant.api.ShopItem;
+import xyz.destiall.mc.valorant.api.items.ShopItem;
 
 public abstract class Ability implements ShopItem {
     protected Integer maxUses;

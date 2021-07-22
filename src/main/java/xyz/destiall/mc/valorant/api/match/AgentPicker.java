@@ -1,4 +1,4 @@
-package xyz.destiall.mc.valorant.api;
+package xyz.destiall.mc.valorant.api.match;
 
 import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
@@ -8,6 +8,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
+import xyz.destiall.mc.valorant.api.player.Participant;
 
 public class AgentPicker implements Listener {
     private final Match match;

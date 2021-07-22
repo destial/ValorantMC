@@ -4,7 +4,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
-import xyz.destiall.mc.valorant.api.Site;
+import xyz.destiall.mc.valorant.api.map.Site;
 import xyz.destiall.mc.valorant.factories.MatchFactory;
 
 import java.util.HashSet;

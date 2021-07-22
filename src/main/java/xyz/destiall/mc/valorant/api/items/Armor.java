@@ -1,7 +1,8 @@
-package xyz.destiall.mc.valorant.api;
+package xyz.destiall.mc.valorant.api.items;
 
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import xyz.destiall.mc.valorant.api.player.Participant;
 
 import java.util.List;
 

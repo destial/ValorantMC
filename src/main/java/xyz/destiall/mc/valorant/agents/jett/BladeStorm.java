@@ -10,7 +10,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.util.Vector;
 import xyz.destiall.mc.valorant.Valorant;
-import xyz.destiall.mc.valorant.api.Ultimate;
+import xyz.destiall.mc.valorant.api.abilities.Ultimate;
 import xyz.destiall.mc.valorant.utils.Effects;
 import xyz.destiall.mc.valorant.utils.ScheduledTask;
 import xyz.destiall.mc.valorant.utils.Scheduler;

@@ -2,7 +2,7 @@ package xyz.destiall.mc.valorant.api.events;
 
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
-import xyz.destiall.mc.valorant.api.Match;
+import xyz.destiall.mc.valorant.api.match.Match;
 
 public class MatchEvent extends Event {
     private final Match match;

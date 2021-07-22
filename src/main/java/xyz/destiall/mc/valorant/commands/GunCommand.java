@@ -6,14 +6,17 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import xyz.destiall.mc.valorant.api.Gun;
+import xyz.destiall.mc.valorant.api.items.Gun;
+import xyz.destiall.mc.valorant.factories.ItemFactory;
 import xyz.destiall.mc.valorant.listeners.SovaListener;
 
 import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public class GunCommand extends SubCommand {
     public GunCommand() {
         super("gun");
+        tab.addAll(ItemFactory.ALL_GUNS.stream().map(g -> g.getName().name().toLowerCase()).collect(Collectors.toList()));
         tab.add("operator");
         tab.add("shockbow");
         tab.add("radarbow");
@@ -21,7 +24,10 @@ public class GunCommand extends SubCommand {
 
     @Override
     public void runPlayer(Player player, String[] args) {
-        if (args.length == 0) return;
+        if (args.length == 0) {
+            ValorantCommand.sendError(player);
+            return;
+        }
         if (args[0].equalsIgnoreCase("radarbow")) {
             ItemStack bow = new ItemStack(Material.BOW, 1);
             ItemMeta meta = bow.getItemMeta();
@@ -60,6 +66,12 @@ public class GunCommand extends SubCommand {
             operator.setItemMeta(meta);
             player.getInventory().addItem(operator);
         }
+        Gun gun = ItemFactory.ALL_GUNS.stream().filter(g -> g.getName().name().equalsIgnoreCase(args[0])).findFirst().orElse(null);
+        if (gun == null) {
+            player.sendMessage(ChatColor.RED + "That gun does not exist!");
+            return;
+        }
+        player.getInventory().addItem(gun.getItem());
     }
 
     @Override

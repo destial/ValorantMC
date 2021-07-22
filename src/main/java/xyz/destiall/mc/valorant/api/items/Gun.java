@@ -1,10 +1,12 @@
-package xyz.destiall.mc.valorant.api;
+package xyz.destiall.mc.valorant.api.items;
 
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import xyz.destiall.mc.valorant.api.player.Participant;
 import xyz.destiall.mc.valorant.utils.Shooter;
 
+import java.util.HashMap;
 import java.util.List;
 
 public class Gun implements ShopItem, Giveable {
@@ -16,6 +18,7 @@ public class Gun implements ShopItem, Giveable {
     protected final Type type;
     protected final Name name;
     protected final Integer maxAmmo;
+    protected final HashMap<Player, Long> shots = new HashMap<>();
     protected Integer currentAmmo;
     protected boolean aiming;
 
@@ -61,7 +64,15 @@ public class Gun implements ShopItem, Giveable {
     }
 
     public void shoot(Player player) {
-        Shooter.shoot(player, player.getLocation().clone(), player.getLocation().getDirection().clone(), damage, 1);
+        Long before = shots.get(player);
+        double spread = 0;
+        if (before != null) {
+            long now = System.currentTimeMillis();
+            long diff = now - before;
+            spread = 200D / diff;
+        }
+        shots.put(player, System.currentTimeMillis());
+        Shooter.shoot(player, player.getEyeLocation().clone(), player.getLocation().getDirection().clone(), damage, spread);
     }
 
     public void setAiming(boolean aiming) {
@@ -84,7 +95,7 @@ public class Gun implements ShopItem, Giveable {
 
     @Override
     public ItemStack getItem() {
-        return itemStack;
+        return itemStack.clone();
     }
 
     @Override

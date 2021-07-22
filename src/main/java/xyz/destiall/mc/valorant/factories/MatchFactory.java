@@ -8,9 +8,9 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.util.BoundingBox;
-import xyz.destiall.mc.valorant.api.Map;
-import xyz.destiall.mc.valorant.api.Match;
-import xyz.destiall.mc.valorant.api.Site;
+import xyz.destiall.mc.valorant.api.map.Map;
+import xyz.destiall.mc.valorant.api.map.Site;
+import xyz.destiall.mc.valorant.api.match.Match;
 import xyz.destiall.mc.valorant.api.session.CreationSession;
 import xyz.destiall.mc.valorant.classes.MapImpl;
 import xyz.destiall.mc.valorant.classes.MatchImpl;
@@ -109,7 +109,7 @@ public class MatchFactory {
         config.set(path + ".x", location.getX());
         config.set(path + ".y", location.getY());
         config.set(path + ".z", location.getZ());
-        config.set(path + ".yaw", location.getY());
+        config.set(path + ".yaw", location.getYaw());
         config.set(path + ".pitch", location.getPitch());
     }
 

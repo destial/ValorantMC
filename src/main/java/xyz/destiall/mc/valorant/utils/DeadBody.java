@@ -2,7 +2,7 @@ package xyz.destiall.mc.valorant.utils;
 
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
-import xyz.destiall.mc.valorant.api.Participant;
+import xyz.destiall.mc.valorant.api.player.Participant;
 
 import java.util.HashMap;
 import java.util.HashSet;

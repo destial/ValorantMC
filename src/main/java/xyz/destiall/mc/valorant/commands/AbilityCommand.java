@@ -23,6 +23,7 @@ public class AbilityCommand extends SubCommand {
     @Override
     public void runPlayer(Player player, String[] args) {
         if (args.length == 0) {
+            ValorantCommand.sendError(player);
             return;
         }
         switch (args[0].toLowerCase()) {

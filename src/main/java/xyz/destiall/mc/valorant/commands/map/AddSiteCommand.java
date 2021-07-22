@@ -9,7 +9,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
-import xyz.destiall.mc.valorant.api.Site;
+import xyz.destiall.mc.valorant.api.map.Site;
 import xyz.destiall.mc.valorant.api.session.CreationSession;
 import xyz.destiall.mc.valorant.classes.SiteImpl;
 import xyz.destiall.mc.valorant.commands.SubCommand;

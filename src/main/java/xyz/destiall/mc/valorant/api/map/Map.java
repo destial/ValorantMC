@@ -1,4 +1,4 @@
-package xyz.destiall.mc.valorant.api;
+package xyz.destiall.mc.valorant.api.map;
 
 import org.bukkit.Location;
 import org.bukkit.World;

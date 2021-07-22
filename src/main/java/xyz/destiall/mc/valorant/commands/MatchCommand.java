@@ -3,8 +3,8 @@ package xyz.destiall.mc.valorant.commands;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import xyz.destiall.mc.valorant.api.Match;
 import xyz.destiall.mc.valorant.api.events.match.MatchTerminateEvent;
+import xyz.destiall.mc.valorant.api.match.Match;
 import xyz.destiall.mc.valorant.managers.MatchManager;
 
 public class MatchCommand extends SubCommand {

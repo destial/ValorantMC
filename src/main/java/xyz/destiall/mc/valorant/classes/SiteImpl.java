@@ -1,7 +1,7 @@
 package xyz.destiall.mc.valorant.classes;
 
 import org.bukkit.util.BoundingBox;
-import xyz.destiall.mc.valorant.api.Site;
+import xyz.destiall.mc.valorant.api.map.Site;
 
 public class SiteImpl implements Site {
     private final BoundingBox bounds;

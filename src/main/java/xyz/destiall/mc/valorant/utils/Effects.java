@@ -14,9 +14,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
-import xyz.destiall.mc.valorant.api.Participant;
-import xyz.destiall.mc.valorant.api.Team;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
+import xyz.destiall.mc.valorant.api.items.Team;
+import xyz.destiall.mc.valorant.api.player.Participant;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

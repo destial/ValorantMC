@@ -1,11 +1,11 @@
 package xyz.destiall.mc.valorant.commands;
 
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
-import xyz.destiall.mc.valorant.Valorant;
 import xyz.destiall.mc.valorant.commands.map.MapCommand;
 
 import java.util.Arrays;
@@ -16,10 +16,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class ValorantCommand implements CommandExecutor, TabExecutor {
-    private final Valorant valorant;
     private final Set<SubCommand> commands = new HashSet<>();
     public ValorantCommand() {
-        valorant = Valorant.getInstance();
         commands.add(new AbilityCommand());
         commands.add(new MatchCommand());
         commands.add(new MapCommand());
@@ -53,23 +51,17 @@ public class ValorantCommand implements CommandExecutor, TabExecutor {
         if (args.length == 1) {
             return commands.stream().filter(c -> c.getName().toLowerCase().contains(args[0])).map(SubCommand::getName).collect(Collectors.toList());
         }
-        SubCommand cmd = commands.stream().filter(c -> c.getName().toLowerCase().contains(args[0])).findFirst().orElse(null);
+        SubCommand cmd = commands.stream().filter(c -> c.getName().equalsIgnoreCase(args[0])).findFirst().orElse(null);
         if (cmd == null) return new LinkedList<>();
-        String arg;
-        for (int i = 0; i <= args.length - 1; ++i) {
-            arg = args[i];
-            final String finalArg = arg;
-            cmd = cmd.getSubCommands().stream().filter(c -> c.getName().equalsIgnoreCase(finalArg)).findFirst().orElse(null);
-            if (cmd == null) break;
-        }
-        if (cmd == null) {
-            return commands.stream().filter(c -> c.getName().toLowerCase().contains(args[args.length - 1])).map(SubCommand::getName).collect(Collectors.toList());
+        SubCommand cmd2 = cmd.getSubCommands().stream().filter(c -> c.getName().equalsIgnoreCase(args[1])).findFirst().orElse(null);
+        if (cmd2 != null) {
+            return cmd2.getTab().stream().filter(c -> c.toLowerCase().contains(args[args.length - 1])).collect(Collectors.toList());
         }
         return cmd.getTab().stream().filter(c -> c.toLowerCase().contains(args[args.length - 1])).collect(Collectors.toList());
     }
 
     public static void sendHelp(CommandSender sender) {
-        sender.sendMessage("Command is: /valorant");
+        sender.sendMessage(ChatColor.RED + "Command is: /valorant");
     }
 
     public static void sendError(CommandSender sender) {
