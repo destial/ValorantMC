@@ -37,11 +37,16 @@ public class GunListener implements Listener {
                 ScheduledTask task = Scheduler.repeat(() -> {
                     ScheduledTask t = tasks.get(e.getPlayer());
                     if (t.getTask().isCancelled()) return;
-                    if (e.getPlayer().getItemInUse() == null || !e.getPlayer().getItemInUse().equals(e.getItem())) {
+                    if (e.getPlayer().getItemInUse() == null && e.getPlayer().getInventory().getItemInMainHand().equals(e.getItem())) {
                         list.put(e.getPlayer(), false);
                         if (list2.get(e.getPlayer())) return;
                         list2.put(e.getPlayer(), true);
                         Shooter.snipe(e.getPlayer(), e.getPlayer().getEyeLocation(), e.getPlayer().getLocation().getDirection(), dmg, 0);
+                        t.cancel();
+                    } else if (!e.getPlayer().getInventory().getItemInMainHand().equals(e.getItem())) {
+                        list.put(e.getPlayer(), false);
+                        if (list2.get(e.getPlayer())) return;
+                        list2.put(e.getPlayer(), true);
                         t.cancel();
                     }
                 }, 1L);
