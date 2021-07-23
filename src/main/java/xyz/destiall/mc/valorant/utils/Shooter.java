@@ -36,10 +36,10 @@ public class Shooter {
             if (origin.clone().subtract(current.clone()).length() > 100) break;
             current.add(dir);
             Effects.bullet(current.clone());
-            hitEntities.addAll(current.getWorld().getNearbyEntities(current.clone(), 1, 1, 1).stream().filter(e -> e.getBoundingBox().contains(current.clone().toVector())).collect(Collectors.toList()));
+            hitEntities.addAll(shooter.getWorld().getNearbyEntities(current.clone(), 1, 1, 1).stream().filter(e -> e.getBoundingBox().contains(current.clone().toVector())).collect(Collectors.toList()));
         }
-        shooter.getLocation().getWorld().playSound(shooter.getEyeLocation(), Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 2, 3);
-        shooter.getLocation().getWorld().playSound(current, Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 2, 3);
+        shooter.getWorld().playSound(shooter.getEyeLocation(), Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 2, 3);
+        shooter.getWorld().playSound(current, Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 2, 3);
         Location newLoc = shooter.getLocation().clone();
         Vector vel = shooter.getVelocity().clone();
         newLoc.setDirection(direction.clone().setY(direction.clone().getY() + 0.03));

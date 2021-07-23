@@ -12,10 +12,10 @@ public interface Flash {
         if (player.getLocation().getWorld() != flash.getWorld()) return false;
         if (player.getLocation().distanceSquared(flash.getLocation()) > range * range) return false;
         if (player.hasLineOfSight(flash)) {
-            Vector flashDirection = flash.getLocation().subtract(player.getLocation()).toVector().normalize();
+            Vector flashDirection = flash.getLocation().subtract(player.getLocation()).toVector().clone().normalize();
             Vector playerDirection = player.getLocation().getDirection().clone();
-            // TODO: Use player's direction to figure out line of sight
-            return true;
+            double angle = Math.acos(flashDirection.dot(playerDirection) / flashDirection.length() * playerDirection.length());
+            return angle < (Math.PI * 0.5);
         }
         return false;
     }

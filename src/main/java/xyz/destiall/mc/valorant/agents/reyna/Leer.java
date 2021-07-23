@@ -68,10 +68,11 @@ public class Leer extends Ability implements Flash {
     public void flash() {
         Scheduler.cancel(leerTravelTask);
         Effects.flashTravel(l, agent);
+        this.remove();
         Participant participant = MatchManager.getInstance().getParticipant(player);
         if (participant != null) {
             for (Participant p : participant.getMatch().getPlayers().values()) {
-                if (p.equals(participant) || p.getTeam().equals(participant.getTeam())) return;
+                if (p == participant || p.getTeam() == participant.getTeam()) return;
                 if (Flash.isSeen(p.getPlayer(), as, (int) getFlashRange())) {
                     Effects.flash(p.getPlayer(), agent, getFlashDuration());
                     p.setFlashed(true);
@@ -80,13 +81,12 @@ public class Leer extends Ability implements Flash {
             }
         } else {
             for (Player p : Bukkit.getOnlinePlayers()) {
-                // if (p.equals(player)) continue;
+                if (p == player) continue;
                 if (Flash.isSeen(p, as, (int) getFlashRange())) {
                     Effects.flash(p, agent, getFlashDuration());
                 }
             }
         }
-        remove();
     }
 
     @Override
