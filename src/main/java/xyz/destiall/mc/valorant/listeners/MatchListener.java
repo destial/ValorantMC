@@ -5,7 +5,10 @@ import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerPickupItemEvent;
 import xyz.destiall.mc.valorant.api.events.DeathEvent;
 import xyz.destiall.mc.valorant.api.items.Gun;
 import xyz.destiall.mc.valorant.api.items.Knife;
@@ -92,6 +95,30 @@ public class MatchListener implements Listener {
                 color = ChatColor.BLUE;
             }
             p.getPlayer().sendMessage(color + message);
+        }
+    }
+
+    @EventHandler
+    public void onDropItem(PlayerDropItemEvent e) {
+        Participant participant = MatchManager.getInstance().getParticipant(e.getPlayer());
+        if (participant == null) return;
+        // TODO: Implement dropping weapons
+        e.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onPickUpItem(EntityPickupItemEvent e) {
+        Gun gun = ItemFactory.getGun(e.getItem().getItemStack());
+        if (gun == null) return;
+        if (!(e.getEntity() instanceof Player)) {
+            e.setCancelled(true);
+            return;
+        }
+        Player player = (Player) e.getEntity();
+        Participant participant = MatchManager.getInstance().getParticipant(player);
+        if (participant == null) {
+            e.setCancelled(true);
+            return;
         }
     }
 }

@@ -7,7 +7,6 @@ import xyz.destiall.mc.valorant.api.events.match.MatchTerminateEvent;
 import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.api.map.Map;
 import xyz.destiall.mc.valorant.api.player.Participant;
-import xyz.destiall.mc.valorant.utils.Countdown;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -15,14 +14,12 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-public interface Match {
+public interface Match extends Modular<Module> {
     int getID();
     Set<Team> getTeams();
     Round getRound();
     List<Round> getRounds();
     Map getMap();
-    Shop getShop();
-    Countdown getCountdown();
     boolean isBuyPeriod();
     boolean isWaitingForPlayers();
 

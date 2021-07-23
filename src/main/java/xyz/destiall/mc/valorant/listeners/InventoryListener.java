@@ -16,8 +16,7 @@ public class InventoryListener implements Listener {
 
     @EventHandler
     public void onHotbarChange(PlayerItemHeldEvent e) {
-        MatchManager matchManager = MatchManager.getInstance();
-        Participant participant = matchManager.getParticipant(e.getPlayer());
+        Participant participant = MatchManager.getInstance().getParticipant(e.getPlayer());
         if (participant == null) return;
         if (participant.isUsingUlt()) {
             e.setCancelled(true);

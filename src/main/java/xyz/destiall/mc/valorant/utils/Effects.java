@@ -139,18 +139,18 @@ public class Effects {
 
     public static ScheduledTask wall(Location origin, Vector direction, Agent type, double l, double h, double d) {
         final Vector dir = direction.clone().normalize();
-        final List<Vector> locationList = new ArrayList<>();
-        for (double i = 0; i <= l; i += 0.5) {
-            Vector vect = new Vector(dir.getX() * i, 0, dir.getZ() * i);
-            Location location = origin.clone().add(vect);
+        final Set<Vector> locationList = new HashSet<>();
+        for (double i = 0; i <= l; i += 0.6) {
+            Vector vect = new Vector(-dir.getX() * i, 0, -dir.getZ() * i);
+            Location location = origin.clone().subtract(0, 2, 0).add(vect);
             while (location.getBlock().isEmpty() && location.getY() >= 0) {
-                location.subtract(0, 0.1, 0);
+                location.subtract(0, 1, 0);
             }
-            vect = origin.clone().subtract(location).toVector();
-            for (double j = 0; j <= h; j += 0.5) {
-                vect.setY(j);
-                Debugger.debug(vect.toString());
-                locationList.add(vect);
+            location.subtract(0, 2, 0);
+            Vector vectt = origin.clone().subtract(location).toVector();
+            for (double j = 0; j <= h; j += 0.6) {
+                vectt.setY(j);
+                locationList.add(vectt.clone());
             }
         }
         final Set<ArmorStand> asList = new HashSet<>();

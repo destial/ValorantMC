@@ -35,10 +35,20 @@ public class ConfigManager {
             }
         }
         config = YamlConfiguration.loadConfiguration(configFile);
+        if (!config.getString("config-version", "").equalsIgnoreCase(Valorant.VERSION)) {
+            createConfig();
+            save();
+        }
     }
 
     public void createConfig() {
-        config.addDefault("config-version", Valorant.VERSION);
+        config.set("config-version", Valorant.VERSION);
+        config.set("database.type", config.getString("database.type") == null ? "sqlite" : config.getString("database.type"));
+        config.set("database.mysql.address", config.getString("database.mysql.address") == null ? "localhost" : config.getString("database.mysql.address"));
+        config.set("database.mysql.username", config.getString("database.mysql.username") == null ? "root" : config.getString("database.mysql.username"));
+        config.set("database.mysql.password", config.getString("database.mysql.password") == null ? "password" : config.getString("database.mysql.password"));
+        config.set("database.mysql.database", config.getString("database.mysql.database") == null ? "database" : config.getString("database.mysql.database"));
+        config.set("database.mysql.port", config.getString("database.mysql.port") == null ? "3306" : config.getString("database.mysql.port"));
     }
 
     public Configuration getConfig() {

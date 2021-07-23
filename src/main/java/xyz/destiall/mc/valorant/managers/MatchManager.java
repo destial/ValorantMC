@@ -34,7 +34,9 @@ public class MatchManager {
 
     public void disable() {
         for (Match match : MATCHES) {
-            match.getShop().close();
+            if (match.hasModule(Shop.class)) {
+                match.getModule(Shop.class).close();
+            }
             match.end(MatchTerminateEvent.Reason.FORCE);
         }
         MATCHES.clear();

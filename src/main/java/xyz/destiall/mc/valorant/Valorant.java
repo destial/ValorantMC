@@ -10,6 +10,8 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import xyz.destiall.mc.valorant.commands.ValorantCommand;
+import xyz.destiall.mc.valorant.commands.chat.GlobalChatCommand;
+import xyz.destiall.mc.valorant.commands.chat.TeamChatCommand;
 import xyz.destiall.mc.valorant.listeners.ChatListener;
 import xyz.destiall.mc.valorant.listeners.GunListener;
 import xyz.destiall.mc.valorant.listeners.InventoryListener;
@@ -29,7 +31,7 @@ import java.io.File;
 public class Valorant {
     private static Valorant instance;
     private final JavaPlugin plugin;
-    public static final String VERSION = "1";
+    public static final String VERSION = "1.1";
     public Valorant(JavaPlugin plugin) {
         instance = this;
         this.plugin = plugin;
@@ -95,5 +97,7 @@ public class Valorant {
 
     private void registerCommands() {
         plugin.getServer().getPluginCommand("valorant").setExecutor(new ValorantCommand());
+        plugin.getServer().getPluginCommand("globalchat").setExecutor(new GlobalChatCommand());
+        plugin.getServer().getPluginCommand("teamchat").setExecutor(new TeamChatCommand());
     }
 }

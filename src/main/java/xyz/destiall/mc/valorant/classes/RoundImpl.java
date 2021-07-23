@@ -1,5 +1,6 @@
 package xyz.destiall.mc.valorant.classes;
 
+import org.json.JSONObject;
 import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.api.match.Round;
 
@@ -38,5 +39,14 @@ public class RoundImpl implements Round {
     @Override
     public void setLosingSide(Team.Side side) {
         this.loser = side;
+    }
+
+    @Override
+    public String toJSON() {
+        JSONObject object = new JSONObject();
+        object.put("number", round);
+        object.put("winners", winner.name());
+        object.put("losers", loser.name());
+        return object.toString();
     }
 }

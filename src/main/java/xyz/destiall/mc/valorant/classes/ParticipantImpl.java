@@ -3,10 +3,10 @@ package xyz.destiall.mc.valorant.classes;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import xyz.destiall.mc.valorant.agents.jett.BladeStorm;
 import xyz.destiall.mc.valorant.agents.jett.CloudBurst;
 import xyz.destiall.mc.valorant.agents.jett.Updraft;
+import xyz.destiall.mc.valorant.agents.phoenix.Blaze;
 import xyz.destiall.mc.valorant.agents.reyna.Leer;
 import xyz.destiall.mc.valorant.api.abilities.Ability;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
@@ -17,6 +17,8 @@ import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.api.match.Spike;
 import xyz.destiall.mc.valorant.api.player.Participant;
 import xyz.destiall.mc.valorant.api.player.Settings;
+import xyz.destiall.mc.valorant.database.Datastore;
+import xyz.destiall.mc.valorant.database.Stats;
 import xyz.destiall.mc.valorant.factories.ItemFactory;
 import xyz.destiall.mc.valorant.utils.Economy;
 
@@ -28,11 +30,12 @@ public class ParticipantImpl implements Participant {
     private final Economy econ;
     private final Knife knife;
     private final HashMap<Ability, Integer> abilities = new HashMap<>();
+    private final Stats stats;
+    private final Settings settings;
     private Gun primary;
     private Gun secondary;
     private Agent agent;
     private Spike spike;
-    private Settings.Chat chatSettings;
     private int kills;
     private int deaths;
     private int assists;
@@ -50,17 +53,15 @@ public class ParticipantImpl implements Participant {
         primary = null;
         secondary = ItemFactory.GET_CLASSIC();
         knife = new Knife(new ItemStack(Material.IRON_SWORD));
-        ItemMeta meta = knife.getItem().getItemMeta();
-        meta.setDisplayName("Knife");
-        knife.getItem().setItemMeta(meta);
         agent = null;
         flashed = false;
         dead = false;
         ultimate = false;
         usingUlt = false;
         spike = null;
-        chatSettings = Settings.Chat.TEAM;
+        settings = new Settings();
         econ = new Economy(500);
+        stats = new Stats(getUUID());
     }
     @Override
     public Player getPlayer() {
@@ -159,7 +160,12 @@ public class ParticipantImpl implements Participant {
 
     @Override
     public Settings.Chat getChatSettings() {
-        return chatSettings;
+        return settings.getChat();
+    }
+
+    @Override
+    public Stats getStats() {
+        return stats;
     }
 
     @Override
@@ -169,7 +175,7 @@ public class ParticipantImpl implements Participant {
 
     @Override
     public void setChatSettings(Settings.Chat setting) {
-        this.chatSettings = setting;
+        this.settings.setChat(setting);
     }
 
     @Override
@@ -220,8 +226,17 @@ public class ParticipantImpl implements Participant {
                 abilities.put(l, l.getMaxUses());
                 break;
             }
+            case PHOENIX: {
+                abilities.put(new Blaze(), 0);
+                break;
+            }
             default: break;
         }
+    }
+
+    @Override
+    public void save() {
+        Datastore.getInstance().updatePlayer(this);
     }
 
     @Override

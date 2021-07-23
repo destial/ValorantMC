@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class Shop {
+public class Shop implements Module {
     private static final HashMap<Integer, ShopItem> ITEMS = new HashMap<>();
     private final HashMap<Participant, Inventory> playerShop = new HashMap<>();
     private final Match match;
@@ -92,10 +92,6 @@ public class Shop {
         }
     }
 
-    public Match getMatch() {
-        return match;
-    }
-
     public void buy(Participant participant, Integer slot) {
         ShopItem item = ITEMS.get(slot);
         if (item == null) return;
@@ -122,5 +118,9 @@ public class Shop {
             //    ((Ability) item).addUses();
             //}
         }
+    }
+
+    public Match getMatch() {
+        return match;
     }
 }

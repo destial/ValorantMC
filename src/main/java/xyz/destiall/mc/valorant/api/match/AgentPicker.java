@@ -10,7 +10,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
 import xyz.destiall.mc.valorant.api.player.Participant;
 
-public class AgentPicker implements Listener {
+public class AgentPicker implements Listener, Module {
     private final Match match;
     private final Inventory inventory;
     public AgentPicker(Match match) {

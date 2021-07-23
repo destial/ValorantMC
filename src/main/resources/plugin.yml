@@ -13,3 +13,9 @@ commands:
     aliases:
       - vmc
     permission: valorant.admin
+  globalchat:
+    aliases:
+      - g
+  teamchat:
+    aliases:
+      - t

@@ -58,7 +58,7 @@ public class GunListener implements Listener {
                         list.put(e.getPlayer(), false);
                         if (list2.get(e.getPlayer())) return;
                         list2.put(e.getPlayer(), true);
-                        Shooter.snipe(e.getPlayer(), e.getPlayer().getEyeLocation(), e.getPlayer().getLocation().getDirection(), finalDmg, 0);
+                        Shooter.shoot(e.getPlayer(), e.getPlayer().getEyeLocation(), e.getPlayer().getLocation().getDirection(), finalDmg, 0);
                         t.cancel();
                     } else if (!e.getPlayer().getInventory().getItemInMainHand().equals(e.getItem())) {
                         list.put(e.getPlayer(), false);
@@ -75,14 +75,14 @@ public class GunListener implements Listener {
             return;
         }
         if (e.getPlayer().isSneaking()) {
-            Shooter.snipe(e.getPlayer(), e.getPlayer().getEyeLocation(), e.getPlayer().getLocation().getDirection(), dmg, 1);
+            Shooter.shoot(e.getPlayer(), e.getPlayer().getEyeLocation(), e.getPlayer().getLocation().getDirection(), dmg, 1);
             return;
         }
         if (e.getPlayer().isSprinting()) {
-            Shooter.snipe(e.getPlayer(), e.getPlayer().getEyeLocation(), e.getPlayer().getLocation().getDirection(), dmg, 3);
+            Shooter.shoot(e.getPlayer(), e.getPlayer().getEyeLocation(), e.getPlayer().getLocation().getDirection(), dmg, 3);
             return;
         }
-        Shooter.snipe(e.getPlayer(), e.getPlayer().getEyeLocation(), e.getPlayer().getLocation().getDirection(), dmg, 2);
+        Shooter.shoot(e.getPlayer(), e.getPlayer().getEyeLocation(), e.getPlayer().getLocation().getDirection(), dmg, 2);
 
     }
 }

@@ -14,6 +14,7 @@ import xyz.destiall.mc.valorant.api.items.Knife;
 import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.api.match.Match;
 import xyz.destiall.mc.valorant.api.match.Spike;
+import xyz.destiall.mc.valorant.database.Stats;
 import xyz.destiall.mc.valorant.factories.ItemFactory;
 import xyz.destiall.mc.valorant.utils.Economy;
 
@@ -35,6 +36,7 @@ public interface Participant {
     Knife getKnife();
     Spike getSpike();
     Settings.Chat getChatSettings();
+    Stats getStats();
     boolean isHoldingSpike();
     boolean isFlashed();
     boolean isDead();
@@ -55,6 +57,7 @@ public interface Participant {
     void setAwaitUlt(boolean ult);
     void setUseUlt(boolean ult);
     void chooseAgent(Agent agent);
+    void save();
 
     default void addArmour(Integer armour) {
         getPlayer().setAbsorptionAmount(armour / 100F * 20);

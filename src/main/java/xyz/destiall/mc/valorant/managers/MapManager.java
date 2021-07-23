@@ -38,7 +38,7 @@ public class MapManager {
         String[] list = mapFolder.list();
         if (list == null) return;
         for (String mapFileName : list) {
-            if (!mapFileName.toLowerCase().endsWith(".yml") || !mapFileName.toLowerCase().endsWith(".yaml")) continue;
+            if (!mapFileName.toLowerCase().endsWith(".yml") && !mapFileName.toLowerCase().endsWith(".yaml")) continue;
             Map map = MatchFactory.createMap(YamlConfiguration.loadConfiguration(new File(mapFolder, mapFileName)));
             if (map == null) continue;
             Debugger.debug("Loaded Valorant Map " + map.getName());
@@ -53,6 +53,10 @@ public class MapManager {
             return map;
         }
         return null;
+    }
+
+    public Set<Map> getMaps() {
+        return MAPS;
     }
 
     public void unloadMaps() {

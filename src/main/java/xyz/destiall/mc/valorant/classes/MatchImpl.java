@@ -12,15 +12,18 @@ import xyz.destiall.mc.valorant.api.events.round.RoundStartEvent;
 import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.api.map.Map;
 import xyz.destiall.mc.valorant.api.match.AgentPicker;
+import xyz.destiall.mc.valorant.api.match.Countdown;
 import xyz.destiall.mc.valorant.api.match.Match;
 import xyz.destiall.mc.valorant.api.match.MatchResult;
+import xyz.destiall.mc.valorant.api.match.Module;
 import xyz.destiall.mc.valorant.api.match.Round;
 import xyz.destiall.mc.valorant.api.match.Shop;
 import xyz.destiall.mc.valorant.api.player.Participant;
+import xyz.destiall.mc.valorant.database.Datastore;
 import xyz.destiall.mc.valorant.managers.MatchManager;
-import xyz.destiall.mc.valorant.utils.Countdown;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -31,20 +34,17 @@ public class MatchImpl implements Match {
     private final List<Round> rounds = new ArrayList<>();
     private final HashMap<Participant, ItemStack[]> inventories = new HashMap<>();
     private final Map map;
-    private final Shop shop;
     private final int id;
-    private Countdown countdown;
+    private final List<Module> modules = new ArrayList<>();
     private boolean buyPeriod;
-    private AgentPicker agentPicker;
     public MatchImpl(Map map, int id) {
         this.id = id;
         this.map = map;
-        this.shop = new Shop(this);
+        buyPeriod = true;
         teams.add(new TeamImpl(this, Team.Side.ATTACKER));
         teams.add(new TeamImpl(this, Team.Side.DEFENDER));
-        buyPeriod = true;
-        this.agentPicker = new AgentPicker(this);
-        this.countdown = null;
+        modules.add(new Shop(this));
+        modules.add(new AgentPicker(this));
     }
 
     @Override
@@ -74,23 +74,13 @@ public class MatchImpl implements Match {
     }
 
     @Override
-    public Shop getShop() {
-        return shop;
-    }
-
-    @Override
-    public Countdown getCountdown() {
-        return countdown;
-    }
-
-    @Override
     public boolean isBuyPeriod() {
         return buyPeriod;
     }
 
     @Override
     public boolean isWaitingForPlayers() {
-        return agentPicker != null;
+        return hasModule(AgentPicker.class);
     }
 
     @Override
@@ -106,6 +96,7 @@ public class MatchImpl implements Match {
     @Override
     public void endRound() {
         callEvent(new RoundFinishEvent(this));
+        Countdown countdown = getModule(Countdown.class);
         if (countdown != null) {
             countdown.stop();
         }
@@ -113,17 +104,23 @@ public class MatchImpl implements Match {
 
     @Override
     public void nextRound() {
-        countdown = new Countdown(Countdown.Context.ROUND_ENDING);
+        Countdown countdown = getModule(Countdown.class);
+        if (countdown != null) modules.remove(countdown);
+        final Countdown c = new Countdown(Countdown.Context.ROUND_ENDING);
+        modules.add(c);
         for (Participant participant : getPlayers().values()) {
-            countdown.getBossBar().addPlayer(participant.getPlayer());
+            c.getBossBar().addPlayer(participant.getPlayer());
         }
-        countdown.onComplete(() -> {
+        c.start();
+        c.onComplete(() -> {
             rounds.add(new RoundImpl(rounds.size() + 1));
             if (rounds.size() / 7 == 1) switchSides();
             buyPeriod = true;
-            countdown = new Countdown(Countdown.Context.ROUND_STARTING);
+            modules.remove(c);
+            final Countdown cc = new Countdown(Countdown.Context.ROUND_STARTING);
+            modules.add(cc);
             for (Participant participant : getPlayers().values()) {
-                countdown.getBossBar().addPlayer(participant.getPlayer());
+                cc.getBossBar().addPlayer(participant.getPlayer());
                 if (participant.isDead()) {
                     if (participant.getPlayer().isDead()) {
                         participant.getPlayer().spigot().respawn();
@@ -132,9 +129,13 @@ public class MatchImpl implements Match {
                 }
                 participant.toTeam();
             }
-            countdown.onComplete(() -> {
+            cc.onComplete(() -> {
                 callEvent(new RoundStartEvent(this));
                 buyPeriod = false;
+                modules.remove(cc);
+                final Countdown ccc = new Countdown(Countdown.Context.BEFORE_SPIKE);
+                modules.add(ccc);
+                ccc.start();
             });
         });
     }
@@ -145,8 +146,10 @@ public class MatchImpl implements Match {
         MatchStartEvent e = new MatchStartEvent(this);
         callEvent(e);
         if (!e.isCancelled()) {
+            AgentPicker agentPicker = getModule(AgentPicker.class);
+            if (agentPicker == null) return false;
             agentPicker.close();
-            agentPicker = null;
+            modules.remove(agentPicker);
             for (Participant p : getPlayers().values()) {
                 p.applyDefaultSet();
             }
@@ -159,22 +162,31 @@ public class MatchImpl implements Match {
     @Override
     public MatchResult end(MatchTerminateEvent.Reason reason) {
         map.setUse(false);
+        if (!isComplete()) {
+            callEvent(new MatchTerminateEvent(this, reason));
+            return null;
+        }
+        MatchResult result = new MatchResult(this);
         Location loc = MatchManager.getInstance().getLobby();
         for (Participant p : getPlayers().values()) {
             p.getPlayer().getInventory().clear();
             ItemStack[] stacks = inventories.get(p);
             p.getPlayer().getInventory().addItem(stacks);
             p.getPlayer().teleport(loc);
+            if (getWinningTeam() == p.getTeam()) {
+                p.getStats().addWin(result);
+                p.getStats().addXP(100);
+            } else {
+                p.getStats().addLoss(result);
+                p.getStats().addXP(10);
+            }
+            p.save();
         }
         inventories.clear();
+        Datastore.getInstance().saveMatch(result);
         teams.clear();
-        buyPeriod = false;
-        if (isComplete()) {
-            callEvent(new MatchCompleteEvent(this));
-            return new MatchResult(this);
-        }
-        callEvent(new MatchTerminateEvent(this, reason));
-        return null;
+        callEvent(new MatchCompleteEvent(this));
+        return result;
     }
 
     @Override
@@ -190,10 +202,24 @@ public class MatchImpl implements Match {
         team.getMembers().add(participant);
         inventories.put(participant, player.getInventory().getContents().clone());
         player.getInventory().clear();
+        Datastore.getInstance().loadPlayer(participant);
     }
 
     @Override
     public void setCountdown(Countdown countdown) {
-        this.countdown = countdown;
+        if (hasModule(countdown.getClass())) {
+            modules.remove(getModule(countdown.getClass()));
+        }
+        modules.add(countdown);
+    }
+
+    @Override
+    public Collection<Module> getModules() {
+        return modules;
+    }
+
+    @Override
+    public <N extends Module> N getModule(Class<? extends N> key) {
+        return (N) modules.stream().filter(m -> m.getClass() == key).findFirst().orElse(null);
     }
 }

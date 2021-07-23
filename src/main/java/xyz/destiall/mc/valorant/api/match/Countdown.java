@@ -1,14 +1,17 @@
-package xyz.destiall.mc.valorant.utils;
+package xyz.destiall.mc.valorant.api.match;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
+import xyz.destiall.mc.valorant.utils.Formatter;
+import xyz.destiall.mc.valorant.utils.ScheduledTask;
+import xyz.destiall.mc.valorant.utils.Scheduler;
 
 import java.time.Duration;
 
-public class Countdown {
+public class Countdown implements Module {
     private final BossBar bossBar;
     private final Context context;
     private Runnable func;

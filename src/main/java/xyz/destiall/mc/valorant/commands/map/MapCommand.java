@@ -10,6 +10,7 @@ import java.util.Arrays;
 public class MapCommand extends SubCommand {
     public MapCommand() {
         super("map");
+        subCommands.add(new ListCommand());
         subCommands.add(new CreateCommand());
         subCommands.add(new FinishCommand());
         subCommands.add(new CancelCommand());
@@ -17,6 +18,7 @@ public class MapCommand extends SubCommand {
         subCommands.add(new AddSiteCommand());
         subCommands.add(new SetAttackerCommand());
         subCommands.add(new SetDefenderCommand());
+        tab.add("list");
         tab.add("create");
         tab.add("finish");
         tab.add("cancel");

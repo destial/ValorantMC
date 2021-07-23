@@ -7,6 +7,9 @@ import java.util.HashMap;
 import java.util.Set;
 
 public class AbilityManager {
+
+    // TODO: Figure out ability manager to stop all abilites regardless of match
+
     public static final HashMap<Match, Set<Ability>> ALL_ABILITIES = new HashMap<>();
     public static void stop(Match match) {
         ALL_ABILITIES.entrySet().stream().filter(e -> e.getKey() == match).forEach(e -> {
