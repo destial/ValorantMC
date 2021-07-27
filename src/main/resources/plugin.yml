@@ -12,7 +12,6 @@ commands:
   valorant:
     aliases:
       - vmc
-    permission: valorant.admin
   globalchat:
     aliases:
       - g

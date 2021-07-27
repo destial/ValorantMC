@@ -16,6 +16,7 @@ import xyz.destiall.mc.valorant.api.items.Knife;
 import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.api.match.Spike;
 import xyz.destiall.mc.valorant.api.player.Participant;
+import xyz.destiall.mc.valorant.api.player.Party;
 import xyz.destiall.mc.valorant.api.player.Settings;
 import xyz.destiall.mc.valorant.database.Datastore;
 import xyz.destiall.mc.valorant.database.Stats;
@@ -26,12 +27,13 @@ import java.util.HashMap;
 
 public class ParticipantImpl implements Participant {
     private final Player player;
-    private final Team team;
     private final Economy econ;
     private final Knife knife;
     private final HashMap<Ability, Integer> abilities = new HashMap<>();
     private final Stats stats;
     private final Settings settings;
+    private Party party;
+    private Team team;
     private Gun primary;
     private Gun secondary;
     private Agent agent;
@@ -47,22 +49,34 @@ public class ParticipantImpl implements Participant {
     public ParticipantImpl(Player player, Team team) {
         this.player = player;
         this.team = team;
-        kills = 0;
-        deaths = 0;
-        assists = 0;
+        kills = deaths = assists = 0;
         primary = null;
         secondary = ItemFactory.GET_CLASSIC();
         knife = new Knife(new ItemStack(Material.IRON_SWORD));
         agent = null;
-        flashed = false;
-        dead = false;
-        ultimate = false;
-        usingUlt = false;
         spike = null;
+        party = null;
+        flashed = dead = ultimate = usingUlt = false;
         settings = new Settings();
         econ = new Economy(500);
         stats = new Stats(getUUID());
     }
+
+    public ParticipantImpl(Player player, Party party) {
+        this.player = player;
+        this.party = party;
+        team = null;
+        primary = null;
+        secondary = ItemFactory.GET_CLASSIC();
+        knife = new Knife(new ItemStack(Material.IRON_SWORD));
+        agent = null;
+        spike = null;
+        flashed = dead = ultimate = usingUlt = false;
+        settings = new Settings();
+        econ = new Economy(500);
+        stats = new Stats(getUUID());
+    }
+
     @Override
     public Player getPlayer() {
         return player;
@@ -74,12 +88,18 @@ public class ParticipantImpl implements Participant {
     }
 
     @Override
+    public Party getParty() {
+        return null;
+    }
+
+    @Override
     public Integer getKills() {
         return kills;
     }
 
     @Override
     public void addKill() {
+        stats.addKill();
         kills++;
     }
 
@@ -90,6 +110,7 @@ public class ParticipantImpl implements Participant {
 
     @Override
     public void addDeath() {
+        stats.addDeath();
         deaths++;
     }
 
@@ -100,6 +121,7 @@ public class ParticipantImpl implements Participant {
 
     @Override
     public void addAssist() {
+        stats.addAssist();
         assists++;
     }
 
@@ -186,6 +208,16 @@ public class ParticipantImpl implements Participant {
     @Override
     public void setAgent(Agent agent) {
         this.agent = agent;
+    }
+
+    @Override
+    public void setTeam(Team team) {
+        this.team = team;
+    }
+
+    @Override
+    public void setParty(Party party) {
+        this.party = party;
     }
 
     @Override

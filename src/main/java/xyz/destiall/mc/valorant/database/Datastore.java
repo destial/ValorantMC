@@ -12,6 +12,7 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.UUID;
 
 public class Datastore {
     private static Datastore instance;
@@ -119,5 +120,20 @@ public class Datastore {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    public String loadMatch(UUID uuid) {
+        if (connection == null) return null;
+        try {
+            PreparedStatement statement = connection.prepareStatement(Query.SELECT_MATCH);
+            statement.setString(1, uuid.toString());
+            ResultSet result = statement.executeQuery();
+            if (result.next()) {
+                return result.getString("data");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

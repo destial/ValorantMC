@@ -24,6 +24,7 @@ import java.util.UUID;
 public interface Participant {
     Player getPlayer();
     Team getTeam();
+    Party getParty();
     Economy getEconomy();
     Integer getKills();
     Integer getDeaths();
@@ -46,6 +47,8 @@ public interface Participant {
     void setPrimaryGun(Gun gun);
     void setSecondaryGun(Gun gun);
     void setAgent(Agent agent);
+    void setTeam(Team team);
+    void setParty(Party party);
     void addKill();
     void addDeath();
     void addAssist();

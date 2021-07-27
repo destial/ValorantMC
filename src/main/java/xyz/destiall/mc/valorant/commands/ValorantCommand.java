@@ -7,6 +7,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabExecutor;
 import org.bukkit.entity.Player;
 import xyz.destiall.mc.valorant.commands.map.MapCommand;
+import xyz.destiall.mc.valorant.commands.match.MatchCommand;
+import xyz.destiall.mc.valorant.commands.party.PartyCommand;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -22,6 +24,7 @@ public class ValorantCommand implements CommandExecutor, TabExecutor {
         commands.add(new MatchCommand());
         commands.add(new MapCommand());
         commands.add(new GunCommand());
+        commands.add(new PartyCommand());
         commands.add(new ReloadCommand());
     }
 
@@ -36,6 +39,12 @@ public class ValorantCommand implements CommandExecutor, TabExecutor {
             sendError(sender);
             return false;
         }
+        if (cmd.getPermission() != null) {
+            if (!sender.hasPermission(cmd.getPermission())) {
+                sendUnauthorized(sender);
+                return false;
+            }
+        }
         if (sender instanceof Player) {
             Player player = (Player) sender;
             cmd.runPlayer(player, Arrays.copyOfRange(args, 1, args.length));
@@ -49,11 +58,11 @@ public class ValorantCommand implements CommandExecutor, TabExecutor {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args == null || args.length == 0) return new LinkedList<>();
         if (args.length == 1) {
-            return commands.stream().filter(c -> c.getName().toLowerCase().contains(args[0])).map(SubCommand::getName).collect(Collectors.toList());
+            return commands.stream().filter(c -> c.getName().toLowerCase().contains(args[0]) && (c.getPermission() == null || sender.hasPermission(c.getPermission()))).map(SubCommand::getName).collect(Collectors.toList());
         }
         SubCommand cmd = commands.stream().filter(c -> c.getName().equalsIgnoreCase(args[0])).findFirst().orElse(null);
         if (cmd == null) return new LinkedList<>();
-        SubCommand cmd2 = cmd.getSubCommands().stream().filter(c -> c.getName().equalsIgnoreCase(args[1])).findFirst().orElse(null);
+        SubCommand cmd2 = cmd.getSubCommands().stream().filter(c -> c.getName().equalsIgnoreCase(args[1]) && (c.getPermission() == null || sender.hasPermission(c.getPermission()))).findFirst().orElse(null);
         if (cmd2 != null) {
             return cmd2.getTab().stream().filter(c -> c.toLowerCase().contains(args[args.length - 1])).collect(Collectors.toList());
         }
@@ -66,5 +75,9 @@ public class ValorantCommand implements CommandExecutor, TabExecutor {
 
     public static void sendError(CommandSender sender) {
         sender.sendMessage("Error while using command!");
+    }
+
+    public static void sendUnauthorized(CommandSender sender) {
+        sender.sendMessage(ChatColor.RED + "You are unauthorized to use this command!");
     }
 }

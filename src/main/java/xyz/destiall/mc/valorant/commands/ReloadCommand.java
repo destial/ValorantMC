@@ -8,6 +8,7 @@ import xyz.destiall.mc.valorant.Valorant;
 public class ReloadCommand extends SubCommand {
     public ReloadCommand() {
         super("reload");
+        permission = "valorant.admin";
     }
 
     @Override

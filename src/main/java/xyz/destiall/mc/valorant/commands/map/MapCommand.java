@@ -30,6 +30,10 @@ public class MapCommand extends SubCommand {
 
     @Override
     public void runPlayer(Player player, String[] args) {
+        if (args.length == 0) {
+            ValorantCommand.sendError(player);
+            return;
+        }
         SubCommand cmd = subCommands.stream().filter(c -> c.getName().equalsIgnoreCase(args[0])).findFirst().orElse(null);
         if (cmd == null) {
             ValorantCommand.sendError(player);
@@ -40,6 +44,10 @@ public class MapCommand extends SubCommand {
 
     @Override
     public void runConsole(CommandSender sender, String[] args) {
+        if (args.length == 0) {
+            ValorantCommand.sendError(sender);
+            return;
+        }
         SubCommand cmd = subCommands.stream().filter(c -> c.getName().equalsIgnoreCase(args[0])).findFirst().orElse(null);
         if (cmd == null) {
             ValorantCommand.sendError(sender);

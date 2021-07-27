@@ -12,6 +12,7 @@ import xyz.destiall.mc.valorant.agents.reyna.Leer;
 public class AbilityCommand extends SubCommand {
     public AbilityCommand() {
         super("ability");
+        permission = "valorant.admin";
         tab.add("bladestorm");
         tab.add("blaze");
         tab.add("cloudburst");

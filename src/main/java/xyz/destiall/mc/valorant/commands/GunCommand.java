@@ -16,6 +16,7 @@ import java.util.stream.Collectors;
 public class GunCommand extends SubCommand {
     public GunCommand() {
         super("gun");
+        permission = "valorant.admin";
         tab.addAll(ItemFactory.ALL_GUNS.stream().map(g -> g.getName().name().toLowerCase()).collect(Collectors.toList()));
         tab.add("operator");
         tab.add("shockbow");

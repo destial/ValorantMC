@@ -7,12 +7,15 @@ import org.bukkit.entity.Player;
 import xyz.destiall.mc.valorant.api.events.match.MatchTerminateEvent;
 import xyz.destiall.mc.valorant.api.map.Map;
 import xyz.destiall.mc.valorant.api.match.Match;
+import xyz.destiall.mc.valorant.api.match.MatchResult;
 import xyz.destiall.mc.valorant.api.match.Shop;
 import xyz.destiall.mc.valorant.api.player.Participant;
+import xyz.destiall.mc.valorant.database.Datastore;
 import xyz.destiall.mc.valorant.factories.MatchFactory;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 public class MatchManager {
     private final Set<Match> MATCHES = new HashSet<>();
@@ -84,5 +87,11 @@ public class MatchManager {
 
     public Set<Match> getAllMatches() {
         return MATCHES;
+    }
+
+    public MatchResult getMatchResult(UUID uuid) {
+        String data = Datastore.getInstance().loadMatch(uuid);
+        if (data == null) return null;
+        return new MatchResult(data);
     }
 }

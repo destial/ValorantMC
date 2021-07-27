@@ -7,6 +7,7 @@ import xyz.destiall.mc.valorant.api.events.match.MatchTerminateEvent;
 import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.api.map.Map;
 import xyz.destiall.mc.valorant.api.player.Participant;
+import xyz.destiall.mc.valorant.api.player.Party;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -23,14 +24,16 @@ public interface Match extends Modular<Module> {
     boolean isBuyPeriod();
     boolean isWaitingForPlayers();
 
+    void setCountdown(Countdown countdown);
     void switchSides();
     void endRound();
     void nextRound();
     boolean start();
     MatchResult end(MatchTerminateEvent.Reason reason);
     void terminate();
+    void join(Player player);
     void joinTeam(Team.Side side, Player player);
-    void setCountdown(Countdown countdown);
+    void joinParty(Party party);
 
     default boolean isComplete() {
         return getRound().getNumber() > 12 && (getAttacker().getScore() > getDefender().getScore() + 1

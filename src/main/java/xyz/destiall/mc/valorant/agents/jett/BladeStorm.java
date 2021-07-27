@@ -16,16 +16,13 @@ import org.bukkit.util.EulerAngle;
 import org.bukkit.util.Vector;
 import xyz.destiall.mc.valorant.Valorant;
 import xyz.destiall.mc.valorant.api.abilities.Ultimate;
-import xyz.destiall.mc.valorant.managers.AbilityManager;
 import xyz.destiall.mc.valorant.utils.Effects;
 import xyz.destiall.mc.valorant.utils.ScheduledTask;
 import xyz.destiall.mc.valorant.utils.Scheduler;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class BladeStorm extends Ultimate implements Listener {

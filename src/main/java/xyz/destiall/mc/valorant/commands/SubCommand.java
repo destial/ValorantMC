@@ -12,8 +12,13 @@ public abstract class SubCommand {
     protected final Set<SubCommand> subCommands = new HashSet<>();
     protected final List<String> tab = new ArrayList<>();
     protected final String name;
+    protected String permission;
     public SubCommand(String name) {
         this.name = name;
+    }
+
+    public String getPermission() {
+        return permission;
     }
 
     public String getName() {

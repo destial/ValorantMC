@@ -19,11 +19,13 @@ import xyz.destiall.mc.valorant.api.match.Module;
 import xyz.destiall.mc.valorant.api.match.Round;
 import xyz.destiall.mc.valorant.api.match.Shop;
 import xyz.destiall.mc.valorant.api.player.Participant;
+import xyz.destiall.mc.valorant.api.player.Party;
 import xyz.destiall.mc.valorant.database.Datastore;
 import xyz.destiall.mc.valorant.managers.MatchManager;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -195,6 +197,18 @@ public class MatchImpl implements Match {
     }
 
     @Override
+    public void join(Player player) {
+        Team team = teams.stream().min(Comparator.comparingInt(a -> a.getMembers().size())).orElse(null);
+        if (team == null) return;
+        if ((5 - team.getMembers().size()) < 1) return;
+        Participant participant = new ParticipantImpl(player, team);
+        team.getMembers().add(participant);
+        inventories.put(participant, player.getInventory().getContents().clone());
+        player.getInventory().clear();
+        Datastore.getInstance().loadPlayer(participant);
+    }
+
+    @Override
     public void joinTeam(Team.Side side, Player player) {
         Team team = teams.stream().filter(t -> t.getSide().equals(side)).findFirst().orElse(null);
         if (team == null) return;
@@ -203,6 +217,19 @@ public class MatchImpl implements Match {
         inventories.put(participant, player.getInventory().getContents().clone());
         player.getInventory().clear();
         Datastore.getInstance().loadPlayer(participant);
+    }
+
+    @Override
+    public void joinParty(Party party) {
+        Team team = teams.stream().min(Comparator.comparingInt(a -> a.getMembers().size())).orElse(null);
+        if (team == null) return;
+        if (party.getMembers().size() > (5 - team.getMembers().size())) return;
+        for (Participant participant : party.getMembers()) {
+            participant.setTeam(team);
+            team.getMembers().add(participant);
+            inventories.put(participant, participant.getPlayer().getInventory().getContents().clone());
+            participant.getPlayer().getInventory().clear();
+        }
     }
 
     @Override

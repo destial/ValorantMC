@@ -8,7 +8,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerPickupItemEvent;
 import xyz.destiall.mc.valorant.api.events.DeathEvent;
 import xyz.destiall.mc.valorant.api.items.Gun;
 import xyz.destiall.mc.valorant.api.items.Knife;

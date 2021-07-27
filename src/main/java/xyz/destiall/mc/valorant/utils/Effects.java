@@ -19,9 +19,7 @@ import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.api.player.Participant;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class Effects {
