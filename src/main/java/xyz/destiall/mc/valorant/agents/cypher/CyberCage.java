@@ -16,7 +16,7 @@ import xyz.destiall.mc.valorant.api.abilities.Ability;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
 import xyz.destiall.mc.valorant.api.abilities.Smoke;
 import xyz.destiall.mc.valorant.api.items.Team;
-import xyz.destiall.mc.valorant.api.player.Participant;
+import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.managers.MatchManager;
 import xyz.destiall.mc.valorant.utils.Debugger;
 import xyz.destiall.mc.valorant.utils.Effects;
@@ -39,7 +39,7 @@ public class CyberCage extends Ability implements Smoke, Listener {
     @Override
     public void use(Player player, Vector direction) {
         this.appear(player.getLocation().subtract(new Vector(0, -2, 0)));
-        Participant p = MatchManager.getInstance().getParticipant(player);
+        VPlayer p = MatchManager.getInstance().getParticipant(player);
         if (p == null) return;
         team = p.getTeam();
     }
@@ -86,7 +86,7 @@ public class CyberCage extends Ability implements Smoke, Listener {
         if (e.getTo().toVector().isInSphere(finalLoc.toVector(), getSmokeRange())) {
             Debugger.debug("walking in cybercage");
             if (team != null) {
-                Participant p = MatchManager.getInstance().getParticipant(e.getPlayer());
+                VPlayer p = MatchManager.getInstance().getParticipant(e.getPlayer());
                 if (p == null) return;
                 if (p.getTeam() == team) return;
                 p.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 2, 1));

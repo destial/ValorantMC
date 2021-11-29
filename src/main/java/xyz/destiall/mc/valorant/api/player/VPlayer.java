@@ -2,7 +2,6 @@ package xyz.destiall.mc.valorant.api.player;
 
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.util.Vector;
@@ -16,12 +15,13 @@ import xyz.destiall.mc.valorant.api.match.Match;
 import xyz.destiall.mc.valorant.api.match.Spike;
 import xyz.destiall.mc.valorant.database.Stats;
 import xyz.destiall.mc.valorant.factories.ItemFactory;
-import xyz.destiall.mc.valorant.utils.Economy;
+import xyz.destiall.mc.valorant.api.match.Economy;
+import xyz.destiall.mc.valorant.utils.Formatter;
 
 import java.util.HashMap;
 import java.util.UUID;
 
-public interface Participant {
+public interface VPlayer {
     Player getPlayer();
     Team getTeam();
     Party getParty();
@@ -75,25 +75,28 @@ public interface Participant {
         return getTeam().getMatch();
     }
     default void showHotbar(String message) {
-        getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&', message)));
+        getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(Formatter.color(message)));
     }
     default void showTitle(String message) {
         showTitle(message, null);
     }
     default void showTitle(String message, String subtitle) {
-        getPlayer().sendTitle(ChatColor.translateAlternateColorCodes('&', message), subtitle);
+        getPlayer().sendTitle(Formatter.color(message), Formatter.color(subtitle), 0, 1, 0);
+    }
+    default void showSubTitle(String subtitle) {
+        getPlayer().sendTitle(null, Formatter.color(subtitle), 0, 1, 0);
     }
     default void sendMessage(String message) {
-        getPlayer().sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+        getPlayer().sendMessage(Formatter.color(message));
     }
     default Location getLocation() {
-        return getPlayer().getLocation();
+        return getPlayer().getLocation().clone();
     }
     default Location getEyeLocation() {
-        return getPlayer().getEyeLocation();
+        return getPlayer().getEyeLocation().clone();
     }
     default Vector getDirection() {
-        return getLocation().getDirection();
+        return getLocation().getDirection().clone();
     }
     default UUID getUUID() {
         return getPlayer().getUniqueId();

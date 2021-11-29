@@ -3,7 +3,7 @@ package xyz.destiall.mc.valorant.api.items;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import xyz.destiall.mc.valorant.api.player.Participant;
+import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.utils.Shooter;
 
 import java.util.HashMap;
@@ -99,15 +99,15 @@ public class Gun implements ShopItem, Giveable {
     }
 
     @Override
-    public void give(Participant participant) {
+    public void give(VPlayer VPlayer) {
         int slot = 2;
         if (!type.equals(Type.PISTOL)) {
             slot = 1;
         }
         if (slot == 1) {
-            participant.setPrimaryGun(this);
+            VPlayer.setPrimaryGun(this);
         } else {
-            participant.setSecondaryGun(this);
+            VPlayer.setSecondaryGun(this);
         }
     }
 

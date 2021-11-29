@@ -22,6 +22,7 @@ public class MapManager {
         }
         return instance;
     }
+
     private MapManager() {
         instance = this;
         mapFolder = new File(Valorant.getInstance().getPlugin().getDataFolder(), "maps" + File.separator);
@@ -33,7 +34,9 @@ public class MapManager {
 
     public void loadMaps() {
         if (!mapFolder.exists()) {
-            mapFolder.mkdir();
+            if (mapFolder.mkdir()) {
+                Debugger.debug("------ Performing first time setup ------");
+            }
         }
         String[] list = mapFolder.list();
         if (list == null) return;
@@ -41,7 +44,7 @@ public class MapManager {
             if (!mapFileName.toLowerCase().endsWith(".yml") && !mapFileName.toLowerCase().endsWith(".yaml")) continue;
             Map map = MatchFactory.createMap(YamlConfiguration.loadConfiguration(new File(mapFolder, mapFileName)));
             if (map == null) continue;
-            Debugger.debug("Loaded Valorant Map " + map.getName());
+            Debugger.debug("------ Loaded Valorant Map " + map.getName() + " ------");
             MAPS.add(map);
         }
     }

@@ -5,8 +5,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import xyz.destiall.mc.valorant.api.player.Participant;
 import xyz.destiall.mc.valorant.api.player.Settings;
+import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.managers.MatchManager;
 
 import java.util.HashSet;
@@ -16,23 +16,23 @@ public class ChatListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onChat(AsyncPlayerChatEvent e) {
         e.getRecipients().removeIf(p -> MatchManager.getInstance().getParticipant(p) != null);
-        Participant participant = MatchManager.getInstance().getParticipant(e.getPlayer());
-        if (participant == null) return;
+        VPlayer vPlayer = MatchManager.getInstance().getParticipant(e.getPlayer());
+        if (vPlayer == null) return;
         e.setCancelled(true);
-        final Set<Participant> recipients = new HashSet<>();
+        final Set<VPlayer> recipients = new HashSet<>();
         String setting = "[TEAM]";
-        if (participant.getChatSettings() == Settings.Chat.GLOBAL) {
+        if (vPlayer.getChatSettings() == Settings.Chat.GLOBAL) {
             setting = "[ALL]";
-            recipients.addAll(participant.getMatch().getPlayers().values());
+            recipients.addAll(vPlayer.getMatch().getPlayers().values());
         } else {
-            recipients.addAll(participant.getTeam().getMembers());
+            recipients.addAll(vPlayer.getTeam().getMembers());
         }
-        for (Participant p : recipients) {
+        for (VPlayer p : recipients) {
             ChatColor color = ChatColor.BLUE;
-            if (p.getTeam() != participant.getTeam()) {
+            if (p.getTeam() != vPlayer.getTeam()) {
                 color = ChatColor.RED;
             }
-            p.sendMessage(color + setting + " " + participant.getPlayer().getName() + ": " + e.getMessage());
+            p.sendMessage(color + setting + " " + vPlayer.getPlayer().getName() + ": " + e.getMessage());
         }
     }
 }

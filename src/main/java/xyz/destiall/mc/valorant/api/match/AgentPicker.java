@@ -8,7 +8,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
-import xyz.destiall.mc.valorant.api.player.Participant;
+import xyz.destiall.mc.valorant.api.player.VPlayer;
 
 public class AgentPicker implements Listener, Module {
     private final Match match;
@@ -53,7 +53,7 @@ public class AgentPicker implements Listener, Module {
     }
 
     public void close() {
-        for (Participant p : match.getPlayers().values()) {
+        for (VPlayer p : match.getPlayers().values()) {
             p.getPlayer().closeInventory();
         }
     }

@@ -15,17 +15,17 @@ import xyz.destiall.mc.valorant.api.items.Gun;
 import xyz.destiall.mc.valorant.api.items.Knife;
 import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.api.match.Spike;
-import xyz.destiall.mc.valorant.api.player.Participant;
 import xyz.destiall.mc.valorant.api.player.Party;
 import xyz.destiall.mc.valorant.api.player.Settings;
+import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.database.Datastore;
 import xyz.destiall.mc.valorant.database.Stats;
 import xyz.destiall.mc.valorant.factories.ItemFactory;
-import xyz.destiall.mc.valorant.utils.Economy;
+import xyz.destiall.mc.valorant.api.match.Economy;
 
 import java.util.HashMap;
 
-public class ParticipantImpl implements Participant {
+public class VPlayerImpl implements VPlayer {
     private final Player player;
     private final Economy econ;
     private final Knife knife;
@@ -46,7 +46,7 @@ public class ParticipantImpl implements Participant {
     private boolean ultimate;
     private boolean usingUlt;
 
-    public ParticipantImpl(Player player, Team team) {
+    public VPlayerImpl(Player player, Team team) {
         this.player = player;
         this.team = team;
         kills = deaths = assists = 0;
@@ -62,7 +62,7 @@ public class ParticipantImpl implements Participant {
         stats = new Stats(getUUID());
     }
 
-    public ParticipantImpl(Player player, Party party) {
+    public VPlayerImpl(Player player, Party party) {
         this.player = player;
         this.party = party;
         team = null;
@@ -193,6 +193,8 @@ public class ParticipantImpl implements Participant {
     @Override
     public void holdSpike(Spike spike) {
         this.spike = spike;
+        if (spike == null) return;
+        player.getInventory().setItem(4, Spike.getItem());
     }
 
     @Override

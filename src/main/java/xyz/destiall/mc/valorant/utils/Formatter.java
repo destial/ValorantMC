@@ -1,5 +1,7 @@
 package xyz.destiall.mc.valorant.utils;
 
+import org.bukkit.ChatColor;
+
 import java.time.Duration;
 
 public class Formatter {
@@ -17,5 +19,9 @@ public class Formatter {
             return (int) s + "." + mil;
         }
         return ((int) m) + ":" + ((int) s);
+    }
+
+    public static String color(String s) {
+        return ChatColor.translateAlternateColorCodes('&', s);
     }
 }

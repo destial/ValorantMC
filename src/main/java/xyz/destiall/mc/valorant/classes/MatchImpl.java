@@ -9,6 +9,7 @@ import xyz.destiall.mc.valorant.api.events.match.MatchTerminateEvent;
 import xyz.destiall.mc.valorant.api.events.match.SwitchingSidesEvent;
 import xyz.destiall.mc.valorant.api.events.round.RoundFinishEvent;
 import xyz.destiall.mc.valorant.api.events.round.RoundStartEvent;
+import xyz.destiall.mc.valorant.api.items.Gun;
 import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.api.map.Map;
 import xyz.destiall.mc.valorant.api.match.AgentPicker;
@@ -18,8 +19,9 @@ import xyz.destiall.mc.valorant.api.match.MatchResult;
 import xyz.destiall.mc.valorant.api.match.Module;
 import xyz.destiall.mc.valorant.api.match.Round;
 import xyz.destiall.mc.valorant.api.match.Shop;
-import xyz.destiall.mc.valorant.api.player.Participant;
+import xyz.destiall.mc.valorant.api.match.Spike;
 import xyz.destiall.mc.valorant.api.player.Party;
+import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.database.Datastore;
 import xyz.destiall.mc.valorant.managers.MatchManager;
 
@@ -34,11 +36,13 @@ import java.util.Set;
 public class MatchImpl implements Match {
     private final Set<Team> teams = new HashSet<>();
     private final List<Round> rounds = new ArrayList<>();
-    private final HashMap<Participant, ItemStack[]> inventories = new HashMap<>();
+    private final HashMap<VPlayer, ItemStack[]> inventories = new HashMap<>();
     private final Map map;
     private final int id;
     private final List<Module> modules = new ArrayList<>();
+    private final Set<Gun> droppedGuns = new HashSet<>();
     private boolean buyPeriod;
+    private Spike spike;
     public MatchImpl(Map map, int id) {
         this.id = id;
         this.map = map;
@@ -76,6 +80,16 @@ public class MatchImpl implements Match {
     }
 
     @Override
+    public Spike getSpike() {
+        return spike;
+    }
+
+    @Override
+    public Set<Gun> getDroppedGuns() {
+        return droppedGuns;
+    }
+
+    @Override
     public boolean isBuyPeriod() {
         return buyPeriod;
     }
@@ -110,10 +124,11 @@ public class MatchImpl implements Match {
         if (countdown != null) modules.remove(countdown);
         final Countdown c = new Countdown(Countdown.Context.ROUND_ENDING);
         modules.add(c);
-        for (Participant participant : getPlayers().values()) {
-            c.getBossBar().addPlayer(participant.getPlayer());
+        for (VPlayer vPlayer : getPlayers().values()) {
+            c.getBossBar().addPlayer(vPlayer.getPlayer());
         }
         c.start();
+        spike = new Spike(this);
         c.onComplete(() -> {
             rounds.add(new RoundImpl(rounds.size() + 1));
             if (rounds.size() / 7 == 1) switchSides();
@@ -121,15 +136,15 @@ public class MatchImpl implements Match {
             modules.remove(c);
             final Countdown cc = new Countdown(Countdown.Context.ROUND_STARTING);
             modules.add(cc);
-            for (Participant participant : getPlayers().values()) {
-                cc.getBossBar().addPlayer(participant.getPlayer());
-                if (participant.isDead()) {
-                    if (participant.getPlayer().isDead()) {
-                        participant.getPlayer().spigot().respawn();
+            for (VPlayer vPlayer : getPlayers().values()) {
+                cc.getBossBar().addPlayer(vPlayer.getPlayer());
+                if (vPlayer.isDead()) {
+                    if (vPlayer.getPlayer().isDead()) {
+                        vPlayer.getPlayer().spigot().respawn();
                     }
-                    participant.applyDefaultSet();
+                    vPlayer.applyDefaultSet();
                 }
-                participant.toTeam();
+                vPlayer.toTeam();
             }
             cc.onComplete(() -> {
                 callEvent(new RoundStartEvent(this));
@@ -152,7 +167,7 @@ public class MatchImpl implements Match {
             if (agentPicker == null) return false;
             agentPicker.close();
             modules.remove(agentPicker);
-            for (Participant p : getPlayers().values()) {
+            for (VPlayer p : getPlayers().values()) {
                 p.applyDefaultSet();
             }
             return true;
@@ -170,7 +185,7 @@ public class MatchImpl implements Match {
         }
         MatchResult result = new MatchResult(this);
         Location loc = MatchManager.getInstance().getLobby();
-        for (Participant p : getPlayers().values()) {
+        for (VPlayer p : getPlayers().values()) {
             p.getPlayer().getInventory().clear();
             ItemStack[] stacks = inventories.get(p);
             p.getPlayer().getInventory().addItem(stacks);
@@ -201,22 +216,22 @@ public class MatchImpl implements Match {
         Team team = teams.stream().min(Comparator.comparingInt(a -> a.getMembers().size())).orElse(null);
         if (team == null) return;
         if ((5 - team.getMembers().size()) < 1) return;
-        Participant participant = new ParticipantImpl(player, team);
-        team.getMembers().add(participant);
-        inventories.put(participant, player.getInventory().getContents().clone());
+        VPlayer VPlayer = new VPlayerImpl(player, team);
+        team.getMembers().add(VPlayer);
+        inventories.put(VPlayer, player.getInventory().getContents().clone());
         player.getInventory().clear();
-        Datastore.getInstance().loadPlayer(participant);
+        Datastore.getInstance().loadPlayer(VPlayer);
     }
 
     @Override
     public void joinTeam(Team.Side side, Player player) {
         Team team = teams.stream().filter(t -> t.getSide().equals(side)).findFirst().orElse(null);
         if (team == null) return;
-        Participant participant = new ParticipantImpl(player, team);
-        team.getMembers().add(participant);
-        inventories.put(participant, player.getInventory().getContents().clone());
+        VPlayer VPlayer = new VPlayerImpl(player, team);
+        team.getMembers().add(VPlayer);
+        inventories.put(VPlayer, player.getInventory().getContents().clone());
         player.getInventory().clear();
-        Datastore.getInstance().loadPlayer(participant);
+        Datastore.getInstance().loadPlayer(VPlayer);
     }
 
     @Override
@@ -224,11 +239,11 @@ public class MatchImpl implements Match {
         Team team = teams.stream().min(Comparator.comparingInt(a -> a.getMembers().size())).orElse(null);
         if (team == null) return;
         if (party.getMembers().size() > (5 - team.getMembers().size())) return;
-        for (Participant participant : party.getMembers()) {
-            participant.setTeam(team);
-            team.getMembers().add(participant);
-            inventories.put(participant, participant.getPlayer().getInventory().getContents().clone());
-            participant.getPlayer().getInventory().clear();
+        for (VPlayer vPlayer : party.getMembers()) {
+            vPlayer.setTeam(team);
+            team.getMembers().add(vPlayer);
+            inventories.put(vPlayer, vPlayer.getPlayer().getInventory().getContents().clone());
+            vPlayer.getPlayer().getInventory().clear();
         }
     }
 
@@ -246,7 +261,7 @@ public class MatchImpl implements Match {
     }
 
     @Override
-    public <N extends Module> N getModule(Class<? extends N> key) {
-        return (N) modules.stream().filter(m -> m.getClass() == key).findFirst().orElse(null);
+    public <N extends Module> N getModule(Class<N> key) {
+        return (N) modules.stream().filter(m -> m.getClass().equals(key)).findFirst().orElse(null);
     }
 }

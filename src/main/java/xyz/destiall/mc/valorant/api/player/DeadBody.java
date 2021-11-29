@@ -1,27 +1,26 @@
-package xyz.destiall.mc.valorant.utils;
+package xyz.destiall.mc.valorant.api.player;
 
 import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
-import xyz.destiall.mc.valorant.api.player.Participant;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 
 public class DeadBody {
-    private static final HashMap<Participant, DeadBody> DEAD_BODIES = new HashMap<>();
+    private static final HashMap<VPlayer, DeadBody> DEAD_BODIES = new HashMap<>();
     private final Set<ArmorStand> armorStands;
     private final Location location;
-    private final Participant participant;
-    public DeadBody(Participant participant) {
-        this.participant = participant;
-        this.location = participant.getPlayer().getLocation().clone();
+    private final VPlayer vPlayer;
+    public DeadBody(VPlayer vPlayer) {
+        this.vPlayer = vPlayer;
+        this.location = vPlayer.getPlayer().getLocation().clone();
         armorStands = new HashSet<>();
     }
 
     public void die() {
-        participant.setDead(true);
-        DEAD_BODIES.put(participant, this);
+        vPlayer.setDead(true);
+        DEAD_BODIES.put(vPlayer, this);
     }
 
     public void despawn() {
@@ -31,14 +30,14 @@ public class DeadBody {
         armorStands.clear();
     }
 
-    public Participant getBelongingPlayer() {
-        return participant;
+    public VPlayer getBelongingPlayer() {
+        return vPlayer;
     }
 
     public void revive() {
-        participant.setDead(false);
-        participant.getPlayer().spigot().respawn();
-        participant.getPlayer().teleport(location);
+        vPlayer.setDead(false);
+        vPlayer.getPlayer().spigot().respawn();
+        vPlayer.getPlayer().teleport(location);
         despawn();
     }
 

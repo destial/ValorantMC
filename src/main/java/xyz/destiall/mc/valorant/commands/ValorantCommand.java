@@ -64,6 +64,12 @@ public class ValorantCommand implements CommandExecutor, TabExecutor {
         if (cmd == null) return new LinkedList<>();
         SubCommand cmd2 = cmd.getSubCommands().stream().filter(c -> c.getName().equalsIgnoreCase(args[1]) && (c.getPermission() == null || sender.hasPermission(c.getPermission()))).findFirst().orElse(null);
         if (cmd2 != null) {
+            if (args.length > 2) {
+                SubCommand cmd3 = cmd2.getSubCommands().stream().filter(c -> c.getName().equalsIgnoreCase(args[2]) && (c.getPermission() == null || sender.hasPermission(c.getPermission()))).findFirst().orElse(null);
+                if (cmd3 != null) {
+                    return cmd3.getTab().stream().filter(c -> c.toLowerCase().contains(args[args.length - 1])).collect(Collectors.toList());
+                }
+            }
             return cmd2.getTab().stream().filter(c -> c.toLowerCase().contains(args[args.length - 1])).collect(Collectors.toList());
         }
         return cmd.getTab().stream().filter(c -> c.toLowerCase().contains(args[args.length - 1])).collect(Collectors.toList());

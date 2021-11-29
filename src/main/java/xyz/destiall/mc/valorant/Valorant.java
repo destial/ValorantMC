@@ -6,6 +6,7 @@ import com.github.fierioziy.particlenativeapi.api.ParticleNativeAPI;
 import com.github.fierioziy.particlenativeapi.api.utils.ParticleException;
 import com.github.fierioziy.particlenativeapi.core.ParticleNativeCore;
 import org.bukkit.Bukkit;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -47,19 +48,22 @@ public class Valorant {
 
     public void disable() {
         MatchManager.getInstance().disable();
-        Debugger.debug("Unloaded MatchManager");
+        Debugger.debug("------ Unloaded MatchManager ------");
         MapManager.getInstance().unloadMaps();
-        Debugger.debug("Unloaded MapManager");
+        Debugger.debug("------ Unloaded MapManager ------");
         AbilityManager.stopAll();
-        Debugger.debug("Unloaded AbilityManager");
+        Debugger.debug("------ Unloaded AbilityManager ------");
         Effects.disable();
-        Debugger.debug("Unloaded Effects");
+        Debugger.debug("------ Unloaded Effects ------ ");
         HandlerList.unregisterAll(plugin);
-        Debugger.debug("Unregistered Listeners");
+        Debugger.debug("------ Unregistered Listeners ------");
         Scheduler.cancelAll();
         Bukkit.getScheduler().cancelTasks(plugin);
-        Debugger.debug("Cancelled all tasks");
-        plugin.getServer().getPluginCommand("valorant").setExecutor(null);
+        Debugger.debug("------ Cancelled all tasks ------");
+        PluginCommand command = plugin.getServer().getPluginCommand("valorant");
+        if (command != null) {
+            command.setExecutor(null);
+        }
     }
 
     public void enable() {
@@ -69,21 +73,25 @@ public class Valorant {
             plugin.saveResource("shop.yml", true);
         }
         MapManager.getInstance();
-        Debugger.debug("Loaded MapManager");
+        Debugger.debug("------ Loaded MapManager ------");
         MatchManager.getInstance();
-        Debugger.debug("Loaded MatchManager");
+        Debugger.debug("------ Loaded MatchManager ------");
         try {
             ParticleNativeAPI api = ParticleNativeCore.loadAPI(plugin);
             ProtocolManager pm = ProtocolLibrary.getProtocolManager();
             new Effects(api, pm);
-            Debugger.debug("Loaded Effects");
-        } catch (ParticleException e) {
+            Debugger.debug("------ Loaded Effects ------");
+        } catch (Exception e) {
             e.printStackTrace();
+            Debugger.warn("------ Error while loading effects ------");
+            Debugger.warn("------ Disabling ValorantMC ------");
+            plugin.getPluginLoader().disablePlugin(plugin);
+            return;
         }
         registerListeners();
-        Debugger.debug("Loaded Listeners");
+        Debugger.debug("------ Loaded Listeners ------");
         registerCommands();
-        Debugger.debug("Loaded Commands");
+        Debugger.debug("------ Loaded Commands ------");
     }
 
     private void registerListeners() {
@@ -96,8 +104,29 @@ public class Valorant {
     }
 
     private void registerCommands() {
-        plugin.getServer().getPluginCommand("valorant").setExecutor(new ValorantCommand());
-        plugin.getServer().getPluginCommand("globalchat").setExecutor(new GlobalChatCommand());
-        plugin.getServer().getPluginCommand("teamchat").setExecutor(new TeamChatCommand());
+        PluginCommand command = plugin.getServer().getPluginCommand("valorant");
+        if (command == null) {
+            Debugger.warn("------ Error while loading commands ------");
+            Debugger.warn("------ Disabling ValorantMC ------");
+            plugin.getPluginLoader().disablePlugin(plugin);
+            return;
+        }
+        command.setExecutor(new ValorantCommand());
+        command = plugin.getServer().getPluginCommand("globalchat");
+        if (command == null) {
+            Debugger.warn("------ Error while loading commands ------");
+            Debugger.warn("------ Disabling ValorantMC ------");
+            plugin.getPluginLoader().disablePlugin(plugin);
+            return;
+        }
+        command.setExecutor(new GlobalChatCommand());
+        command = plugin.getServer().getPluginCommand("teamchat");
+        if (command == null) {
+            Debugger.warn("------ Error while loading commands ------");
+            Debugger.warn("------ Disabling ValorantMC ------");
+            plugin.getPluginLoader().disablePlugin(plugin);
+            return;
+        }
+        command.setExecutor(new TeamChatCommand());
     }
 }

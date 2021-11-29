@@ -1,15 +1,16 @@
-package xyz.destiall.mc.valorant.api.events;
+package xyz.destiall.mc.valorant.api.events.player;
 
+import xyz.destiall.mc.valorant.api.events.match.MatchEvent;
 import xyz.destiall.mc.valorant.api.items.Gun;
 import xyz.destiall.mc.valorant.api.items.Knife;
-import xyz.destiall.mc.valorant.api.player.Participant;
+import xyz.destiall.mc.valorant.api.player.VPlayer;
 
 public class DeathEvent extends MatchEvent {
-    private final Participant victim;
-    private final Participant killer;
+    private final VPlayer victim;
+    private final VPlayer killer;
     private final Gun gun;
     private final Knife knife;
-    public DeathEvent(Participant victim, Participant killer, Gun gun, Knife knife) {
+    public DeathEvent(VPlayer victim, VPlayer killer, Gun gun, Knife knife) {
         super(victim.getTeam().getMatch());
         this.victim = victim;
         this.killer = killer;
@@ -29,11 +30,11 @@ public class DeathEvent extends MatchEvent {
         return knife;
     }
 
-    public Participant getKiller() {
+    public VPlayer getKiller() {
         return killer;
     }
 
-    public Participant getVictim() {
+    public VPlayer getVictim() {
         return victim;
     }
 }

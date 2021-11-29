@@ -32,7 +32,7 @@ public class Shooter {
         dir.setY(direction.getY() + (Math.random() * spread - spread * 0.5) * 0.1);
         dir.setZ(direction.getZ() + (Math.random() * spread - spread * 0.5) * 0.1);
         final Set<Entity> hitEntities = new HashSet<>();
-        while (isPassable(current.getBlock())) {
+        while (isPassable(current.getBlock(), dir)) {
             if (origin.clone().subtract(current.clone()).length() > 100) break;
             current.add(dir);
             Effects.bullet(current.clone());
@@ -81,7 +81,7 @@ public class Shooter {
         }
     }
 
-    private static boolean isPassable(Block block) {
+    private static boolean isPassable(Block block, Vector dir) {
         Material type = block.getType();
         return (block.isPassable() || block.isEmpty()) && (type.isAir() || !type.isSolid());
     }

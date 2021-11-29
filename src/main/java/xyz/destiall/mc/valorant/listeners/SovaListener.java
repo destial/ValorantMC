@@ -2,6 +2,8 @@ package xyz.destiall.mc.valorant.listeners;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.FluidCollisionMode;
+import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.entity.AbstractArrow;
 import org.bukkit.entity.Arrow;
@@ -21,7 +23,7 @@ import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.util.Vector;
 import xyz.destiall.mc.valorant.Valorant;
-import xyz.destiall.mc.valorant.api.player.Participant;
+import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.managers.MatchManager;
 import xyz.destiall.mc.valorant.utils.Effects;
 import xyz.destiall.mc.valorant.utils.ScheduledTask;
@@ -54,7 +56,7 @@ public class SovaListener implements Listener {
         int amt = Integer.parseInt(String.valueOf(meta.getDisplayName().charAt(++index)));
         int type = 1;
         String string = meta.getLore().get(0);
-        if (string.contains("RADAR")) {
+        if (string.contains("SONAR")) {
             type = 0;
         }
         e.getBow().setItemMeta(meta);
@@ -64,8 +66,8 @@ public class SovaListener implements Listener {
         arrow.setMetadata("valorant_sova_rebounds", new FixedMetadataValue(Valorant.getInstance().getPlugin(), amt));
         arrow.setMetadata("valorant_sova_type", new FixedMetadataValue(Valorant.getInstance().getPlugin(), type));
         ScheduledTask task = Scheduler.repeat(() -> {
-            Participant participant = MatchManager.getInstance().getParticipant(player);
-            Effects.dartTravel(arrow.getLocation(), participant);
+            VPlayer VPlayer = MatchManager.getInstance().getParticipant(player);
+            Effects.dartTravel(arrow.getLocation(), VPlayer);
             if (arrow.isDead()) {
                 arrows.get(arrow).cancel();
             }
@@ -131,8 +133,14 @@ public class SovaListener implements Listener {
                     live.damage(15);
                 }
             } else {
-                for (Entity entity : arrow.getNearbyEntities(5, 5, 5).stream().filter(en -> en instanceof LivingEntity).collect(Collectors.toList())) {
+                for (Entity entity : arrow.getNearbyEntities(25, 25, 25).stream().filter(en -> en instanceof LivingEntity).collect(Collectors.toList())) {
                     LivingEntity live = (LivingEntity) entity;
+                    Vector faceDirection = live.getLocation().getDirection().clone().subtract(arrow.getLocation().getDirection().clone()).normalize();
+                    Location arrowLoc = arrow.getLocation().clone();
+                    while (arrowLoc.distance(arrow.getLocation()) <= 25) {
+                        arrowLoc.add(faceDirection);
+                        if (arrowLoc.getBlock().rayTrace(arrow.getLocation(), faceDirection, 25, FluidCollisionMode.ALWAYS) == null) break;
+                    }
                     if (entity instanceof Player) {
                         Player p = (Player) live;
                         p.playSound(p.getEyeLocation(), Sound.BLOCK_LEVER_CLICK, 1, 9);
@@ -173,8 +181,8 @@ public class SovaListener implements Listener {
             arrow1.setMetadata("valorant_sova_rebounds", new FixedMetadataValue(Valorant.getInstance().getPlugin(), rebounds));
             arrow1.setMetadata("valorant_sova_type", new FixedMetadataValue(Valorant.getInstance().getPlugin(), type));
             ScheduledTask task = Scheduler.repeat(() -> {
-                Participant participant = MatchManager.getInstance().getParticipant(player);
-                Effects.dartTravel(arrow.getLocation(), participant);
+                VPlayer VPlayer = MatchManager.getInstance().getParticipant(player);
+                Effects.dartTravel(arrow.getLocation(), VPlayer);
                 if (arrow1.isDead()) {
                     arrows.get(arrow1).cancel();
                 }

@@ -2,7 +2,7 @@ package xyz.destiall.mc.valorant.api.items;
 
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import xyz.destiall.mc.valorant.api.player.Participant;
+import xyz.destiall.mc.valorant.api.player.VPlayer;
 
 public class Knife implements Giveable {
     protected final ItemStack itemStack;
@@ -19,7 +19,7 @@ public class Knife implements Giveable {
     }
 
     @Override
-    public void give(Participant participant) {
-        participant.getPlayer().getInventory().setItem(3, itemStack);
+    public void give(VPlayer VPlayer) {
+        VPlayer.getPlayer().getInventory().setItem(3, itemStack);
     }
 }

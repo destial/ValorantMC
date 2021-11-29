@@ -16,7 +16,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
 import xyz.destiall.mc.valorant.api.items.Team;
-import xyz.destiall.mc.valorant.api.player.Participant;
+import xyz.destiall.mc.valorant.api.player.VPlayer;
 
 import javax.annotation.Nullable;
 import java.util.HashSet;
@@ -102,16 +102,16 @@ public class Effects {
         }, (long) (duration * 20L));
     }
 
-    public static void dartTravel(Location location, @Nullable Participant participant) {
+    public static void dartTravel(Location location, @Nullable VPlayer VPlayer) {
         Object packet = PARTICLES.DUST_COLOR_TRANSITION().color(Color.BLUE, Color.BLUE, 1).packet(false, location);
-        if (participant != null) {
-            for (Participant own : participant.getTeam().getMembers()) {
+        if (VPlayer != null) {
+            for (VPlayer own : VPlayer.getTeam().getMembers()) {
                 PARTICLES.sendPacket(own.getPlayer(), packet);
             }
             packet = PARTICLES.DUST_COLOR_TRANSITION().color(Color.RED, Color.RED, 1).packet(false, location);
-            Team otherTeam = participant.getMatch().getTeams().stream().filter(t -> t != participant.getTeam()).findFirst().orElse(null);
+            Team otherTeam = VPlayer.getMatch().getTeams().stream().filter(t -> t != VPlayer.getTeam()).findFirst().orElse(null);
             if (otherTeam != null) {
-                for (Participant enemy : otherTeam.getMembers()) {
+                for (VPlayer enemy : otherTeam.getMembers()) {
                     PARTICLES.sendPacket(enemy.getPlayer(), packet);
                 }
             }

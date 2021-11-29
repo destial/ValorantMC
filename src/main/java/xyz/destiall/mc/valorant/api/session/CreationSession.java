@@ -13,7 +13,7 @@ import java.util.Set;
 public class CreationSession {
     public static final Set<CreationSession> ACTIVE_SESSIONS = new HashSet<>();
     public static CreationSession getSession(Player player) {
-        return ACTIVE_SESSIONS.stream().filter(s -> s.player == player).findFirst().orElse(null);
+        return ACTIVE_SESSIONS.stream().filter(s -> s.player.getUniqueId().equals(player.getUniqueId())).findFirst().orElse(null);
     }
     private final Player player;
     private final BoundingBox bounds;

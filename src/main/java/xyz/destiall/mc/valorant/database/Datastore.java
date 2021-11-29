@@ -3,7 +3,7 @@ package xyz.destiall.mc.valorant.database;
 import org.bukkit.configuration.Configuration;
 import xyz.destiall.mc.valorant.Valorant;
 import xyz.destiall.mc.valorant.api.match.MatchResult;
-import xyz.destiall.mc.valorant.api.player.Participant;
+import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.managers.ConfigManager;
 
 import java.io.File;
@@ -70,40 +70,40 @@ public class Datastore {
         }
     }
 
-    public void loadPlayer(Participant participant) {
+    public void loadPlayer(VPlayer vPlayer) {
         if (connection == null) return;
         try {
             PreparedStatement statement = connection.prepareStatement(Query.SELECT_PLAYER);
-            statement.setString(1, participant.getUUID().toString());
+            statement.setString(1, vPlayer.getUUID().toString());
             ResultSet result = statement.executeQuery();
             if (result.next()) {
-                participant.getStats().load(result.getString("data"));
+                vPlayer.getStats().load(result.getString("data"));
             } else {
-                newPlayer(participant);
+                newPlayer(vPlayer);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    private void newPlayer(Participant participant) {
+    private void newPlayer(VPlayer vPlayer) {
         if (connection == null) return;
         try {
             PreparedStatement statement = connection.prepareStatement(Query.INSERT_PLAYER);
-            statement.setString(1, participant.getUUID().toString());
-            statement.setString(2, participant.getStats().toJSON());
+            statement.setString(1, vPlayer.getUUID().toString());
+            statement.setString(2, vPlayer.getStats().toJSON());
             statement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public void updatePlayer(Participant participant) {
+    public void updatePlayer(VPlayer vPlayer) {
         if (connection == null) return;
         try {
             PreparedStatement statement = connection.prepareStatement(Query.UPDATE_PLAYER);
-            statement.setString(1, participant.getStats().toJSON());
-            statement.setString(2, participant.getUUID().toString());
+            statement.setString(1, vPlayer.getStats().toJSON());
+            statement.setString(2, vPlayer.getUUID().toString());
             statement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

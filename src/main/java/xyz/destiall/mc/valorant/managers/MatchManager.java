@@ -9,7 +9,7 @@ import xyz.destiall.mc.valorant.api.map.Map;
 import xyz.destiall.mc.valorant.api.match.Match;
 import xyz.destiall.mc.valorant.api.match.MatchResult;
 import xyz.destiall.mc.valorant.api.match.Shop;
-import xyz.destiall.mc.valorant.api.player.Participant;
+import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.database.Datastore;
 import xyz.destiall.mc.valorant.factories.MatchFactory;
 
@@ -61,16 +61,16 @@ public class MatchManager {
         return match;
     }
 
-    public Participant getParticipant(Player player) {
+    public VPlayer getParticipant(Player player) {
         Match match = MATCHES.stream().filter(m -> m.isInMatch(player)).findFirst().orElse(null);
         if (match == null) return null;
         return match.getPlayers().get(player.getUniqueId());
     }
 
     public Match getMatch(Player player) {
-        Participant participant = getParticipant(player);
-        if (participant == null) return null;
-        return participant.getMatch();
+        VPlayer VPlayer = getParticipant(player);
+        if (VPlayer == null) return null;
+        return VPlayer.getMatch();
     }
 
     public Match getMatch(int id) {

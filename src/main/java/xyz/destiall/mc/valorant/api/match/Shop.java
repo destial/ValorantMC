@@ -12,7 +12,7 @@ import xyz.destiall.mc.valorant.api.items.Armor;
 import xyz.destiall.mc.valorant.api.items.Giveable;
 import xyz.destiall.mc.valorant.api.items.Gun;
 import xyz.destiall.mc.valorant.api.items.ShopItem;
-import xyz.destiall.mc.valorant.api.player.Participant;
+import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.factories.ItemFactory;
 
 import java.io.File;
@@ -23,7 +23,7 @@ import java.util.Map;
 
 public class Shop implements Module {
     private static final HashMap<Integer, ShopItem> ITEMS = new HashMap<>();
-    private final HashMap<Participant, Inventory> playerShop = new HashMap<>();
+    private final HashMap<VPlayer, Inventory> playerShop = new HashMap<>();
     private final Match match;
     public Shop(Match match) {
         this.match = match;
@@ -58,12 +58,12 @@ public class Shop implements Module {
         }
     }
 
-    public Inventory create(Participant participant) {
-        if (playerShop.get(participant) != null) {
-            return playerShop.get(participant);
+    public Inventory create(VPlayer VPlayer) {
+        if (playerShop.get(VPlayer) != null) {
+            return playerShop.get(VPlayer);
         }
         Inventory inv = Bukkit.createInventory(null, 36, "Buy Shop");
-        playerShop.put(participant, inv);
+        playerShop.put(VPlayer, inv);
         List<Integer> slots = new ArrayList<>();
         for (Map.Entry<Integer, ShopItem> entry : ITEMS.entrySet()) {
             if (entry.getValue() instanceof ShopItem.AbilityPlaceholder) {
@@ -73,7 +73,7 @@ public class Shop implements Module {
             inv.setItem(entry.getKey(), entry.getValue().getShopDisplay());
         }
         int i = 0;
-        for (Ability ability : participant.getAbilities().keySet()) {
+        for (Ability ability : VPlayer.getAbilities().keySet()) {
             if (ability instanceof Ultimate) continue;
             Integer slot = slots.get(i);
             inv.setItem(slot, ability.getShopDisplay());
@@ -82,36 +82,36 @@ public class Shop implements Module {
         return inv;
     }
 
-    public void open(Participant participant) {
-        participant.getPlayer().openInventory(create(participant));
+    public void open(VPlayer VPlayer) {
+        VPlayer.getPlayer().openInventory(create(VPlayer));
     }
 
     public void close() {
-        for (Participant participant : match.getPlayers().values()) {
-            participant.getPlayer().closeInventory();
+        for (VPlayer VPlayer : match.getPlayers().values()) {
+            VPlayer.getPlayer().closeInventory();
         }
     }
 
-    public void buy(Participant participant, Integer slot) {
+    public void buy(VPlayer VPlayer, Integer slot) {
         ShopItem item = ITEMS.get(slot);
         if (item == null) return;
         if (item instanceof Gun) {
             Gun gun = (Gun) item;
             if (gun.getType().equals(Gun.Type.PISTOL) || gun.getType().equals(Gun.Type.TACTICAL)) {
-                Gun secondary = participant.getSecondaryGun();
+                Gun secondary = VPlayer.getSecondaryGun();
                 if (secondary.getName().equals(gun.getName())) return;
             } else {
-                Gun primary = participant.getPrimaryGun();
+                Gun primary = VPlayer.getPrimaryGun();
                 if (primary.getName().equals(gun.getName())) return;
             }
         }
         if (item instanceof Ability) {
 
         }
-        if (participant.getEconomy().getBalance() >= item.getPrice()) {
+        if (VPlayer.getEconomy().getBalance() >= item.getPrice()) {
             if (item instanceof Giveable) {
-                ((Giveable) item).give(participant);
-                participant.getEconomy().remove(item.getPrice());
+                ((Giveable) item).give(VPlayer);
+                VPlayer.getEconomy().remove(item.getPrice());
                 return;
             }
             //if (item instanceof Ability) {

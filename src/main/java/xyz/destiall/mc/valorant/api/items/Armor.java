@@ -2,7 +2,7 @@ package xyz.destiall.mc.valorant.api.items;
 
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import xyz.destiall.mc.valorant.api.player.Participant;
+import xyz.destiall.mc.valorant.api.player.VPlayer;
 
 import java.util.List;
 
@@ -26,8 +26,8 @@ public class Armor implements ShopItem, Giveable {
     }
 
     @Override
-    public void give(Participant participant) {
-        participant.addArmour(getAmount());
+    public void give(VPlayer VPlayer) {
+        VPlayer.addArmour(getAmount());
     }
 
     @Override

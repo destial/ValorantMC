@@ -11,8 +11,7 @@ public final class Main extends JavaPlugin {
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
-        new Valorant(this);
-        Valorant.getInstance().enable();
+        new Valorant(this).enable();
     }
 
     @Override

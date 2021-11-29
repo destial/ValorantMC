@@ -3,13 +3,13 @@ package xyz.destiall.mc.valorant.classes;
 import org.bukkit.Location;
 import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.api.match.Match;
-import xyz.destiall.mc.valorant.api.player.Participant;
+import xyz.destiall.mc.valorant.api.player.VPlayer;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class TeamImpl implements Team {
-    private final Set<Participant> members = new HashSet<>();
+    private final Set<VPlayer> members = new HashSet<>();
     private int score;
     private final Match match;
     private Side side;
@@ -18,7 +18,7 @@ public class TeamImpl implements Team {
         this.match = match;
     }
     @Override
-    public Set<Participant> getMembers() {
+    public Set<VPlayer> getMembers() {
         return members;
     }
 

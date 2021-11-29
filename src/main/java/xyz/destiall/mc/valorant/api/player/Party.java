@@ -5,9 +5,9 @@ import org.bukkit.entity.Player;
 import java.util.Set;
 
 public interface Party {
-    Set<Participant> getMembers();
+    Set<VPlayer> getMembers();
 
-    Participant getLeader();
+    VPlayer getLeader();
     void joinParty(Player player);
     void disband();
 }

@@ -4,10 +4,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import xyz.destiall.mc.valorant.api.events.match.MatchTerminateEvent;
+import xyz.destiall.mc.valorant.api.items.Gun;
 import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.api.map.Map;
-import xyz.destiall.mc.valorant.api.player.Participant;
 import xyz.destiall.mc.valorant.api.player.Party;
+import xyz.destiall.mc.valorant.api.player.VPlayer;
 
 import java.util.Comparator;
 import java.util.HashMap;
@@ -15,12 +16,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-public interface Match extends Modular<Module> {
+public interface Match extends Modular {
     int getID();
     Set<Team> getTeams();
     Round getRound();
     List<Round> getRounds();
     Map getMap();
+    Spike getSpike();
+    Set<Gun> getDroppedGuns();
     boolean isBuyPeriod();
     boolean isWaitingForPlayers();
 
@@ -46,11 +49,11 @@ public interface Match extends Modular<Module> {
     default boolean isInMatch(Player player) {
         return getPlayers().keySet().stream().anyMatch(k -> k.equals(player.getUniqueId()));
     }
-    default HashMap<UUID, Participant> getPlayers() {
-        HashMap<UUID, Participant> players = new HashMap<>();
+    default HashMap<UUID, VPlayer> getPlayers() {
+        HashMap<UUID, VPlayer> players = new HashMap<>();
         for (Team team : getTeams()) {
-            for (Participant participant : team.getMembers()) {
-                players.put(participant.getUUID(), participant);
+            for (VPlayer VPlayer : team.getMembers()) {
+                players.put(VPlayer.getUUID(), VPlayer);
             }
         }
         return players;

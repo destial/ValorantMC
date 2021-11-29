@@ -15,6 +15,7 @@
     <properties>
         <java.version>1.8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <nexus.url>https://repo.destial.xyz/repository</nexus.url>
     </properties>
 
     <build>
@@ -49,6 +50,10 @@
                                     <pattern>org.json</pattern>
                                     <shadedPattern>xyz.destiall.mc.valorant.json</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>com.comphenix.packetwrapper</pattern>
+                                    <shadedPattern>xyz.destiall.mc.valorant.packetwrapper</shadedPattern>
+                                </relocation>
                             </relocations>
                         </configuration>
                     </execution>
@@ -69,8 +74,8 @@
             <url>https://repo.dmulloy2.net/repository/public/</url>
         </repository>
         <repository>
-            <id>spigotmc-repo</id>
-            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+            <id>nexus</id>
+            <url>${nexus.url}/maven-snapshots/</url>
         </repository>
         <repository>
             <id>sonatype</id>
@@ -90,6 +95,12 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>com.comphenix.packetwrapper</groupId>
+            <artifactId>PacketWrapper</artifactId>
+            <version>1.13-R0.1-SNAPSHOT</version>
+            <scope>compile</scope>
+        </dependency>
+        <dependency>
             <groupId>com.github.fierioziy.particlenativeapi</groupId>
             <artifactId>ParticleNativeAPI-plugin</artifactId>
             <version>3.1.0</version>
@@ -97,7 +108,7 @@
         </dependency>
         <dependency>
             <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-api</artifactId>
+            <artifactId>spigot</artifactId>
             <version>1.17-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
@@ -120,4 +131,19 @@
             <scope>compile</scope>
         </dependency>
     </dependencies>
+
+    <distributionManagement>
+        <repository>
+            <uniqueVersion>false</uniqueVersion>
+            <id>nexus</id>
+            <name>Releases</name>
+            <url>${nexus.url}/maven-releases</url>
+        </repository>
+        <snapshotRepository>
+            <uniqueVersion>false</uniqueVersion>
+            <id>nexus</id>
+            <name>Snapshots</name>
+            <url>${nexus.url}/maven-snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
 </project>

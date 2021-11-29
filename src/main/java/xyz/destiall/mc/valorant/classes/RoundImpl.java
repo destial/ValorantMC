@@ -3,9 +3,11 @@ package xyz.destiall.mc.valorant.classes;
 import org.json.JSONObject;
 import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.api.match.Round;
+import xyz.destiall.mc.valorant.api.match.Spike;
 
 public class RoundImpl implements Round {
     private final int round;
+    private Spike spike;
     private Team.Side winner;
     private Team.Side loser;
     public RoundImpl(int round) {

@@ -53,7 +53,6 @@ public class Scheduler {
     }
 
     public static void forceRun(BukkitTask task) {
-        if (!task.isCancelled()) task.cancel();
         ScheduledTask scheduledTask = TASKS.stream().filter(st -> st.getTask().equals(task)).findFirst().orElse(null);
         if (scheduledTask == null) return;
         scheduledTask.run();

@@ -9,7 +9,7 @@ import org.bukkit.util.Vector;
 import xyz.destiall.mc.valorant.api.abilities.Ability;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
 import xyz.destiall.mc.valorant.api.abilities.Flash;
-import xyz.destiall.mc.valorant.api.player.Participant;
+import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.managers.MatchManager;
 import xyz.destiall.mc.valorant.utils.Effects;
 import xyz.destiall.mc.valorant.utils.ScheduledTask;
@@ -69,10 +69,10 @@ public class Leer extends Ability implements Flash {
         Scheduler.cancel(leerTravelTask);
         Effects.flashTravel(l, agent);
         this.remove();
-        Participant participant = MatchManager.getInstance().getParticipant(player);
-        if (participant != null) {
-            for (Participant p : participant.getMatch().getPlayers().values()) {
-                if (p == participant || p.getTeam() == participant.getTeam()) return;
+        VPlayer VPlayer = MatchManager.getInstance().getParticipant(player);
+        if (VPlayer != null) {
+            for (VPlayer p : VPlayer.getMatch().getPlayers().values()) {
+                if (p == VPlayer || p.getTeam() == VPlayer.getTeam()) return;
                 if (Flash.isSeen(p.getPlayer(), as, (int) getFlashRange())) {
                     Effects.flash(p.getPlayer(), agent, getFlashDuration());
                     p.setFlashed(true);

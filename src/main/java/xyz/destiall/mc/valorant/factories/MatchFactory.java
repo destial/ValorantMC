@@ -118,6 +118,12 @@ public class MatchFactory {
     }
 
     private static BoundingBox getXYZBounds(ConfigurationSection yaml) {
-        return new BoundingBox(yaml.getInt("xmn"), yaml.getInt("ymn"), yaml.getInt("zmn"), yaml.getInt("xmx"), yaml.getInt("ymx"), yaml.getInt("zmx"));
+        return new BoundingBox(
+                yaml.getInt("xmn"),
+                yaml.getInt("ymn"),
+                yaml.getInt("zmn"),
+                yaml.getInt("xmx"),
+                yaml.getInt("ymx"),
+                yaml.getInt("zmx"));
     }
 }

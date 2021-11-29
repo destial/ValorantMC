@@ -1,4 +1,4 @@
-package xyz.destiall.mc.valorant.utils;
+package xyz.destiall.mc.valorant.api.match;
 
 public class Economy {
     private Integer balance;
