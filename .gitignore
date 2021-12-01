@@ -28,4 +28,5 @@ dependency-reduced-pom.xml
 *.xcworkspace
 xcuserdata
 *class
+test/
 

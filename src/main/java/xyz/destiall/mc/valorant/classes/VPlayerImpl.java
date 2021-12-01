@@ -3,6 +3,7 @@ package xyz.destiall.mc.valorant.classes;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import xyz.destiall.mc.valorant.agents.cypher.CyberCage;
 import xyz.destiall.mc.valorant.agents.jett.BladeStorm;
 import xyz.destiall.mc.valorant.agents.jett.CloudBurst;
 import xyz.destiall.mc.valorant.agents.jett.Updraft;
@@ -14,6 +15,7 @@ import xyz.destiall.mc.valorant.api.abilities.Ultimate;
 import xyz.destiall.mc.valorant.api.items.Gun;
 import xyz.destiall.mc.valorant.api.items.Knife;
 import xyz.destiall.mc.valorant.api.items.Team;
+import xyz.destiall.mc.valorant.api.match.Economy;
 import xyz.destiall.mc.valorant.api.match.Spike;
 import xyz.destiall.mc.valorant.api.player.Party;
 import xyz.destiall.mc.valorant.api.player.Settings;
@@ -21,8 +23,8 @@ import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.database.Datastore;
 import xyz.destiall.mc.valorant.database.Stats;
 import xyz.destiall.mc.valorant.factories.ItemFactory;
-import xyz.destiall.mc.valorant.api.match.Economy;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
 public class VPlayerImpl implements VPlayer {
@@ -194,12 +196,14 @@ public class VPlayerImpl implements VPlayer {
     public void holdSpike(Spike spike) {
         this.spike = spike;
         if (spike == null) return;
-        player.getInventory().setItem(4, Spike.getItem());
+        player.getInventory().remove(spike.getItem());
+        player.getInventory().setItem(4, spike.getItem());
+        sendMessage("&cYou are holding the spike!");
     }
 
     @Override
     public void setChatSettings(Settings.Chat setting) {
-        this.settings.setChat(setting);
+        settings.setChat(setting);
     }
 
     @Override
@@ -245,23 +249,30 @@ public class VPlayerImpl implements VPlayer {
     @Override
     public void chooseAgent(Agent agent) {
         if (abilities.size() != 0) return;
+        if (agent == null) {
+            agent = Arrays.stream(Agent.values()).filter(a -> getMatch().getPlayers().values().stream().noneMatch(p -> p.getAgent() == a)).findFirst().orElse(Agent.CYPHER);
+        }
         this.agent = agent;
         switch (agent) {
             case JETT: {
-                Updraft up = new Updraft();
+                Updraft up = new Updraft(this);
                 abilities.put(up, up.getMaxUses());
-                CloudBurst cb = new CloudBurst();
+                CloudBurst cb = new CloudBurst(this);
                 abilities.put(cb, cb.getMaxUses());
-                abilities.put(new BladeStorm(), 0);
+                abilities.put(new BladeStorm(this), 0);
                 break;
             }
             case REYNA: {
-                Leer l = new Leer();
+                Leer l = new Leer(this);
                 abilities.put(l, l.getMaxUses());
                 break;
             }
             case PHOENIX: {
-                abilities.put(new Blaze(), 0);
+                abilities.put(new Blaze(this), 0);
+                break;
+            }
+            case CYPHER: {
+                abilities.put(new CyberCage(this), 0);
                 break;
             }
             default: break;

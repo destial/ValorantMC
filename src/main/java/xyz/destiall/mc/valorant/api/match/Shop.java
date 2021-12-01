@@ -58,12 +58,12 @@ public class Shop implements Module {
         }
     }
 
-    public Inventory create(VPlayer VPlayer) {
-        if (playerShop.get(VPlayer) != null) {
-            return playerShop.get(VPlayer);
+    public Inventory create(VPlayer p) {
+        if (playerShop.get(p) != null) {
+            return playerShop.get(p);
         }
         Inventory inv = Bukkit.createInventory(null, 36, "Buy Shop");
-        playerShop.put(VPlayer, inv);
+        playerShop.put(p, inv);
         List<Integer> slots = new ArrayList<>();
         for (Map.Entry<Integer, ShopItem> entry : ITEMS.entrySet()) {
             if (entry.getValue() instanceof ShopItem.AbilityPlaceholder) {
@@ -73,7 +73,7 @@ public class Shop implements Module {
             inv.setItem(entry.getKey(), entry.getValue().getShopDisplay());
         }
         int i = 0;
-        for (Ability ability : VPlayer.getAbilities().keySet()) {
+        for (Ability ability : p.getAbilities().keySet()) {
             if (ability instanceof Ultimate) continue;
             Integer slot = slots.get(i);
             inv.setItem(slot, ability.getShopDisplay());
@@ -82,36 +82,30 @@ public class Shop implements Module {
         return inv;
     }
 
-    public void open(VPlayer VPlayer) {
-        VPlayer.getPlayer().openInventory(create(VPlayer));
+    public void open(VPlayer p) {
+        p.getPlayer().openInventory(create(p));
     }
 
-    public void close() {
-        for (VPlayer VPlayer : match.getPlayers().values()) {
-            VPlayer.getPlayer().closeInventory();
-        }
-    }
-
-    public void buy(VPlayer VPlayer, Integer slot) {
+    public void buy(VPlayer p, Integer slot) {
         ShopItem item = ITEMS.get(slot);
         if (item == null) return;
         if (item instanceof Gun) {
             Gun gun = (Gun) item;
             if (gun.getType().equals(Gun.Type.PISTOL) || gun.getType().equals(Gun.Type.TACTICAL)) {
-                Gun secondary = VPlayer.getSecondaryGun();
+                Gun secondary = p.getSecondaryGun();
                 if (secondary.getName().equals(gun.getName())) return;
             } else {
-                Gun primary = VPlayer.getPrimaryGun();
+                Gun primary = p.getPrimaryGun();
                 if (primary.getName().equals(gun.getName())) return;
             }
         }
         if (item instanceof Ability) {
 
         }
-        if (VPlayer.getEconomy().getBalance() >= item.getPrice()) {
+        if (p.getEconomy().getBalance() >= item.getPrice()) {
             if (item instanceof Giveable) {
-                ((Giveable) item).give(VPlayer);
-                VPlayer.getEconomy().remove(item.getPrice());
+                ((Giveable) item).give(p);
+                p.getEconomy().remove(item.getPrice());
                 return;
             }
             //if (item instanceof Ability) {
@@ -122,5 +116,12 @@ public class Shop implements Module {
 
     public Match getMatch() {
         return match;
+    }
+
+    @Override
+    public void destroy() {
+        for (VPlayer VPlayer : match.getPlayers().values()) {
+            VPlayer.getPlayer().closeInventory();
+        }
     }
 }

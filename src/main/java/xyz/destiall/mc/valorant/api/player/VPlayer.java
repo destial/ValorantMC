@@ -11,11 +11,11 @@ import xyz.destiall.mc.valorant.api.abilities.Ultimate;
 import xyz.destiall.mc.valorant.api.items.Gun;
 import xyz.destiall.mc.valorant.api.items.Knife;
 import xyz.destiall.mc.valorant.api.items.Team;
+import xyz.destiall.mc.valorant.api.match.Economy;
 import xyz.destiall.mc.valorant.api.match.Match;
 import xyz.destiall.mc.valorant.api.match.Spike;
 import xyz.destiall.mc.valorant.database.Stats;
 import xyz.destiall.mc.valorant.factories.ItemFactory;
-import xyz.destiall.mc.valorant.api.match.Economy;
 import xyz.destiall.mc.valorant.utils.Formatter;
 
 import java.util.HashMap;
@@ -66,10 +66,11 @@ public interface VPlayer {
         getPlayer().setAbsorptionAmount(armour / 100F * 20);
     }
     default void applyDefaultSet() {
+        getPlayer().getInventory().clear();
         getKnife().give(this);
         ItemFactory.GET_CLASSIC().give(this);
-        getPlayer().getInventory().setItem(1, null);
-        getPlayer().getInventory().setHeldItemSlot(2);
+        getPlayer().getInventory().setItem(0, null);
+        getPlayer().getInventory().setHeldItemSlot(1);
     }
     default Match getMatch() {
         return getTeam().getMatch();

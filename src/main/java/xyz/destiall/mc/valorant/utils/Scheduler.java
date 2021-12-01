@@ -20,7 +20,14 @@ public class Scheduler {
     public static ScheduledTask repeat(Runnable runnable, long period) {
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(Valorant.getInstance().getPlugin(), runnable, 0L, period);
         ScheduledTask scheduledTask = new ScheduledTask(task, runnable, ScheduledTask.TaskType.REPEATED);
-        scheduledTask.setRunOnCancel(true);
+        //scheduledTask.setRunOnCancel(true);
+        TASKS.add(scheduledTask);
+        return scheduledTask;
+    }
+
+    public static ScheduledTask run(Runnable runnable) {
+        BukkitTask task = Bukkit.getScheduler().runTask(Valorant.getInstance().getPlugin(), runnable);
+        ScheduledTask scheduledTask = new ScheduledTask(task, runnable, ScheduledTask.TaskType.DELAY);
         TASKS.add(scheduledTask);
         return scheduledTask;
     }

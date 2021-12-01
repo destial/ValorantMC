@@ -26,9 +26,9 @@ public class CreationSession {
     private Location defenderSpawn;
     public CreationSession(Player player, String mapName, BoundingBox boundingBox, World world) {
         this.player = player;
-        this.bounds = boundingBox;
-        this.name = mapName;
         this.world = world;
+        bounds = boundingBox;
+        name = mapName;
         ACTIVE_SESSIONS.add(this);
     }
 
@@ -62,7 +62,7 @@ public class CreationSession {
 
     public boolean addWall(BoundingBox wall) {
         if (walls.stream().anyMatch(b -> b.contains(wall))) return false;
-        this.walls.add(wall);
+        walls.add(wall);
         return true;
     }
 
@@ -72,7 +72,7 @@ public class CreationSession {
 
     public boolean addSite(Site site) {
         if (sites.stream().anyMatch(s -> s.getSiteType() == site.getSiteType())) return false;
-        this.sites.add(site);
+        sites.add(site);
         return true;
     }
 
@@ -85,6 +85,10 @@ public class CreationSession {
     }
 
     public boolean finish() {
-        return MatchFactory.createMap(this) != null;
+        if (MatchFactory.createMap(this) != null) {
+            ACTIVE_SESSIONS.remove(this);
+            return true;
+        }
+        return false;
     }
 }

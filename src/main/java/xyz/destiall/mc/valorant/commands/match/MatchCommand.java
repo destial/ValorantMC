@@ -14,9 +14,11 @@ public class MatchCommand extends SubCommand {
         subCommands.add(new StartCommand());
         subCommands.add(new StopCommand());
         subCommands.add(new NewCommand());
+        subCommands.add(new JoinCommand());
         tab.add("start");
         tab.add("stop");
         tab.add("new");
+        tab.add("join");
     }
 
     @Override

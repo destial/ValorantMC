@@ -18,7 +18,9 @@ public class MapCommand extends SubCommand {
         subCommands.add(new AddSiteCommand());
         subCommands.add(new SetAttackerCommand());
         subCommands.add(new SetDefenderCommand());
+        subCommands.add(new LoadCommand());
         tab.add("list");
+        tab.add("load");
         tab.add("create");
         tab.add("finish");
         tab.add("cancel");

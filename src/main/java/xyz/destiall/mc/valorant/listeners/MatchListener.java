@@ -2,20 +2,20 @@ package xyz.destiall.mc.valorant.listeners;
 
 import com.shampaggon.crackshot.events.WeaponDamageEntityEvent;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import xyz.destiall.mc.valorant.api.events.player.DeathEvent;
 import xyz.destiall.mc.valorant.api.items.Gun;
 import xyz.destiall.mc.valorant.api.items.Knife;
-import xyz.destiall.mc.valorant.api.items.Team;
-import xyz.destiall.mc.valorant.api.match.Match;
-import xyz.destiall.mc.valorant.api.match.Spike;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.api.session.CreationSession;
 import xyz.destiall.mc.valorant.factories.ItemFactory;
@@ -53,10 +53,24 @@ public class MatchListener implements Listener {
             gun = ItemFactory.getGun(killer.getPlayer().getInventory().getItemInMainHand());
             knife = killer.getKnife().getItem().isSimilar(killer.getPlayer().getInventory().getItemInMainHand()) ? killer.getKnife() : null;
         }
+        victim.getPlayer().spigot().respawn();
+        victim.getPlayer().setGameMode(GameMode.SPECTATOR);
+        VPlayer spectateTarget = victim.getTeam().getMembers().stream().filter(t -> t != victim).findFirst().orElse(null);
+        if (spectateTarget == null) return;
+        victim.getPlayer().setSpectatorTarget(spectateTarget.getPlayer());
         victim.getMatch().callEvent(new DeathEvent(victim, killer, gun, knife));
     }
 
     @EventHandler
+    public void onEscapeSpectator(PlayerTeleportEvent e) {
+        if (e.getCause() != PlayerTeleportEvent.TeleportCause.SPECTATE) return;
+        if (e.getPlayer().getSpectatorTarget() == null) return;
+        VPlayer p = MatchManager.getInstance().getParticipant(e.getPlayer());
+        if (p == null) return;
+        e.setCancelled(true);
+    }
+
+    @EventHandler(ignoreCancelled = true)
     public void onWeaponDamage(WeaponDamageEntityEvent e) {
         if (!(e.getVictim() instanceof Player)) return;
         VPlayer victim = MatchManager.getInstance().getParticipant((Player) e.getVictim());
@@ -70,10 +84,10 @@ public class MatchListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onMatchDeath(DeathEvent e) {
         if (e.getVictim().isHoldingSpike()) {
-            spikeDropped(e.getVictim().getSpike(), e.getVictim());
+            spikeDropped(e.getVictim());
         }
         String symbol = "✇";
         if (e.getGun() != null) {
@@ -124,47 +138,30 @@ public class MatchListener implements Listener {
             vPlayer.setSecondaryGun(null);
             return;
         }
-        if (vPlayer.isHoldingSpike() && drop.isSimilar(Spike.getItem())) {
-            spikeDropped(vPlayer.getSpike(), vPlayer);
-            return;
-        }
         e.setCancelled(true);
     }
 
-    @EventHandler
-    public void onPickUpItem(EntityPickupItemEvent e) {
-        if (!(e.getEntity() instanceof Player)) {
-            for (Match match : MatchManager.getInstance().getAllMatches()) {
-                if (!match.getMap().getBounds().contains(e.getEntity().getBoundingBox())) continue;
-                e.setCancelled(true);
-                break;
-            }
+    @EventHandler(ignoreCancelled = true)
+    public void onBlockPlace(BlockPlaceEvent e) {
+        VPlayer player = MatchManager.getInstance().getParticipant(e.getPlayer());
+        if (player == null) return;
+        if (!player.isHoldingSpike()) {
+            e.setCancelled(true);
             return;
         }
-        Player player = (Player) e.getEntity();
-        VPlayer vPlayer = MatchManager.getInstance().getParticipant(player);
-        Gun gun = ItemFactory.getGun(e.getItem().getItemStack());
-        if (gun == null) {
-            if (Spike.getItem().isSimilar(e.getItem().getItemStack())) {
-                if (!vPlayer.getTeam().getSide().equals(Team.Side.ATTACKER)) {
-                    e.setCancelled(true);
-                    return;
-                }
-                vPlayer.holdSpike(vPlayer.getMatch().getSpike());
-            }
-            return;
+        if (!e.getItemInHand().isSimilar(player.getSpike().getItem())) {
+            e.setCancelled(true);
         }
-        if (vPlayer == null) {
-            for (Match match : MatchManager.getInstance().getAllMatches()) {
-                if (!match.getMap().getBounds().contains(player.getBoundingBox())) continue;
-                e.setCancelled(true);
-                break;
-            }
-        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onBlockBreak(BlockBreakEvent e) {
+        VPlayer player = MatchManager.getInstance().getParticipant(e.getPlayer());
+        if (player == null) return;
         e.setCancelled(true);
     }
 
-    private void spikeDropped(Spike spike, VPlayer holder) {
+    private void spikeDropped(VPlayer holder) {
         holder.holdSpike(null);
         for (VPlayer player : holder.getMatch().getPlayers().values()) {
             if (player == holder) continue;

@@ -29,7 +29,8 @@ public class CyberCage extends Ability implements Smoke, Listener {
     private Location finalLoc;
     private Team team;
     private ScheduledTask cageTask;
-    public CyberCage() {
+    public CyberCage(VPlayer player) {
+        super(player);
         agent = Agent.CYPHER;
         cageTask = null;
         finalLoc = null;
@@ -37,11 +38,8 @@ public class CyberCage extends Ability implements Smoke, Listener {
     }
 
     @Override
-    public void use(Player player, Vector direction) {
-        this.appear(player.getLocation().subtract(new Vector(0, -2, 0)));
-        VPlayer p = MatchManager.getInstance().getParticipant(player);
-        if (p == null) return;
-        team = p.getTeam();
+    public void use() {
+        appear(player.getLocation().subtract(new Vector(0, -2, 0)));
     }
 
     @Override

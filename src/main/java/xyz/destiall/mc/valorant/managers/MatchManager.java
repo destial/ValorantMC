@@ -31,22 +31,18 @@ public class MatchManager {
     }
 
     private MatchManager() {
-        instance = this;
         lobby = null;
     }
 
     public void disable() {
         for (Match match : MATCHES) {
-            if (match.hasModule(Shop.class)) {
-                match.getModule(Shop.class).close();
-            }
             match.end(MatchTerminateEvent.Reason.FORCE);
         }
         MATCHES.clear();
     }
 
     public Location getLobby() {
-        return lobby == null ? Bukkit.getWorlds().stream().filter(w -> w.getEnvironment() == World.Environment.NORMAL).findFirst().get().getSpawnLocation() : lobby;
+        return lobby == null ? Bukkit.getWorlds().stream().filter(w -> w.getEnvironment() == World.Environment.NORMAL).findFirst().orElse(Bukkit.getWorlds().get(0)).getSpawnLocation() : lobby;
     }
 
     public void setLobby(Location lobby) {
@@ -59,6 +55,12 @@ public class MatchManager {
         Match match = MatchFactory.createMatch(map);
         MATCHES.add(match);
         return match;
+    }
+
+    public Match getEmptyMatch() {
+        Match match = MATCHES.stream().filter(m -> m.getState().equals(Match.MatchState.WAITING) || m.isWaitingForPlayers()).findFirst().orElse(null);
+        if (match != null) return match;
+        return createNewMatch();
     }
 
     public VPlayer getParticipant(Player player) {

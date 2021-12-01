@@ -31,14 +31,17 @@ public interface Match extends Modular {
     void switchSides();
     void endRound();
     void nextRound();
-    boolean start();
+    boolean start(boolean force);
     MatchResult end(MatchTerminateEvent.Reason reason);
     void terminate();
     void join(Player player);
     void joinTeam(Team.Side side, Player player);
     void joinParty(Party party);
+    MatchState getState();
+    void setState(MatchState state);
 
     default boolean isComplete() {
+        if (getRound() == null) return false;
         return getRound().getNumber() > 12 && (getAttacker().getScore() > getDefender().getScore() + 1
                 || getDefender().getScore() > getAttacker().getScore() + 1);
     }
@@ -66,5 +69,11 @@ public interface Match extends Modular {
     }
     default Team getDefender() {
         return getTeams().stream().filter(t -> t.getSide().equals(Team.Side.DEFENDER)).findFirst().orElse(null);
+    }
+
+    enum MatchState {
+        WAITING,
+        PLAYING,
+        ENDING
     }
 }

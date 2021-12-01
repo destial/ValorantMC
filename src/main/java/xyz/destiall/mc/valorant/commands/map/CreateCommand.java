@@ -11,6 +11,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
 import xyz.destiall.mc.valorant.api.session.CreationSession;
 import xyz.destiall.mc.valorant.commands.SubCommand;
+import xyz.destiall.mc.valorant.managers.MapManager;
 
 public class CreateCommand extends SubCommand {
     public CreateCommand() {
@@ -32,6 +33,10 @@ public class CreateCommand extends SubCommand {
                 return;
             }
             String name = String.join(" ", args);
+            if (MapManager.getInstance().getMaps().stream().anyMatch(m -> m.getName().equalsIgnoreCase(name))) {
+                player.sendMessage(ChatColor.RED + "There is already a map with the same name! Load that map instead with /valorant map load [name]");
+                return;
+            }
             BlockVector3 max = region.getMaximumPoint();
             BlockVector3 min = region.getMinimumPoint();
             BoundingBox boundingBox = new BoundingBox(max.getX(), max.getY(), max.getZ(), min.getX(), min.getY(), min.getZ());

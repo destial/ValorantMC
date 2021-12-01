@@ -5,11 +5,13 @@ import org.bukkit.ChatColor;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
+import org.bukkit.entity.Player;
 import xyz.destiall.mc.valorant.utils.Formatter;
 import xyz.destiall.mc.valorant.utils.ScheduledTask;
 import xyz.destiall.mc.valorant.utils.Scheduler;
 
 import java.time.Duration;
+import java.util.List;
 
 public class Countdown implements Module {
     private final BossBar bossBar;
@@ -44,14 +46,25 @@ public class Countdown implements Module {
             if (progress < 0.25) {
                 c = ChatColor.RED;
             }
-            bossBar.setTitle(context.getTitle() + c + Formatter.duration(timer));
+            String duration = Formatter.duration(timer);
+            if (timer.getSeconds() < 60 && timer.getSeconds() > 10) {
+                duration = Formatter.durationSeconds(timer);
+            }
+            bossBar.setTitle(context.getTitle() + c + duration);
             bossBar.setProgress((float) timer.getSeconds() / context.getTime());
         }, 1L);
     }
 
     public void stop() {
         repeatTask.cancel();
+        List<Player> players = bossBar.getPlayers();
+        for (Player p : players) {
+            bossBar.removePlayer(p);
+        }
+        bossBar.hide();
+        bossBar.setVisible(false);
         bossBar.removeAll();
+        func = null;
     }
 
     public BossBar getBossBar() {
@@ -64,6 +77,11 @@ public class Countdown implements Module {
 
     public void onComplete(Runnable runnable) {
         this.func = runnable;
+    }
+
+    @Override
+    public void destroy() {
+        stop();
     }
 
     public enum Context {

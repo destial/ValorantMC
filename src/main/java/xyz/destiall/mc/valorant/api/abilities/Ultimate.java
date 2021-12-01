@@ -1,3 +1,9 @@
 package xyz.destiall.mc.valorant.api.abilities;
 
-public abstract class Ultimate extends Ability {}
+import xyz.destiall.mc.valorant.api.player.VPlayer;
+
+public abstract class Ultimate extends Ability {
+    public Ultimate(VPlayer player) {
+        super(player);
+    }
+}

@@ -1,0 +1,105 @@
+# DO NOT CHANGE OR THE PLUGIN WILL BREAK
+config-version: 1
+
+clients:
+  # These serve as keys. You can add as many clients as you like.
+  vanilla:
+    # This are the client-brands that will be matched with players when they join the server. E.g. Players that join
+    # with the vanilla client brand will be matched to the vanilla client.
+    brands:
+      - "vanilla"
+    # These are actions which can be taken when a player using this client joins the server.
+    join:
+      permissions:
+        enabled: false
+        list:
+          - "badge.vanilla"
+  lunar:
+    # Some clients register a specific plugin messaging channel, so we can use that to 100% detect if the player is
+    # using an authentic client.
+    channel: "lunarclient:pm"
+    join:
+      permissions:
+        enabled: true
+        list:
+          - "badge.lunar"
+      commands:
+        enabled: true
+        list:
+          - "lp user {user} parent add vanilla"
+      messages:
+        enabled: true
+        list:
+          - "{prefix} &aYou have joined with Lunar"
+  # You can list more than 1 client brands if there are multiple versions of the same client.
+  # E.g. Forge uses 'fml' from 1.8 while 'forge' is used for 1.9+
+  forge:
+    brands:
+      - "forge"
+      - "fml"
+    join:
+      permissions:
+        enabled: true
+        list:
+          - "badge.forge"
+      commands:
+        enabled: true
+        list:
+          - "lp user {user} parent add forge"
+      messages:
+        enabled: true
+        list:
+          - "{prefix} &aYou have joined with Forge"
+  # If you want to group clients together, you can also do that.
+  sussyclients:
+    brands:
+      - "solarclient"
+      - "fabric"
+      - "lunarclient:5373836"
+    join:
+      permissions:
+        enabled: true
+        list:
+          - "badge.sussy"
+      commands:
+        enabled: true
+        list:
+          - "lp user {user} parent add sus"
+      messages:
+        enabled: true
+        list:
+          - "{prefix} &cYou have joined with a sussy client"
+
+  # This is an example of what you can add
+  client-etc:
+    brands:
+      - "clientbrand1"
+      - "clientbrand2"
+    join:
+      permissions:
+        enabled: false
+        list:
+          - "badge.otherclient"
+      commands:
+        enabled: false
+        list:
+          - "lp user {user} parent add other"
+      messages:
+        enabled: false
+        list:
+          - "{prefix} &cYou have joined with {client}"
+
+# Feel free to change how the messages show
+messages:
+  prefix: "&a[ClientChecker]"
+  # Sent to players that with the permission 'checkclient.staff' when a player joins.
+  staff-message: "{prefix} &b{user} has joined with &e{client}"
+  commands:
+    reload: "{prefix} &bReloaded configuration and clients"
+    client: "{prefix} &b{user} is using {client}"
+    version: "{prefix} &b{user} is using {version}"
+    server-version: "{prefix} &bServer is using {version}"
+    error:
+      no-permission: "&cYou do not have permission for this!"
+      invalid-usage: "&cInvalid usage for this command! {usage}"
+      not-online: "&cPlayer is not online!"

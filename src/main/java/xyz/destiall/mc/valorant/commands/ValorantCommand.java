@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 public class ValorantCommand implements CommandExecutor, TabExecutor {
     private final Set<SubCommand> commands = new HashSet<>();
     public ValorantCommand() {
-        commands.add(new AbilityCommand());
         commands.add(new MatchCommand());
         commands.add(new MapCommand());
         commands.add(new GunCommand());

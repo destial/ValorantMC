@@ -59,7 +59,9 @@ public class MatchFactory {
             if (section == null) continue;
             walls.add(getXYZBounds(section));
         }
-        return new MapImpl(mapName.trim(), world, bounds, spawnRadius, attacker, defender, sites, walls);
+        Map map = new MapImpl(mapName.trim(), world, bounds, spawnRadius, attacker, defender, sites, walls);
+        MapManager.getInstance().getMaps().add(map);
+        return map;
     }
 
     public static Map createMap(CreationSession session) {

@@ -1,3 +1,5 @@
 package xyz.destiall.mc.valorant.api.match;
 
-public interface Module {}
+public interface Module {
+    void destroy();
+}

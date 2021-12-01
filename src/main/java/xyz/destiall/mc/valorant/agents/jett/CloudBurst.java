@@ -2,12 +2,12 @@ package xyz.destiall.mc.valorant.agents.jett;
 
 import com.google.common.util.concurrent.AtomicDouble;
 import org.bukkit.Location;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 import xyz.destiall.mc.valorant.api.abilities.Ability;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
 import xyz.destiall.mc.valorant.api.abilities.Smoke;
+import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.utils.Effects;
 import xyz.destiall.mc.valorant.utils.ScheduledTask;
 import xyz.destiall.mc.valorant.utils.Scheduler;
@@ -20,7 +20,8 @@ public class CloudBurst extends Ability implements Smoke {
     private ScheduledTask smokeTravelTask;
     private Location l;
 
-    public CloudBurst() {
+    public CloudBurst(VPlayer player) {
+        super(player);
         maxUses = 3;
         agent = Agent.JETT;
         smokeTravelTask = null;
@@ -28,8 +29,9 @@ public class CloudBurst extends Ability implements Smoke {
     }
 
     @Override
-    public void use(Player player, Vector direction) {
+    public void use() {
         l = player.getEyeLocation().clone();
+        Vector direction = player.getDirection();
         smokeTravelTask = Scheduler.repeat(() -> {
             l.add(direction).add(gravity.multiply(time.get()));
             time.addAndGet(0.1D);

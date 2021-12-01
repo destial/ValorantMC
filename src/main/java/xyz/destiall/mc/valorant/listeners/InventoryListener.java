@@ -50,12 +50,12 @@ public class InventoryListener implements Listener {
         vPlayer.showHotbar(ability.getName());
         if (ability instanceof Ultimate) {
             vPlayer.setAwaitUlt(true);
-            ability.use(vPlayer.getPlayer(), vPlayer.getDirection());
+            ability.use();
             return;
         }
         if (!ability.canHold()) return;
         e.setCancelled(true);
-        ability.use(vPlayer.getPlayer(), vPlayer.getDirection());
+        ability.use();
     }
 
     @EventHandler
