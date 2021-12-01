@@ -14,6 +14,8 @@ public interface Map {
     Set<BoundingBox> getWalls();
     Location getAttackerSpawn();
     Location getDefenderSpawn();
+    Location getAttackerCenter();
+    Location getDefenderCenter();
     float getSpawnRadius();
     boolean isInUse();
     void pullDownWalls();
@@ -21,13 +23,21 @@ public interface Map {
 
     void setUse(boolean use);
 
+    default Site getSite(Site.Type type) {
+        return getSites().stream().filter(s -> s.getSiteType().equals(type)).findFirst().orElse(null);
+    }
+
+    default Site getSite(Location location) {
+        return getSites().stream().filter(s -> s.getBounds().contains(location.getX(), location.getY(), location.getZ())).findFirst().orElse(null);
+    }
+
     default Site getASite() {
-        return getSites().stream().filter(s -> s.getSiteType().equals(Site.Type.A)).findFirst().orElse(null);
+        return getSite(Site.Type.A);
     }
     default Site getBSite() {
-        return getSites().stream().filter(s -> s.getSiteType().equals(Site.Type.B)).findFirst().orElse(null);
+        return getSite(Site.Type.B);
     }
     default Site getCSite() {
-        return getSites().stream().filter(s -> s.getSiteType().equals(Site.Type.C)).findFirst().orElse(null);
+        return getSite(Site.Type.C);
     }
 }

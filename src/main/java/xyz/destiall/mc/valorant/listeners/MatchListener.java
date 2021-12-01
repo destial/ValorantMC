@@ -16,6 +16,7 @@ import org.bukkit.inventory.ItemStack;
 import xyz.destiall.mc.valorant.api.events.player.DeathEvent;
 import xyz.destiall.mc.valorant.api.items.Gun;
 import xyz.destiall.mc.valorant.api.items.Knife;
+import xyz.destiall.mc.valorant.api.player.DeadBody;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.api.session.CreationSession;
 import xyz.destiall.mc.valorant.factories.ItemFactory;
@@ -55,10 +56,12 @@ public class MatchListener implements Listener {
         }
         victim.getPlayer().spigot().respawn();
         victim.getPlayer().setGameMode(GameMode.SPECTATOR);
+        DeadBody body = new DeadBody(victim);
+        body.die();
+        victim.getMatch().callEvent(new DeathEvent(victim, killer, gun, knife));
         VPlayer spectateTarget = victim.getTeam().getMembers().stream().filter(t -> t != victim).findFirst().orElse(null);
         if (spectateTarget == null) return;
         victim.getPlayer().setSpectatorTarget(spectateTarget.getPlayer());
-        victim.getMatch().callEvent(new DeathEvent(victim, killer, gun, knife));
     }
 
     @EventHandler
@@ -123,21 +126,22 @@ public class MatchListener implements Listener {
 
     @EventHandler
     public void onDropItem(PlayerDropItemEvent e) {
-        VPlayer vPlayer = MatchManager.getInstance().getParticipant(e.getPlayer());
-        if (vPlayer == null) return;
+        VPlayer player = MatchManager.getInstance().getParticipant(e.getPlayer());
+        if (player == null) return;
         // TODO: Implement dropping weapons
 
         ItemStack drop = e.getItemDrop().getItemStack();
-        if (vPlayer.getPrimaryGun() != null && drop.isSimilar(vPlayer.getPrimaryGun().getItem())) {
-            vPlayer.getMatch().getDroppedGuns().add(vPlayer.getPrimaryGun());
-            vPlayer.setPrimaryGun(null);
+        if (player.getPrimaryGun() != null && drop.isSimilar(player.getPrimaryGun().getItem())) {
+            player.getMatch().getDroppedGuns().add(player.getPrimaryGun());
+            player.setPrimaryGun(null);
             return;
         }
-        if (vPlayer.getSecondaryGun() != null && drop.isSimilar(vPlayer.getSecondaryGun().getItem())) {
-            vPlayer.getMatch().getDroppedGuns().add(vPlayer.getSecondaryGun());
-            vPlayer.setSecondaryGun(null);
+        if (player.getSecondaryGun() != null && drop.isSimilar(player.getSecondaryGun().getItem())) {
+            player.getMatch().getDroppedGuns().add(player.getSecondaryGun());
+            player.setSecondaryGun(null);
             return;
         }
+        if (player.isHoldingSpike()) return;
         e.setCancelled(true);
     }
 

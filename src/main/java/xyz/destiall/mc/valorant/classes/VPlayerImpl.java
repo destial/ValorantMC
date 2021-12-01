@@ -196,8 +196,9 @@ public class VPlayerImpl implements VPlayer {
     public void holdSpike(Spike spike) {
         this.spike = spike;
         if (spike == null) return;
+        spike.getDrop().remove();
         player.getInventory().remove(spike.getItem());
-        player.getInventory().setItem(4, spike.getItem());
+        player.getInventory().setItem(3, spike.getItem());
         sendMessage("&cYou are holding the spike!");
     }
 
@@ -272,7 +273,7 @@ public class VPlayerImpl implements VPlayer {
                 break;
             }
             case CYPHER: {
-                abilities.put(new CyberCage(this), 0);
+                //abilities.put(new CyberCage(this), 0);
                 break;
             }
             default: break;

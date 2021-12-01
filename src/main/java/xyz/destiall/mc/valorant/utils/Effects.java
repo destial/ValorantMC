@@ -6,6 +6,7 @@ import com.github.fierioziy.particlenativeapi.api.Particles_1_13;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -23,21 +24,32 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Effects {
-    private static ParticleNativeAPI PARTICLES_API;
-    private static ProtocolManager PROTOCOL_LIB;
     private static Particles_1_13 PARTICLES;
     private static final Set<Vector> SMOKE_SPHERE = new HashSet<>();
     private static final Set<Vector> FLASH_SPHERE = new HashSet<>();
     private static final Set<Vector> SMOKE_CYLINDER = new HashSet<>();
     private static final Set<ArmorStand> SPAWNED_ARMOR_STANDS = new HashSet<>();
+    private static final Set<Vector> BOMB_SPHERE = new HashSet<>();
     public Effects(ParticleNativeAPI api, ProtocolManager pm) {
-        Effects.PARTICLES_API = api;
-        Effects.PROTOCOL_LIB = pm;
         PARTICLES = api.getParticles_1_13();
         createSmokeSphere();
         createFlashSphere();
         createSmokeCylinder();
+        createBombSphere();
     }
+
+    private void createBombSphere() {
+        BOMB_SPHERE.clear();
+        for (double phi = 0; phi <= Math.PI; phi += Math.PI / 36) {
+            for (double theta = 0; theta <= 2 * Math.PI; theta += Math.PI / 36) {
+                double x = Math.cos(theta) * Math.sin(phi);
+                double y = Math.cos(phi);
+                double z = Math.sin(theta) * Math.sin(phi);
+                BOMB_SPHERE.add(new Vector(x, y, z));
+            }
+        }
+    }
+
     private void createSmokeSphere() {
         SMOKE_SPHERE.clear();
         double r = 2.1;
@@ -83,6 +95,28 @@ public class Effects {
             smokeTravel(location, Agent.SOVA);
             location.subtract(vect);
         }
+    }
+
+    public static void bombSphere(Location location, float radius) {
+        for (Vector vect : BOMB_SPHERE) {
+            double x = vect.getX() * radius;
+            double y = vect.getY() * radius;
+            double z = vect.getZ() * radius;
+            location.add(x, y, z);
+            if (!location.getBlock().isEmpty()) {
+                location.subtract(x, y, z);
+                continue;
+            }
+            Object dust = PARTICLES.DUST().color(0.1f, 0.1f, 0.1f, 10).packet(true, location);
+            PARTICLES.sendPacket(location, 60, dust);
+            location.subtract(x, y, z);
+        }
+    }
+
+    public static void detonate(Location location) {
+        location.getWorld().playSound(location, Sound.ENTITY_GENERIC_EXPLODE, 1f, 1f);
+        Object packet = PARTICLES.EXPLOSION_EMITTER().packet(false, location, 0.5, 1);
+        PARTICLES.sendPacket(location, 60, packet);
     }
 
     public static ScheduledTask smoke(Location location, Agent type, double duration) {

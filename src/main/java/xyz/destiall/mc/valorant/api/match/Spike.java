@@ -4,35 +4,44 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.EntityDropItemEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import xyz.destiall.mc.valorant.Valorant;
 import xyz.destiall.mc.valorant.api.events.spike.SpikeDefuseEvent;
 import xyz.destiall.mc.valorant.api.events.spike.SpikeDetonateEvent;
 import xyz.destiall.mc.valorant.api.events.spike.SpikePlaceEvent;
 import xyz.destiall.mc.valorant.api.items.Team;
+import xyz.destiall.mc.valorant.api.map.Site;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
-import xyz.destiall.mc.valorant.utils.Formatter;
+import xyz.destiall.mc.valorant.utils.Effects;
+import xyz.destiall.mc.valorant.utils.ScheduledTask;
+import xyz.destiall.mc.valorant.utils.Scheduler;
 
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Spike implements Module, Listener {
     private final Match match;
     private final ItemStack item;
     private Location plantedLocation;
+    private Item drop;
+    private ScheduledTask beep;
 
     public Spike(Match match) {
         this.match = match;
         plantedLocation = null;
-        item = new ItemStack(Material.COBBLESTONE_WALL, 1);
-        ItemMeta meta = item.getItemMeta();
+        item = new ItemStack(Material.PLAYER_HEAD, 1);
+        Bukkit.getUnsafe().modifyItemStack(item, "{SkullOwner:{Id:[I;8954524,1633633952,-1206398228,-402049971],Properties:{textures:[{Value:\"eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzYzMThhMTMxNzJhOTllYmZhYjg2NTVlNmM5MjFjNzc0MmQ0ZDdmODcwNTg1ZjQ4OTllYWE0ZjM2NTE5NSJ9fX0=\"}]}}}");
+        SkullMeta meta = (SkullMeta) item.getItemMeta();
         meta.setDisplayName(ChatColor.GRAY + "Spike");
         item.setItemMeta(meta);
         Bukkit.getPluginManager().registerEvents(this, Valorant.getInstance().getPlugin());
@@ -45,27 +54,46 @@ public class Spike implements Module, Listener {
     public void place(Location location) {
         plantedLocation = location;
         match.callEvent(new SpikePlaceEvent(this));
-        Countdown c = match.getModule(Countdown.class);
-        if (c != null) match.removeModule(c);
-        c = new Countdown(Countdown.Context.AFTER_SPIKE);
+        Countdown c = new Countdown(Countdown.Context.AFTER_SPIKE);
         for (VPlayer p : match.getPlayers().values()) {
             c.getBossBar().addPlayer(p.getPlayer());
+            p.sendMessage("The spike has been planted!");
         }
+        beep = Scheduler.repeatAsync(() ->
+            match.getPlayers().values().forEach(p ->
+                p.getPlayer().playSound(plantedLocation, Sound.BLOCK_LEVER_CLICK, 1f, 1f)), 20L);
+        match.setCountdown(c);
+        c.onComplete(this::detonate);
         c.start();
-        c.onComplete(() -> {
-            detonate();
-            match.removeModule(this);
-        });
     }
 
     public void defuse() {
         match.callEvent(new SpikeDefuseEvent(this));
-        Countdown c = match.getModule(Countdown.class);
-        match.removeModule(c);
+        match.setCountdown(null);
+        match.getDefender().addScore();
+        match.endRound();
+        beep.cancel();
     }
 
     public void detonate() {
         match.callEvent(new SpikeDetonateEvent(this));
+        match.getAttacker().addScore();
+        match.endRound();
+        beep.cancel();
+        Effects.detonate(plantedLocation);
+        AtomicInteger i = new AtomicInteger(1);
+        ScheduledTask task = Scheduler.repeat(() -> {
+            int r = i.get();
+            if (r < 20) i.incrementAndGet();
+            Effects.bombSphere(plantedLocation, r);
+            for (VPlayer player : match.getPlayers().values()) {
+                if (player.isDead()) continue;
+                if (player.getLocation().distanceSquared(plantedLocation) <= r * r) {
+                    player.getPlayer().damage(player.getPlayer().getMaxHealth(), player.getPlayer());
+                }
+            }
+        }, 1L);
+        Scheduler.delay(task::cancel, 20L * 3) ;
     }
 
     public boolean isPlaced() {
@@ -76,45 +104,63 @@ public class Spike implements Module, Listener {
         return match;
     }
 
-    @EventHandler
-    public void onItemPickup(EntityPickupItemEvent e) {
-        if (e.getItem().getItemStack().isSimilar(item)) {
+    public void setDrop(Item drop) {
+        if (getDrop() != null) {
+            getDrop().remove();
+        }
+        this.drop = drop;
+    }
+
+    public Item getDrop() {
+        return drop;
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onSpikePickup(EntityPickupItemEvent e) {
+        if (drop == e.getItem()) {
+            e.setCancelled(true);
             if (e.getEntity() instanceof Player) {
                 UUID uuid = e.getEntity().getUniqueId();
                 VPlayer p = match.getPlayers().get(uuid);
-                if (p == null || p.getTeam().getSide().equals(Team.Side.DEFENDER)) {
-                    e.setCancelled(true);
-                    return;
-                }
+                if (p == null || p.getTeam().getSide().equals(Team.Side.DEFENDER)) return;
                 p.holdSpike(this);
+                setDrop(null);
             }
         }
     }
 
-    @EventHandler
-    public void onItemDrop(EntityDropItemEvent e) {
-        if (e.getEntity() instanceof Player) {
-            VPlayer p = match.getPlayers().get(e.getEntity().getUniqueId());
-            if (p == null) return;
-            if (p.isHoldingSpike() && e.getItemDrop().getItemStack().isSimilar(item)) {
-                p.holdSpike(null);
-                for (VPlayer player : match.getPlayers().values()) {
-                    if (player == p) continue;
-                    player.getPlayer().sendTitle(null, Formatter.color("&eSpike dropped"), 0, 1, 0);
-                }
+    @EventHandler(ignoreCancelled = true)
+    public void onSpikeDrop(PlayerDropItemEvent e) {
+        VPlayer p = match.getPlayers().get(e.getPlayer().getUniqueId());
+        if (p == null) return;
+        if (p.isHoldingSpike() && e.getItemDrop().getItemStack().isSimilar(item)) {
+            for (VPlayer player : match.getPlayers().values()) {
+                player.sendMessage("&eSpike dropped");
             }
+            setDrop(e.getItemDrop());
+            p.holdSpike(null);
         }
     }
 
-    @EventHandler
-    public void onItemPlace(BlockPlaceEvent e) {
+    @EventHandler(ignoreCancelled = true)
+    public void onSpikePlace(BlockPlaceEvent e) {
+        if (isPlaced()) return;
         if (e.getItemInHand().isSimilar(item)) {
+            //Site site = match.getMap().getSite(e.getBlock().getLocation());
+            //if (site == null) {
+            //    e.setCancelled(true);
+            //    return;
+            //}
             place(e.getBlock().getLocation());
         }
     }
 
     @Override
     public void destroy() {
+        if (plantedLocation != null) {
+            plantedLocation.getBlock().setType(Material.AIR);
+        }
+        setDrop(null);
         HandlerList.unregisterAll(this);
     }
 }

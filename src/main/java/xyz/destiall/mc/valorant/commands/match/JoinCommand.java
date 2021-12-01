@@ -2,6 +2,7 @@ package xyz.destiall.mc.valorant.commands.match;
 
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.api.match.Match;
 import xyz.destiall.mc.valorant.commands.SubCommand;
 import xyz.destiall.mc.valorant.managers.MatchManager;
@@ -9,6 +10,8 @@ import xyz.destiall.mc.valorant.managers.MatchManager;
 public class JoinCommand extends SubCommand {
     public JoinCommand() {
         super("join");
+        tab.add("attack");
+        tab.add("defend");
     }
 
     @Override
@@ -23,7 +26,16 @@ public class JoinCommand extends SubCommand {
             player.sendMessage("No available matches found!");
             return;
         }
-        match.join(player);
+        if (args.length == 0) {
+            match.join(player);
+            return;
+        }
+        String team = args[0];
+        if (team.equalsIgnoreCase("attack")) {
+            match.joinTeam(Team.Side.ATTACKER, player);
+        } else if (team.equalsIgnoreCase("defend")) {
+            match.joinTeam(Team.Side.DEFENDER, player);
+        }
     }
 
     @Override

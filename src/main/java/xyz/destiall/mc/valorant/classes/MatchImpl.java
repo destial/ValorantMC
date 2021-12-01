@@ -2,11 +2,8 @@ package xyz.destiall.mc.valorant.classes;
 
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.BoundingBox;
 import xyz.destiall.mc.valorant.api.events.match.MatchCompleteEvent;
 import xyz.destiall.mc.valorant.api.events.match.MatchStartEvent;
 import xyz.destiall.mc.valorant.api.events.match.MatchTerminateEvent;
@@ -24,6 +21,7 @@ import xyz.destiall.mc.valorant.api.match.Module;
 import xyz.destiall.mc.valorant.api.match.Round;
 import xyz.destiall.mc.valorant.api.match.Shop;
 import xyz.destiall.mc.valorant.api.match.Spike;
+import xyz.destiall.mc.valorant.api.player.DeadBody;
 import xyz.destiall.mc.valorant.api.player.Party;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.database.Datastore;
@@ -119,31 +117,21 @@ public class MatchImpl implements Match {
     @Override
     public void endRound() {
         callEvent(new RoundFinishEvent(this));
-        Countdown countdown = getModule(Countdown.class);
-        removeModule(countdown);
+        setCountdown(null);
+        removeModule(spike);
+        DeadBody.clear(this);
         if (!isComplete()) nextRound();
         else end(MatchTerminateEvent.Reason.COMPLETE);
     }
 
     private void startRound() {
         Debugger.debug("Starting round");
-        spike = new Spike(this);
-        addModule(spike);
+        if ((float) rounds.size() / 12f == 1f) switchSides();
         rounds.add(new RoundImpl(rounds.size() + 1));
-        if (rounds.size() / 7 == 1) switchSides();
         buyPeriod = true;
         final Countdown startingCountdown = new Countdown(Countdown.Context.ROUND_STARTING);
-        addModule(startingCountdown);
-        for (BoundingBox wall : map.getWalls()) {
-            for (double x = wall.getMinX(); x <= wall.getMaxX(); x++) {
-                for (double y = wall.getMinY(); y <= wall.getMaxY(); y++) {
-                    for (double z = wall.getMinZ(); z <= wall.getMaxZ(); z++) {
-                        Block block = map.getWorld().getBlockAt((int)x, (int)y, (int)z);
-                        if (block.getType() == Material.AIR) block.setType(Material.BLUE_STAINED_GLASS);
-                    }
-                }
-            }
-        }
+        setCountdown(startingCountdown);
+        map.pullUpWalls();
         for (VPlayer p : getPlayers().values()) {
             startingCountdown.getBossBar().addPlayer(p.getPlayer());
             if (p.isDead()) {
@@ -153,32 +141,24 @@ public class MatchImpl implements Match {
                 p.applyDefaultSet();
             }
             p.toTeam();
-            p.getPlayer().setGameMode(GameMode.ADVENTURE);
+            p.getPlayer().setGameMode(GameMode.SURVIVAL);
         }
+        spike = new Spike(this);
+        addModule(spike);
+        Location spawn = map.getAttackerCenter();
+        Location spikeDrop = spawn.add(spawn.getDirection().multiply(3));
+        spike.setDrop(map.getWorld().dropItem(spikeDrop, spike.getItem()));
         startingCountdown.start();
         startingCountdown.onComplete(() -> {
             Debugger.debug("Playing round");
             callEvent(new RoundStartEvent(this));
-            for (BoundingBox wall : map.getWalls()) {
-                for (double x = wall.getMinX(); x <= wall.getMaxX(); x++) {
-                    for (double y = wall.getMinY(); y <= wall.getMaxY(); y++) {
-                        for (double z = wall.getMinZ(); z <= wall.getMaxZ(); z++) {
-                            Block block = map.getWorld().getBlockAt((int)x, (int)y, (int)z);
-                            if (block.getType() == Material.BLUE_STAINED_GLASS) block.setType(Material.AIR);
-                        }
-                    }
-                }
-            }
+            map.pullDownWalls();
             buyPeriod = false;
-            startingCountdown.stop();
-            removeModule(startingCountdown);
             final Countdown startedCountdown = new Countdown(Countdown.Context.BEFORE_SPIKE);
-            addModule(startedCountdown);
+            setCountdown(startedCountdown);
             for (VPlayer p : getPlayers().values()) {
                 startedCountdown.getBossBar().addPlayer(p.getPlayer());
             }
-            Location spikeDrop = getAttacker().getSpawn().clone().add(getAttacker().getSpawn().getDirection().clone().multiply(2));
-            map.getWorld().dropItem(spikeDrop, spike.getItem());
             startedCountdown.start();
             startedCountdown.onComplete(() -> {
                 getDefender().addScore();
@@ -190,10 +170,8 @@ public class MatchImpl implements Match {
     @Override
     public void nextRound() {
         if (rounds.size() != 0) {
-            Countdown countdown = getModule(Countdown.class);
-            if (countdown != null) removeModule(countdown);
             final Countdown c = new Countdown(Countdown.Context.ROUND_ENDING);
-            addModule(c);
+            setCountdown(c);
             for (VPlayer vPlayer : getPlayers().values()) {
                 c.getBossBar().addPlayer(vPlayer.getPlayer());
             }
@@ -275,6 +253,7 @@ public class MatchImpl implements Match {
         Datastore.getInstance().loadPlayer(p);
         AgentPicker picker = getModule(AgentPicker.class);
         picker.show(p);
+        player.setWalkSpeed(0.2f);
     }
 
     @Override
@@ -288,6 +267,7 @@ public class MatchImpl implements Match {
         Datastore.getInstance().loadPlayer(p);
         AgentPicker picker = getModule(AgentPicker.class);
         picker.show(p);
+        player.setWalkSpeed(0.2f);
     }
 
     @Override
@@ -302,6 +282,7 @@ public class MatchImpl implements Match {
             p.getPlayer().getInventory().clear();
             AgentPicker picker = getModule(AgentPicker.class);
             picker.show(p);
+            p.getPlayer().setWalkSpeed(0.2f);
         }
     }
 
@@ -317,19 +298,12 @@ public class MatchImpl implements Match {
 
     @Override
     public void setCountdown(Countdown countdown) {
-        if (hasModule(countdown.getClass())) {
-            modules.remove(getModule(countdown.getClass()));
-        }
-        modules.add(countdown);
+        removeModule(Countdown.class);
+        if (countdown != null) addModule(countdown);
     }
 
     @Override
     public Collection<Module> getModules() {
         return modules;
-    }
-
-    @Override
-    public <N extends Module> N getModule(Class<N> key) {
-        return (N) modules.stream().filter(m -> m.getClass().isAssignableFrom(key)).findFirst().orElse(null);
     }
 }

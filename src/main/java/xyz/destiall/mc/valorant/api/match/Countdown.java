@@ -87,8 +87,8 @@ public class Countdown implements Module {
     public enum Context {
         ROUND_ENDING(5, "Next Round in ", BarColor.BLUE),
         ROUND_STARTING(30, "Round Starting in ", BarColor.BLUE),
-        BEFORE_SPIKE(100, "", BarColor.WHITE),
-        AFTER_SPIKE(45, "", BarColor.WHITE);
+        BEFORE_SPIKE(100, "Pre Plant: ", BarColor.WHITE),
+        AFTER_SPIKE(45, "Post Plant: ", BarColor.WHITE);
 
         private final long time;
         private final String title;

@@ -18,7 +18,6 @@ import xyz.destiall.mc.valorant.api.abilities.Smoke;
 import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.managers.MatchManager;
-import xyz.destiall.mc.valorant.utils.Debugger;
 import xyz.destiall.mc.valorant.utils.Effects;
 import xyz.destiall.mc.valorant.utils.ScheduledTask;
 import xyz.destiall.mc.valorant.utils.Scheduler;
@@ -79,10 +78,8 @@ public class CyberCage extends Ability implements Smoke, Listener {
 
     @EventHandler
     public void onWalkThrough(PlayerMoveEvent e) {
-        Debugger.debug("walking");
         if (e.getTo() == null) return;
         if (e.getTo().toVector().isInSphere(finalLoc.toVector(), getSmokeRange())) {
-            Debugger.debug("walking in cybercage");
             if (team != null) {
                 VPlayer p = MatchManager.getInstance().getParticipant(e.getPlayer());
                 if (p == null) return;

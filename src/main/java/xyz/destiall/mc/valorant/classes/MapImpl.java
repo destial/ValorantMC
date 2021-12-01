@@ -3,6 +3,7 @@ package xyz.destiall.mc.valorant.classes;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
 import xyz.destiall.mc.valorant.api.map.Map;
@@ -75,7 +76,7 @@ public class MapImpl implements Map {
                 return loc;
             }
         }
-        return attacker;
+        return getAttackerCenter();
     }
 
     @Override
@@ -89,7 +90,17 @@ public class MapImpl implements Map {
                 return loc;
             }
         }
-        return defender;
+        return getDefenderCenter();
+    }
+
+    @Override
+    public Location getAttackerCenter() {
+        return attacker.clone();
+    }
+
+    @Override
+    public Location getDefenderCenter() {
+        return defender.clone();
     }
 
     @Override
@@ -102,10 +113,10 @@ public class MapImpl implements Map {
         for (BoundingBox bounds : walls) {
             for (double x = bounds.getMinX(); x <= bounds.getMaxX(); ++x) {
                 for (double y = bounds.getMinY(); y <= bounds.getMaxY(); ++y) {
-                    for (double z = bounds.getMinZ(); z <=bounds.getMaxX(); ++z) {
-                        Location loc = new Location(world, x, y, z);
-                        if (loc.getBlock().getType().equals(Material.BARRIER)) {
-                            loc.getBlock().setType(Material.AIR);
+                    for (double z = bounds.getMinZ(); z <=bounds.getMaxZ(); ++z) {
+                        Block block = world.getBlockAt((int)x, (int)y, (int)z);
+                        if (block.getType().equals(Material.BLUE_STAINED_GLASS)) {
+                            block.setType(Material.AIR);
                         }
                     }
                 }
@@ -118,10 +129,10 @@ public class MapImpl implements Map {
         for (BoundingBox bounds : walls) {
             for (double x = bounds.getMinX(); x <= bounds.getMaxX(); ++x) {
                 for (double y = bounds.getMinY(); y <= bounds.getMaxY(); ++y) {
-                    for (double z = bounds.getMinZ(); z <=bounds.getMaxX(); ++z) {
-                        Location loc = new Location(world, x, y, z);
-                        if (loc.getBlock().getType().equals(Material.AIR)) {
-                            loc.getBlock().setType(Material.BARRIER);
+                    for (double z = bounds.getMinZ(); z <=bounds.getMaxZ(); ++z) {
+                        Block block = world.getBlockAt((int)x, (int)y, (int)z);
+                        if (block.getType().equals(Material.AIR)) {
+                            block.setType(Material.BLUE_STAINED_GLASS);
                         }
                     }
                 }

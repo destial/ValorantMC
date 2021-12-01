@@ -13,7 +13,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.EulerAngle;
 import org.bukkit.util.Vector;
 import xyz.destiall.mc.valorant.api.abilities.Ultimate;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
@@ -129,18 +128,5 @@ public class BladeStorm extends Ultimate implements Listener {
     @Override
     public Integer getPrice() {
         return null;
-    }
-
-    enum Position {
-        UPPER_LEFT,
-        LOWER_LEFT,
-        MIDDLE,
-        LOWER_RIGHT,
-        UPPER_RIGHT;
-
-        public final EulerAngle ANGLE;
-        Position() {
-            this.ANGLE = new EulerAngle(0, 0, 0);
-        }
     }
 }

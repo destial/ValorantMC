@@ -9,13 +9,21 @@ import java.util.Collection;
 
 public interface Modular {
     Collection<Module> getModules();
-    <N extends Module> N getModule(Class<N> key);
+    default <N extends Module> N getModule(Class<N> key) {
+        return (N) getModules().stream().filter(m -> m.getClass().isAssignableFrom(key)).findFirst().orElse(null);
+    }
     default void addModule(Module module) {
         if (hasModule(module.getClass())) return;
         if (module instanceof Listener) {
             Bukkit.getPluginManager().registerEvents((Listener) module, Valorant.getInstance().getPlugin());
         }
         getModules().add(module);
+    }
+
+    default <N extends Module> void removeModule(Class<N> key) {
+        if (!hasModule(key)) return;
+        N module = getModule(key);
+        removeModule(module);
     }
 
     default void removeModule(Module module) {
