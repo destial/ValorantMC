@@ -16,14 +16,11 @@ import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.factories.ItemFactory;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class Shop implements Module {
     private static final HashMap<Integer, ShopItem> ITEMS = new HashMap<>();
-    private final HashMap<VPlayer, Inventory> playerShop = new HashMap<>();
+    private final HashMap<UUID, Inventory> playerShop = new HashMap<>();
     private final Match match;
     public Shop(Match match) {
         this.match = match;
@@ -59,11 +56,11 @@ public class Shop implements Module {
     }
 
     public Inventory create(VPlayer p) {
-        if (playerShop.get(p) != null) {
-            return playerShop.get(p);
+        if (playerShop.containsKey(p.getUUID())) {
+            return playerShop.get(p.getUUID());
         }
         Inventory inv = Bukkit.createInventory(null, 36, "Buy Shop");
-        playerShop.put(p, inv);
+        playerShop.put(p.getUUID(), inv);
         List<Integer> slots = new ArrayList<>();
         for (Map.Entry<Integer, ShopItem> entry : ITEMS.entrySet()) {
             if (entry.getValue() instanceof ShopItem.AbilityPlaceholder) {
@@ -83,7 +80,9 @@ public class Shop implements Module {
     }
 
     public void open(VPlayer p) {
-        p.getPlayer().openInventory(create(p));
+        Inventory inv = playerShop.get(p.getUUID());
+        if (inv == null) inv = create(p);
+        p.getPlayer().openInventory(inv);
     }
 
     public void buy(VPlayer p, Integer slot) {
@@ -120,8 +119,11 @@ public class Shop implements Module {
 
     @Override
     public void destroy() {
-        for (VPlayer VPlayer : match.getPlayers().values()) {
-            VPlayer.getPlayer().closeInventory();
+        for (VPlayer player : match.getPlayers().values()) {
+            if (playerShop.containsKey(player.getUUID())) {
+                player.getPlayer().closeInventory();
+            }
         }
+        playerShop.clear();
     }
 }

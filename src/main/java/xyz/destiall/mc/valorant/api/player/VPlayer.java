@@ -61,6 +61,8 @@ public interface VPlayer {
     void setUseUlt(boolean ult);
     void chooseAgent(Agent agent);
     void save();
+    void setDiffusing(boolean diffusing);
+    boolean isDiffusing();
 
     default void addArmour(Integer armour) {
         getPlayer().setAbsorptionAmount(armour / 100F * 20);

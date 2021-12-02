@@ -1,5 +1,6 @@
 package xyz.destiall.mc.valorant.classes;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -23,6 +24,8 @@ import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.database.Datastore;
 import xyz.destiall.mc.valorant.database.Stats;
 import xyz.destiall.mc.valorant.factories.ItemFactory;
+import xyz.destiall.mc.valorant.utils.ScheduledTask;
+import xyz.destiall.mc.valorant.utils.Scheduler;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -47,6 +50,7 @@ public class VPlayerImpl implements VPlayer {
     private boolean flashed;
     private boolean ultimate;
     private boolean usingUlt;
+    private ScheduledTask diffusingTask;
 
     public VPlayerImpl(Player player, Team team) {
         this.player = player;
@@ -283,6 +287,40 @@ public class VPlayerImpl implements VPlayer {
     @Override
     public void save() {
         Datastore.getInstance().updatePlayer(this);
+    }
+
+    @Override
+    public void setDiffusing(boolean diffusing) {
+        if (diffusing && diffusingTask == null) {
+            String s = "█";
+            diffusingTask = Scheduler.repeat(() -> {
+                StringBuilder builder = new StringBuilder();
+                float t = spike.getDiffuse();
+                for (float i = 0; i < 10; i++) {
+                    ChatColor color = ChatColor.GRAY;
+                    if (i / 10f <= t) {
+                        color = ChatColor.BLUE;
+                    }
+                    builder.append(color).append(s);
+                }
+                player.sendTitle(builder.toString(), null, 0, 1, 0);
+                spike.setDiffuse(t + 0.05f);
+            }, 1L);
+            return;
+        }
+        if (!diffusing && diffusingTask != null) {
+            if (spike.getDiffuse() >= 0.5) {
+                spike.setDiffuse(0.5f);
+            }
+            diffusingTask.cancel();
+            diffusingTask = null;
+            return;
+        }
+    }
+
+    @Override
+    public boolean isDiffusing() {
+        return diffusingTask != null;
     }
 
     @Override

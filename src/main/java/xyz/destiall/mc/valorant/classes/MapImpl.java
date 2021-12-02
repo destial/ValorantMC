@@ -9,10 +9,11 @@ import org.bukkit.util.BoundingBox;
 import xyz.destiall.mc.valorant.api.map.Map;
 import xyz.destiall.mc.valorant.api.map.Site;
 
-import java.util.HashSet;
 import java.util.Set;
 
 public class MapImpl implements Map {
+    private final Set<Site> sites;
+    private final Set<BoundingBox> walls;
     private final World world;
     private final String name;
     private final float spawnRadius;
@@ -20,19 +21,16 @@ public class MapImpl implements Map {
     private final Location defender;
     private final BoundingBox bounds;
     private boolean inUse;
-    private final Set<Site> sites = new HashSet<>();
-    private final Set<BoundingBox> walls = new HashSet<>();
+
     public MapImpl(String name, World world, BoundingBox bounds, float spawnRadius, Location attacker, Location defender, Set<Site> sites, Set<BoundingBox> walls) {
         this.name = name;
         this.world = world;
         this.bounds = bounds;
         this.spawnRadius = spawnRadius;
         this.attacker = attacker;
-        attacker.setWorld(world);
         this.defender = defender;
-        defender.setWorld(world);
-        this.sites.addAll(sites);
-        this.walls.addAll(walls);
+        this.sites = sites;
+        this.walls = walls;
         inUse = false;
     }
     @Override
@@ -67,10 +65,10 @@ public class MapImpl implements Map {
 
     @Override
     public Location getAttackerSpawn() {
-        for (double theta = 0; theta <= 2 * Math.PI; theta += Math.PI / 10) {
+        for (double theta = -Math.PI; theta <= Math.PI; theta += Math.PI / 10) {
             double x = spawnRadius * Math.cos(theta);
             double z = spawnRadius * Math.sin(theta);
-            Location loc = attacker.clone();
+            Location loc = getAttackerCenter();
             loc.add(x, 0, z);
             if (loc.getBlock().isEmpty() && world.getNearbyEntities(loc, 0.1, 0.1, 0.1).stream().noneMatch(e -> e instanceof Player)) {
                 return loc;
@@ -81,10 +79,10 @@ public class MapImpl implements Map {
 
     @Override
     public Location getDefenderSpawn() {
-        for (double theta = 0; theta <= 2 * Math.PI; theta += Math.PI / 10) {
+        for (double theta = -Math.PI; theta <= Math.PI; theta += Math.PI / 10) {
             double x = spawnRadius * Math.cos(theta);
             double z = spawnRadius * Math.sin(theta);
-            Location loc = defender.clone();
+            Location loc = getDefenderCenter();
             loc.add(x, 0, z);
             if (loc.getBlock().isEmpty() && world.getNearbyEntities(loc, 0.1, 0.1, 0.1).stream().noneMatch(e -> e instanceof Player)) {
                 return loc;

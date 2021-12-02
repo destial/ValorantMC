@@ -13,6 +13,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import xyz.destiall.mc.valorant.Valorant;
@@ -20,8 +22,8 @@ import xyz.destiall.mc.valorant.api.events.spike.SpikeDefuseEvent;
 import xyz.destiall.mc.valorant.api.events.spike.SpikeDetonateEvent;
 import xyz.destiall.mc.valorant.api.events.spike.SpikePlaceEvent;
 import xyz.destiall.mc.valorant.api.items.Team;
-import xyz.destiall.mc.valorant.api.map.Site;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
+import xyz.destiall.mc.valorant.listeners.MatchListener;
 import xyz.destiall.mc.valorant.utils.Effects;
 import xyz.destiall.mc.valorant.utils.ScheduledTask;
 import xyz.destiall.mc.valorant.utils.Scheduler;
@@ -35,6 +37,7 @@ public class Spike implements Module, Listener {
     private Location plantedLocation;
     private Item drop;
     private ScheduledTask beep;
+    private float diffuse;
 
     public Spike(Match match) {
         this.match = match;
@@ -67,6 +70,14 @@ public class Spike implements Module, Listener {
         c.start();
     }
 
+    public void setDiffuse(float d) {
+        diffuse = d;
+    }
+
+    public float getDiffuse() {
+        return diffuse;
+    }
+
     public void defuse() {
         match.callEvent(new SpikeDefuseEvent(this));
         match.setCountdown(null);
@@ -96,7 +107,7 @@ public class Spike implements Module, Listener {
         Scheduler.delay(task::cancel, 20L * 3) ;
     }
 
-    public boolean isPlaced() {
+    public boolean isPlanted() {
         return plantedLocation != null;
     }
 
@@ -134,18 +145,37 @@ public class Spike implements Module, Listener {
         VPlayer p = match.getPlayers().get(e.getPlayer().getUniqueId());
         if (p == null) return;
         if (p.isHoldingSpike() && e.getItemDrop().getItemStack().isSimilar(item)) {
-            for (VPlayer player : match.getPlayers().values()) {
-                player.sendMessage("&eSpike dropped");
-            }
-            setDrop(e.getItemDrop());
-            p.holdSpike(null);
+            MatchListener.spikeDropped(p, e.getItemDrop());
         }
+    }
+
+    @EventHandler
+    public void onSpikeDiffusing(PlayerToggleSneakEvent e) {
+        if (!isPlanted()) return;
+        if (plantedLocation.distanceSquared(e.getPlayer().getLocation()) >= 4) return;
+        VPlayer player = match.getPlayers().get(e.getPlayer().getUniqueId());
+        if (player == null) return;
+        if (player.getTeam().getSide().equals(Team.Side.ATTACKER)) return;
+        if (e.isSneaking() && !player.isDiffusing()) player.setDiffusing(true);
+        else if (!e.isSneaking() && player.isDiffusing()) player.setDiffusing(false);
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPlayerMove(PlayerMoveEvent e) {
+        if (e.getTo() == null) return;
+        if (e.getFrom().getX() == e.getTo().getX() && e.getFrom().getY() == e.getTo().getY() && e.getFrom().getZ() == e.getTo().getZ()) return;
+        VPlayer player = match.getPlayers().get(e.getPlayer().getUniqueId());
+        if (player == null) return;
+        if (!player.isDiffusing()) return;
+        e.setCancelled(true);
+        //player.setDiffusing(false);
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onSpikePlace(BlockPlaceEvent e) {
-        if (isPlaced()) return;
+        if (isPlanted()) return;
         if (e.getItemInHand().isSimilar(item)) {
+            // TODO: Fix spike placement on site
             //Site site = match.getMap().getSite(e.getBlock().getLocation());
             //if (site == null) {
             //    e.setCancelled(true);

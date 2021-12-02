@@ -70,40 +70,40 @@ public class Datastore {
         }
     }
 
-    public void loadPlayer(VPlayer vPlayer) {
+    public void loadPlayer(VPlayer player) {
         if (connection == null) return;
         try {
             PreparedStatement statement = connection.prepareStatement(Query.SELECT_PLAYER);
-            statement.setString(1, vPlayer.getUUID().toString());
+            statement.setString(1, player.getUUID().toString());
             ResultSet result = statement.executeQuery();
             if (result.next()) {
-                vPlayer.getStats().load(result.getString("data"));
+                player.getStats().load(result.getString("data"));
             } else {
-                newPlayer(vPlayer);
+                newPlayer(player);
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    private void newPlayer(VPlayer vPlayer) {
+    private void newPlayer(VPlayer player) {
         if (connection == null) return;
         try {
             PreparedStatement statement = connection.prepareStatement(Query.INSERT_PLAYER);
-            statement.setString(1, vPlayer.getUUID().toString());
-            statement.setString(2, vPlayer.getStats().toJSON());
+            statement.setString(1, player.getUUID().toString());
+            statement.setString(2, player.getStats().toJSON());
             statement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public void updatePlayer(VPlayer vPlayer) {
+    public void updatePlayer(VPlayer player) {
         if (connection == null) return;
         try {
             PreparedStatement statement = connection.prepareStatement(Query.UPDATE_PLAYER);
-            statement.setString(1, vPlayer.getStats().toJSON());
-            statement.setString(2, vPlayer.getUUID().toString());
+            statement.setString(1, player.getStats().toJSON());
+            statement.setString(2, player.getUUID().toString());
             statement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

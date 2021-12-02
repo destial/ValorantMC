@@ -4,6 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.classes.RoundImpl;
+import xyz.destiall.mc.valorant.database.Datastore;
 import xyz.destiall.mc.valorant.database.JSON;
 
 import java.util.ArrayList;
@@ -38,6 +39,10 @@ public class MatchResult implements JSON {
 
     public List<Round> getRounds() {
         return rounds;
+    }
+
+    public void save() {
+        Datastore.getInstance().saveMatch(this);
     }
 
     @Override

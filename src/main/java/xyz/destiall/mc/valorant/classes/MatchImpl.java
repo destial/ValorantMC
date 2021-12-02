@@ -2,6 +2,7 @@ package xyz.destiall.mc.valorant.classes;
 
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import xyz.destiall.mc.valorant.api.events.match.MatchCompleteEvent;
@@ -26,7 +27,6 @@ import xyz.destiall.mc.valorant.api.player.Party;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.database.Datastore;
 import xyz.destiall.mc.valorant.managers.MatchManager;
-import xyz.destiall.mc.valorant.utils.Debugger;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -37,13 +37,13 @@ import java.util.List;
 import java.util.Set;
 
 public class MatchImpl implements Match {
+    private final List<Module> modules = new ArrayList<>();
     private final Set<Team> teams = new HashSet<>();
     private final List<Round> rounds = new ArrayList<>();
     private final HashMap<VPlayer, ItemStack[]> inventories = new HashMap<>();
+    private final HashMap<Item, Gun> droppedGuns = new HashMap<>();
     private final Map map;
     private final int id;
-    private final List<Module> modules = new ArrayList<>();
-    private final Set<Gun> droppedGuns = new HashSet<>();
     private boolean buyPeriod;
     private Spike spike;
     private MatchState state;
@@ -91,7 +91,7 @@ public class MatchImpl implements Match {
     }
 
     @Override
-    public Set<Gun> getDroppedGuns() {
+    public HashMap<Item, Gun> getDroppedGuns() {
         return droppedGuns;
     }
 
@@ -125,7 +125,6 @@ public class MatchImpl implements Match {
     }
 
     private void startRound() {
-        Debugger.debug("Starting round");
         if ((float) rounds.size() / 12f == 1f) switchSides();
         rounds.add(new RoundImpl(rounds.size() + 1));
         buyPeriod = true;
@@ -150,7 +149,6 @@ public class MatchImpl implements Match {
         spike.setDrop(map.getWorld().dropItem(spikeDrop, spike.getItem()));
         startingCountdown.start();
         startingCountdown.onComplete(() -> {
-            Debugger.debug("Playing round");
             callEvent(new RoundStartEvent(this));
             map.pullDownWalls();
             buyPeriod = false;
@@ -214,6 +212,7 @@ public class MatchImpl implements Match {
             return null;
         }
         MatchResult result = new MatchResult(this);
+        result.save();
         Location loc = MatchManager.getInstance().getLobby();
         for (VPlayer p : getPlayers().values()) {
             p.getPlayer().getInventory().clear();
@@ -230,7 +229,6 @@ public class MatchImpl implements Match {
             p.save();
         }
         inventories.clear();
-        Datastore.getInstance().saveMatch(result);
         teams.clear();
         callEvent(new MatchCompleteEvent(this));
         return result;

@@ -3,6 +3,8 @@ package xyz.destiall.mc.valorant.listeners;
 import com.shampaggon.crackshot.events.WeaponDamageEntityEvent;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
+import org.bukkit.Material;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -31,11 +33,10 @@ public class MatchListener implements Listener {
         VPlayer victim = MatchManager.getInstance().getParticipant(p);
         if (victim == null) return;
         Player k = p.getKiller();
-        VPlayer killer = victim;
+        VPlayer killer;
         if (k != null) {
             killer = victim.getMatch().getPlayers().get(k.getUniqueId());
-        }
-        if (killer == null) {
+        } else {
             killer = victim;
         }
         e.setDeathMessage(null);
@@ -58,7 +59,23 @@ public class MatchListener implements Listener {
         victim.getPlayer().setGameMode(GameMode.SPECTATOR);
         DeadBody body = new DeadBody(victim);
         body.die();
-        victim.getMatch().callEvent(new DeathEvent(victim, killer, gun, knife));
+        DeathEvent deathEvent = new DeathEvent(victim, killer, gun, knife);
+        for (ItemStack item : victim.getPlayer().getInventory()) {
+            if (item == null || item.getType() == Material.AIR) continue;
+            if (victim.isHoldingSpike() && item.isSimilar(victim.getMatch().getSpike().getItem())) {
+                Item drop = victim.getPlayer().getWorld().dropItem(victim.getLocation(), item);
+                spikeDropped(victim, drop);
+                deathEvent.getDrops().put(drop, item);
+                continue;
+            }
+            if ((victim.getPrimaryGun() != null && item.isSimilar(victim.getPrimaryGun().getItem())) ||
+                (victim.getSecondaryGun() != null && item.isSimilar(victim.getSecondaryGun().getItem()))) {
+                Item drop = victim.getPlayer().getWorld().dropItem(victim.getLocation(), item);
+                deathEvent.getDrops().put(drop, item);
+            }
+        }
+        victim.getPlayer().getInventory().clear();
+        victim.getMatch().callEvent(deathEvent);
         VPlayer spectateTarget = victim.getTeam().getMembers().stream().filter(t -> t != victim).findFirst().orElse(null);
         if (spectateTarget == null) return;
         victim.getPlayer().setSpectatorTarget(spectateTarget.getPlayer());
@@ -82,16 +99,13 @@ public class MatchListener implements Listener {
         if (damager == null) return;
         if (victim.getTeam() == damager.getTeam()) {
             e.setCancelled(true);
-            e.setDamage(0);
-            e.getDamager().teleport(e.getDamager().getLocation().clone().add(e.getDamager().getVelocity().clone().normalize()));
+            //e.setDamage(0);
+            //e.getDamager().teleport(e.getDamager().getLocation().clone().add(e.getDamager().getVelocity().clone().normalize()));
         }
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onMatchDeath(DeathEvent e) {
-        if (e.getVictim().isHoldingSpike()) {
-            spikeDropped(e.getVictim());
-        }
         String symbol = "✇";
         if (e.getGun() != null) {
             switch (e.getGun().getType()) {
@@ -129,15 +143,14 @@ public class MatchListener implements Listener {
         VPlayer player = MatchManager.getInstance().getParticipant(e.getPlayer());
         if (player == null) return;
         // TODO: Implement dropping weapons
-
         ItemStack drop = e.getItemDrop().getItemStack();
         if (player.getPrimaryGun() != null && drop.isSimilar(player.getPrimaryGun().getItem())) {
-            player.getMatch().getDroppedGuns().add(player.getPrimaryGun());
+            player.getMatch().getDroppedGuns().put(e.getItemDrop(), player.getPrimaryGun());
             player.setPrimaryGun(null);
             return;
         }
         if (player.getSecondaryGun() != null && drop.isSimilar(player.getSecondaryGun().getItem())) {
-            player.getMatch().getDroppedGuns().add(player.getSecondaryGun());
+            player.getMatch().getDroppedGuns().put(e.getItemDrop(), player.getSecondaryGun());
             player.setSecondaryGun(null);
             return;
         }
@@ -165,12 +178,13 @@ public class MatchListener implements Listener {
         e.setCancelled(true);
     }
 
-    private void spikeDropped(VPlayer holder) {
-        holder.holdSpike(null);
+    public static void spikeDropped(VPlayer holder, Item drop) {
         for (VPlayer player : holder.getMatch().getPlayers().values()) {
             if (player == holder) continue;
             player.getPlayer().sendTitle(null, Formatter.color("&eSpike dropped"), 0, 1, 0);
         }
+        holder.getSpike().setDrop(drop);
+        holder.holdSpike(null);
     }
 
     @EventHandler
