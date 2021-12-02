@@ -4,9 +4,12 @@ import xyz.destiall.mc.valorant.api.abilities.Ability;
 import xyz.destiall.mc.valorant.api.match.Match;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
 
+import java.util.Collection;
+
 public class AbilityManager {
     public static void stop(Match match) {
-        for (VPlayer p : match.getPlayers().values()) {
+        Collection<VPlayer> list = match.getPlayers().values();
+        for (VPlayer p : list) {
             for (Ability a : p.getAbilities().keySet()) {
                 a.remove();
             }

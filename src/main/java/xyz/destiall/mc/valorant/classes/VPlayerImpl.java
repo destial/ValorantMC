@@ -1,10 +1,10 @@
 package xyz.destiall.mc.valorant.classes;
 
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import xyz.destiall.mc.valorant.agents.cypher.CyberCage;
 import xyz.destiall.mc.valorant.agents.jett.BladeStorm;
 import xyz.destiall.mc.valorant.agents.jett.CloudBurst;
 import xyz.destiall.mc.valorant.agents.jett.Updraft;
@@ -28,10 +28,12 @@ import xyz.destiall.mc.valorant.utils.ScheduledTask;
 import xyz.destiall.mc.valorant.utils.Scheduler;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class VPlayerImpl implements VPlayer {
-    private final Player player;
+    private final AtomicReference<Player> player;
     private final Economy econ;
     private final Knife knife;
     private final HashMap<Ability, Integer> abilities = new HashMap<>();
@@ -53,7 +55,7 @@ public class VPlayerImpl implements VPlayer {
     private ScheduledTask diffusingTask;
 
     public VPlayerImpl(Player player, Team team) {
-        this.player = player;
+        this.player = new AtomicReference<>(player);
         this.team = team;
         kills = deaths = assists = 0;
         primary = null;
@@ -69,7 +71,7 @@ public class VPlayerImpl implements VPlayer {
     }
 
     public VPlayerImpl(Player player, Party party) {
-        this.player = player;
+        this.player = new AtomicReference<>(player);
         this.party = party;
         team = null;
         primary = null;
@@ -85,7 +87,7 @@ public class VPlayerImpl implements VPlayer {
 
     @Override
     public Player getPlayer() {
-        return player;
+        return player.get();
     }
 
     @Override
@@ -133,7 +135,8 @@ public class VPlayerImpl implements VPlayer {
 
     @Override
     public void toTeam() {
-        player.teleport(team.getSpawn());
+        if (!getPlayer().isOnline()) return;
+        getPlayer().teleport(team.getSpawn());
     }
 
     @Override
@@ -201,8 +204,9 @@ public class VPlayerImpl implements VPlayer {
         this.spike = spike;
         if (spike == null) return;
         spike.getDrop().remove();
-        player.getInventory().remove(spike.getItem());
-        player.getInventory().setItem(3, spike.getItem());
+        if (!getPlayer().isOnline()) return;
+        getPlayer().getInventory().remove(spike.getItem());
+        getPlayer().getInventory().setItem(3, spike.getItem());
         sendMessage("&cYou are holding the spike!");
     }
 
@@ -255,7 +259,8 @@ public class VPlayerImpl implements VPlayer {
     public void chooseAgent(Agent agent) {
         if (abilities.size() != 0) return;
         if (agent == null) {
-            agent = Arrays.stream(Agent.values()).filter(a -> getMatch().getPlayers().values().stream().noneMatch(p -> p.getAgent() == a)).findFirst().orElse(Agent.CYPHER);
+            Collection<VPlayer> list = getMatch().getPlayers().values();
+            agent = Arrays.stream(Agent.values()).filter(a -> list.stream().noneMatch(p -> p.getAgent() == a)).findFirst().orElse(Agent.CYPHER);
         }
         this.agent = agent;
         switch (agent) {
@@ -291,11 +296,12 @@ public class VPlayerImpl implements VPlayer {
 
     @Override
     public void setDiffusing(boolean diffusing) {
+        Spike sp = getMatch().getSpike();
         if (diffusing && diffusingTask == null) {
             String s = "█";
             diffusingTask = Scheduler.repeat(() -> {
                 StringBuilder builder = new StringBuilder();
-                float t = spike.getDiffuse();
+                float t = sp.getDiffuse();
                 for (float i = 0; i < 10; i++) {
                     ChatColor color = ChatColor.GRAY;
                     if (i / 10f <= t) {
@@ -303,19 +309,33 @@ public class VPlayerImpl implements VPlayer {
                     }
                     builder.append(color).append(s);
                 }
-                player.sendTitle(builder.toString(), null, 0, 1, 0);
-                spike.setDiffuse(t + 0.05f);
+                getPlayer().sendTitle(builder.toString(), null, 0, 2, 0);
+                sp.setDiffuse(t + 1/150f);
+                if (sp.getDiffuse() >= 1f) {
+                    sp.defuse();
+                    sp.setDiffuse(1f);
+                }
             }, 1L);
             return;
         }
         if (!diffusing && diffusingTask != null) {
-            if (spike.getDiffuse() >= 0.5) {
-                spike.setDiffuse(0.5f);
+            if (sp.getDiffuse() > 0.5) {
+                sp.setDiffuse(0.49f);
             }
             diffusingTask.cancel();
             diffusingTask = null;
             return;
         }
+    }
+
+    @Override
+    public void rejoin(Player player) {
+        this.player.set(player);
+        if (isDead()) {
+            player.setGameMode(GameMode.SPECTATOR);
+            getTeam().getMembers().stream().filter(t -> t != this).findFirst().ifPresent(spectateTarget -> player.setSpectatorTarget(spectateTarget.getPlayer()));
+        }
+        toTeam();
     }
 
     @Override

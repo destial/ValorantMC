@@ -22,12 +22,14 @@ import xyz.destiall.mc.valorant.api.events.spike.SpikeDefuseEvent;
 import xyz.destiall.mc.valorant.api.events.spike.SpikeDetonateEvent;
 import xyz.destiall.mc.valorant.api.events.spike.SpikePlaceEvent;
 import xyz.destiall.mc.valorant.api.items.Team;
+import xyz.destiall.mc.valorant.api.map.Site;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.listeners.MatchListener;
 import xyz.destiall.mc.valorant.utils.Effects;
 import xyz.destiall.mc.valorant.utils.ScheduledTask;
 import xyz.destiall.mc.valorant.utils.Scheduler;
 
+import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -38,6 +40,7 @@ public class Spike implements Module, Listener {
     private Item drop;
     private ScheduledTask beep;
     private float diffuse;
+    private ScheduledTask place;
 
     public Spike(Match match) {
         this.match = match;
@@ -58,13 +61,13 @@ public class Spike implements Module, Listener {
         plantedLocation = location;
         match.callEvent(new SpikePlaceEvent(this));
         Countdown c = new Countdown(Countdown.Context.AFTER_SPIKE);
-        for (VPlayer p : match.getPlayers().values()) {
+        Collection<VPlayer> list = match.getPlayers().values();
+        list.forEach(p -> {
             c.getBossBar().addPlayer(p.getPlayer());
             p.sendMessage("The spike has been planted!");
-        }
-        beep = Scheduler.repeatAsync(() ->
-            match.getPlayers().values().forEach(p ->
-                p.getPlayer().playSound(plantedLocation, Sound.BLOCK_LEVER_CLICK, 1f, 1f)), 20L);
+        });
+        beep = Scheduler.repeatAsync(() -> list.forEach(p -> p.getPlayer().playSound(plantedLocation, Sound.BLOCK_LEVER_CLICK, 1f, 1f)), 20L);
+        place = Scheduler.repeatAsync(() -> Effects.spikeRing(plantedLocation.clone().add(0.5, 0, 0.5), 2), 5L);
         match.setCountdown(c);
         c.onComplete(this::detonate);
         c.start();
@@ -84,6 +87,7 @@ public class Spike implements Module, Listener {
         match.getDefender().addScore();
         match.endRound();
         beep.cancel();
+        place.cancel();
     }
 
     public void detonate() {
@@ -91,16 +95,18 @@ public class Spike implements Module, Listener {
         match.getAttacker().addScore();
         match.endRound();
         beep.cancel();
+        place.cancel();
         Effects.detonate(plantedLocation);
         AtomicInteger i = new AtomicInteger(1);
         ScheduledTask task = Scheduler.repeat(() -> {
             int r = i.get();
             if (r < 20) i.incrementAndGet();
             Effects.bombSphere(plantedLocation, r);
-            for (VPlayer player : match.getPlayers().values()) {
+            Collection<VPlayer> list = match.getPlayers().values();
+            for (VPlayer player : list) {
                 if (player.isDead()) continue;
                 if (player.getLocation().distanceSquared(plantedLocation) <= r * r) {
-                    player.getPlayer().damage(player.getPlayer().getMaxHealth(), player.getPlayer());
+                    player.getPlayer().damage(player.getPlayer().getMaxHealth(), null);
                 }
             }
         }, 1L);
@@ -132,7 +138,7 @@ public class Spike implements Module, Listener {
             e.setCancelled(true);
             if (e.getEntity() instanceof Player) {
                 UUID uuid = e.getEntity().getUniqueId();
-                VPlayer p = match.getPlayers().get(uuid);
+                VPlayer p = match.getPlayer(uuid);
                 if (p == null || p.getTeam().getSide().equals(Team.Side.DEFENDER)) return;
                 p.holdSpike(this);
                 setDrop(null);
@@ -142,7 +148,7 @@ public class Spike implements Module, Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onSpikeDrop(PlayerDropItemEvent e) {
-        VPlayer p = match.getPlayers().get(e.getPlayer().getUniqueId());
+        VPlayer p = match.getPlayer(e.getPlayer().getUniqueId());
         if (p == null) return;
         if (p.isHoldingSpike() && e.getItemDrop().getItemStack().isSimilar(item)) {
             MatchListener.spikeDropped(p, e.getItemDrop());
@@ -152,8 +158,8 @@ public class Spike implements Module, Listener {
     @EventHandler
     public void onSpikeDiffusing(PlayerToggleSneakEvent e) {
         if (!isPlanted()) return;
-        if (plantedLocation.distanceSquared(e.getPlayer().getLocation()) >= 4) return;
-        VPlayer player = match.getPlayers().get(e.getPlayer().getUniqueId());
+        if (plantedLocation.distanceSquared(e.getPlayer().getLocation()) > 5) return;
+        VPlayer player = match.getPlayer(e.getPlayer().getUniqueId());
         if (player == null) return;
         if (player.getTeam().getSide().equals(Team.Side.ATTACKER)) return;
         if (e.isSneaking() && !player.isDiffusing()) player.setDiffusing(true);
@@ -164,24 +170,22 @@ public class Spike implements Module, Listener {
     public void onPlayerMove(PlayerMoveEvent e) {
         if (e.getTo() == null) return;
         if (e.getFrom().getX() == e.getTo().getX() && e.getFrom().getY() == e.getTo().getY() && e.getFrom().getZ() == e.getTo().getZ()) return;
-        VPlayer player = match.getPlayers().get(e.getPlayer().getUniqueId());
+        VPlayer player = match.getPlayer(e.getPlayer().getUniqueId());
         if (player == null) return;
         if (!player.isDiffusing()) return;
         e.setCancelled(true);
-        //player.setDiffusing(false);
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onSpikePlace(BlockPlaceEvent e) {
         if (isPlanted()) return;
         if (e.getItemInHand().isSimilar(item)) {
-            // TODO: Fix spike placement on site
-            //Site site = match.getMap().getSite(e.getBlock().getLocation());
-            //if (site == null) {
-            //    e.setCancelled(true);
-            //    return;
-            //}
-            place(e.getBlock().getLocation());
+            Site site = match.getMap().getSite(e.getBlockPlaced().getLocation());
+            if (site == null) {
+                e.setCancelled(true);
+                return;
+            }
+            place(e.getBlockPlaced().getLocation());
         }
     }
 

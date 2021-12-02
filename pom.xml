@@ -47,6 +47,7 @@
                                     <include>com.github.fierioziy.particlenativeapi*</include>
                                     <include>com.comphenix.packetwrapper*</include>
                                     <include>org.json*</include>
+                                    <include>fr.mrmicky.fastboard*</include>
                                 </includes>
                             </artifactSet>
                         </configuration>
@@ -87,6 +88,12 @@
             <artifactId>ProtocolLib</artifactId>
             <version>4.7.0</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>fr.mrmicky</groupId>
+            <artifactId>fastboard</artifactId>
+            <version>1.2.0</version>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>com.comphenix.packetwrapper</groupId>

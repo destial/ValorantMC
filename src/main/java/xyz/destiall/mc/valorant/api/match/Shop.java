@@ -16,7 +16,12 @@ import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.factories.ItemFactory;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class Shop implements Module {
     private static final HashMap<Integer, ShopItem> ITEMS = new HashMap<>();
@@ -119,7 +124,8 @@ public class Shop implements Module {
 
     @Override
     public void destroy() {
-        for (VPlayer player : match.getPlayers().values()) {
+        Collection<VPlayer> list = match.getPlayers().values();
+        for (VPlayer player : list) {
             if (playerShop.containsKey(player.getUUID())) {
                 player.getPlayer().closeInventory();
             }

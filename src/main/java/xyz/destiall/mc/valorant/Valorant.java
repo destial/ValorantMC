@@ -77,8 +77,7 @@ public class Valorant {
         Debugger.debug("------ Loaded MatchManager ------");
         try {
             ParticleNativeAPI api = ParticleNativeCore.loadAPI(plugin);
-            ProtocolManager pm = ProtocolLibrary.getProtocolManager();
-            new Effects(api, pm);
+            new Effects(api);
             Debugger.debug("------ Loaded Effects ------");
         } catch (Exception e) {
             e.printStackTrace();

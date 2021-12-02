@@ -1,6 +1,5 @@
 package xyz.destiall.mc.valorant.utils;
 
-import com.comphenix.protocol.ProtocolManager;
 import com.github.fierioziy.particlenativeapi.api.ParticleNativeAPI;
 import com.github.fierioziy.particlenativeapi.api.Particles_1_13;
 import org.bukkit.Color;
@@ -30,12 +29,23 @@ public class Effects {
     private static final Set<Vector> SMOKE_CYLINDER = new HashSet<>();
     private static final Set<ArmorStand> SPAWNED_ARMOR_STANDS = new HashSet<>();
     private static final Set<Vector> BOMB_SPHERE = new HashSet<>();
-    public Effects(ParticleNativeAPI api, ProtocolManager pm) {
+    private static final Set<Vector> SPIKE_RING = new HashSet<>();
+    public Effects(ParticleNativeAPI api) {
         PARTICLES = api.getParticles_1_13();
         createSmokeSphere();
         createFlashSphere();
         createSmokeCylinder();
         createBombSphere();
+        createSpikeRing();
+    }
+
+    private void createSpikeRing() {
+        SPIKE_RING.clear();
+        for (double theta = -Math.PI; theta <= Math.PI; theta += Math.PI / 6) {
+            double x = Math.cos(theta);
+            double z = Math.sin(theta);
+            SPIKE_RING.add(new Vector(x, 0, z));
+        }
     }
 
     private void createBombSphere() {
@@ -110,6 +120,17 @@ public class Effects {
             Object dust = PARTICLES.DUST().color(0.1f, 0.1f, 0.1f, 10).packet(true, location);
             PARTICLES.sendPacket(location, 60, dust);
             location.subtract(x, y, z);
+        }
+    }
+
+    public static void spikeRing(Location location, float radius) {
+        for (Vector vect : SPIKE_RING) {
+            double x = vect.getX() * radius;
+            double z = vect.getZ() * radius;
+            location.add(x, 0, z);
+            Object dust = PARTICLES.DUST().color(0.0f, 0.5f, 0.5f, 1).packet(true, location);
+            PARTICLES.sendPacket(location, 10, dust);
+            location.subtract(x, 0, z);
         }
     }
 

@@ -12,6 +12,8 @@ import xyz.destiall.mc.valorant.utils.Effects;
 import xyz.destiall.mc.valorant.utils.ScheduledTask;
 import xyz.destiall.mc.valorant.utils.Scheduler;
 
+import java.util.Collection;
+
 public class Leer extends Ability implements Flash {
     private ScheduledTask leerTravelTask;
     private Location l;
@@ -64,7 +66,8 @@ public class Leer extends Ability implements Flash {
         Scheduler.cancel(leerTravelTask);
         Effects.flashTravel(l, agent);
         this.remove();
-        for (VPlayer p : player.getMatch().getPlayers().values()) {
+        Collection<VPlayer> list = player.getMatch().getPlayers().values();
+        for (VPlayer p : list) {
             if (p.getTeam() == player.getTeam()) return;
             if (Flash.isSeen(p.getPlayer(), as, (int) getFlashRange())) {
                 Effects.flash(p.getPlayer(), agent, getFlashDuration());

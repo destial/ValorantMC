@@ -66,7 +66,7 @@ public class MatchManager {
     public VPlayer getParticipant(Player player) {
         Match match = MATCHES.stream().filter(m -> m.isInMatch(player)).findFirst().orElse(null);
         if (match == null) return null;
-        return match.getPlayers().get(player.getUniqueId());
+        return match.getPlayer(player.getUniqueId());
     }
 
     public Match getMatch(Player player) {

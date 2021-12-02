@@ -15,6 +15,7 @@ import xyz.destiall.mc.valorant.api.abilities.Agent;
 import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.UUID;
@@ -105,7 +106,7 @@ public class AgentPicker implements Listener, Module {
             e.setCancelled(true);
             ItemStack item = e.getCurrentItem();
             if (item == null) return;
-            VPlayer p = match.getPlayers().get(uuid);
+            VPlayer p = match.getPlayer(uuid);
             if (!isWool(item.getType())) {
                 if (item.getType().equals(Material.REDSTONE)) {
                     if (lockedIn.contains(uuid)) return;
@@ -117,7 +118,8 @@ public class AgentPicker implements Listener, Module {
                     p.sendMessage("&cYou have locked in: " + p.getAgent().name());
                     p.chooseAgent(p.getAgent());
                 } else if (item.getType().equals(Material.STONE_BUTTON)) {
-                    for (VPlayer player : match.getPlayers().values()) {
+                    Collection<VPlayer> list = match.getPlayers().values();
+                    for (VPlayer player : list) {
                         player.chooseAgent(player.getAgent());
                     }
                     match.start(true);
@@ -171,7 +173,8 @@ public class AgentPicker implements Listener, Module {
         viewers.clear();
         choices.clear();
         lockedIn.clear();
-        for (VPlayer p : match.getPlayers().values()) {
+        Collection<VPlayer> list = match.getPlayers().values();
+        for (VPlayer p : list) {
             p.getPlayer().closeInventory();
         }
         inventory.clear();

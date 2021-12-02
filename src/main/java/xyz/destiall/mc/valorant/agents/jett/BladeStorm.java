@@ -87,7 +87,7 @@ public class BladeStorm extends Ultimate implements Listener {
                     List<Entity> hit = as.getNearbyEntities(0.5, 0.5, 0.5).stream().filter(e -> e instanceof LivingEntity && e != as && !e.getUniqueId().equals(player.getUUID())).filter(e -> {
                         LivingEntity le = (LivingEntity) e;
                         if (le instanceof Player) {
-                            VPlayer p = player.getMatch().getPlayers().get(le.getUniqueId());
+                            VPlayer p = player.getMatch().getPlayer(le.getUniqueId());
                             if (p == null) return false;
                             return !p.getTeam().getSide().equals(player.getTeam().getSide());
                         }

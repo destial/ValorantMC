@@ -43,6 +43,7 @@ public interface VPlayer {
     boolean isDead();
     boolean isAwaitingUlt();
     boolean isUsingUlt();
+    boolean isDiffusing();
 
     void setPrimaryGun(Gun gun);
     void setSecondaryGun(Gun gun);
@@ -62,7 +63,7 @@ public interface VPlayer {
     void chooseAgent(Agent agent);
     void save();
     void setDiffusing(boolean diffusing);
-    boolean isDiffusing();
+    void rejoin(Player player);
 
     default void addArmour(Integer armour) {
         getPlayer().setAbsorptionAmount(armour / 100F * 20);
@@ -84,10 +85,10 @@ public interface VPlayer {
         showTitle(message, null);
     }
     default void showTitle(String message, String subtitle) {
-        getPlayer().sendTitle(Formatter.color(message), Formatter.color(subtitle), 0, 1, 0);
+        getPlayer().sendTitle(Formatter.color(message), Formatter.color(subtitle), 0, 10, 0);
     }
     default void showSubTitle(String subtitle) {
-        getPlayer().sendTitle(null, Formatter.color(subtitle), 0, 1, 0);
+        getPlayer().sendTitle(null, Formatter.color(subtitle), 0, 10, 0);
     }
     default void sendMessage(String message) {
         getPlayer().sendMessage(Formatter.color(message));
