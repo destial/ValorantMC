@@ -144,6 +144,6 @@ public class Versioning {
         } catch (Exception ignored) {
             // e.printStackTrace();
         }
-        return new PacketPlayOutEntityDestroy();
+        return new PacketPlayOutEntityDestroy(entityId);
     }
 }

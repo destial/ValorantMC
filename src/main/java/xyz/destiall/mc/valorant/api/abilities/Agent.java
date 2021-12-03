@@ -14,7 +14,8 @@ public enum Agent {
     SKYE(Color.LIME),
     VIPER(Color.GREEN),
     BRIMSTONE(Color.ORANGE),
-    OMEN(Color.BLACK);
+    OMEN(Color.BLACK),
+    CHAMBERLAIN(Color.YELLOW);
 
     public final Color COLOR;
     public final Material WOOL;

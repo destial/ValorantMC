@@ -20,9 +20,11 @@ import org.bukkit.inventory.ItemStack;
 import xyz.destiall.mc.valorant.api.events.player.DeathEvent;
 import xyz.destiall.mc.valorant.api.items.Gun;
 import xyz.destiall.mc.valorant.api.items.Knife;
+import xyz.destiall.mc.valorant.api.match.Countdown;
 import xyz.destiall.mc.valorant.api.player.DeadBody;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.api.session.CreationSession;
+import xyz.destiall.mc.valorant.api.sidebar.SidebarHandler;
 import xyz.destiall.mc.valorant.factories.ItemFactory;
 import xyz.destiall.mc.valorant.managers.MatchManager;
 import xyz.destiall.mc.valorant.utils.Formatter;
@@ -30,7 +32,6 @@ import xyz.destiall.mc.valorant.utils.Scheduler;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.UUID;
 
 public class MatchListener implements Listener {
@@ -68,8 +69,7 @@ public class MatchListener implements Listener {
         }
         victim.setDead(true);
         victim.getPlayer().setGameMode(GameMode.SPECTATOR);
-        DeadBody body = new DeadBody(victim);
-        body.die();
+        if (!victim.getMatch().getModule(Countdown.class).getContext().equals(Countdown.Context.ROUND_ENDING)) victim.getMatch().addBody(new DeadBody(victim));
         DeathEvent deathEvent = new DeathEvent(victim, killer, gun, knife);
         for (ItemStack item : victim.getPlayer().getInventory()) {
             if (item == null || item.getType() == Material.AIR) continue;
@@ -205,6 +205,7 @@ public class MatchListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e) {
+        if (e.getPlayer().getWalkSpeed() != 0.2f) e.getPlayer().setWalkSpeed(0.2f);
         if (leftPlayers.contains(e.getPlayer().getUniqueId())) {
             e.getPlayer().sendMessage(Formatter.color("&eRejoining the match..."));
             Scheduler.delay(() -> {
@@ -212,6 +213,10 @@ public class MatchListener implements Listener {
                 VPlayer player = MatchManager.getInstance().getParticipant(e.getPlayer());
                 if (player == null) return;
                 player.rejoin(e.getPlayer());
+                SidebarHandler sidebar = player.getMatch().getModule(SidebarHandler.class);
+                Countdown countdown = player.getMatch().getModule(Countdown.class);
+                countdown.getBossBar().addPlayer(e.getPlayer());
+                sidebar.rejoin(player);
                 leftPlayers.remove(e.getPlayer().getUniqueId());
             }, 20L);
         }
@@ -220,8 +225,7 @@ public class MatchListener implements Listener {
     public static void spikeDropped(VPlayer holder, Item drop) {
         Collection<VPlayer> list = holder.getMatch().getPlayers().values();
         for (VPlayer player : list) {
-            if (player == holder) continue;
-            player.getPlayer().sendTitle(null, Formatter.color("&eSpike dropped"), 0, 1, 0);
+            player.showSubTitle(Formatter.color("&eSpike dropped"));
         }
         holder.getSpike().setDrop(drop);
         holder.holdSpike(null);

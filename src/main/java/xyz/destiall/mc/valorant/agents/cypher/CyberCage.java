@@ -25,15 +25,15 @@ import xyz.destiall.mc.valorant.utils.Scheduler;
 import java.time.Duration;
 
 public class CyberCage extends Ability implements Smoke, Listener {
+    private final Team team;
     private Location finalLoc;
-    private Team team;
     private ScheduledTask cageTask;
     public CyberCage(VPlayer player) {
         super(player);
         agent = Agent.CYPHER;
         cageTask = null;
         finalLoc = null;
-        team = null;
+        team = player.getTeam();
     }
 
     @Override
@@ -67,7 +67,7 @@ public class CyberCage extends Ability implements Smoke, Listener {
     public void appear(Location location) {
         finalLoc = location;
         Bukkit.getPluginManager().registerEvents(this, Valorant.getInstance().getPlugin());
-        cageTask = Effects.smoke(location, agent, getSmokeDuration().getSeconds());
+        cageTask = Effects.smoke(player.getMatch(), location, agent, getSmokeDuration().getSeconds());
         Scheduler.delay(this::dissipate, getSmokeDuration().toMillis() / 1000L * 20L);
     }
 

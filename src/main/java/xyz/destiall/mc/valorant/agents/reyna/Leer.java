@@ -1,7 +1,7 @@
 package xyz.destiall.mc.valorant.agents.reyna;
 
+import net.minecraft.world.entity.decoration.EntityArmorStand;
 import org.bukkit.Location;
-import org.bukkit.entity.ArmorStand;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 import xyz.destiall.mc.valorant.api.abilities.Ability;
@@ -17,25 +17,26 @@ import java.util.Collection;
 public class Leer extends Ability implements Flash {
     private ScheduledTask leerTravelTask;
     private Location l;
-    private ArmorStand as;
+    private EntityArmorStand as;
     public Leer(VPlayer player) {
         super(player);
         leerTravelTask = null;
         maxUses = 2;
         agent = Agent.REYNA;
-        hold = true;
+        trigger = Trigger.RIGHT;
         l = null;
         as = null;
     }
     @Override
     public void use() {
         l = player.getEyeLocation().clone();
-        as = Effects.getSmallArmorStand(l, agent);
+        as = Effects.getFlashArmorStand(l, agent);
+        Effects.sendArmorStand(as, player.getMatch());
         leerTravelTask = Scheduler.repeat(() -> {
             Vector vel = l.getDirection().multiply(1 / 20);
             l.add(vel);
             Effects.flashTravel(l, agent);
-            as.teleport(l.clone().subtract(new Vector(0, as.getEyeHeight(), 0)));
+            Effects.teleportArmorStand(l.clone().subtract(new Vector(0, player.getPlayer().getEyeHeight(), 0)), as, player.getMatch());
         }, 1L);
         Scheduler.delay(this::flash, 20L);
     }
@@ -48,7 +49,7 @@ public class Leer extends Ability implements Flash {
     @Override
     public void remove() {
         Scheduler.cancel(leerTravelTask);
-        as.remove();
+        Effects.removeArmorStand(as, player.getMatch());
     }
 
     @Override

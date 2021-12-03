@@ -12,12 +12,12 @@ public class Blaze extends Ability {
         super(player);
         agent = Agent.PHOENIX;
         maxUses = 1;
-        hold = false;
+        trigger = Trigger.RIGHT;
     }
     @Override
     public void use() {
         Vector direction = player.getDirection();
-        Effects.wall(player.getLocation().clone(), direction.clone(), Agent.PHOENIX, 20, 4, 8);
+        Effects.wall(player.getMatch(), player.getLocation().clone(), direction.clone(), Agent.PHOENIX, 20, 4, 8);
     }
 
     @Override

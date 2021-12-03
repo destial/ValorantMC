@@ -19,6 +19,7 @@ import xyz.destiall.mc.valorant.factories.ItemFactory;
 import xyz.destiall.mc.valorant.utils.Formatter;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public interface VPlayer {
@@ -30,7 +31,7 @@ public interface VPlayer {
     Integer getDeaths();
     Integer getAssists();
     Agent getAgent();
-    HashMap<Ability, Integer> getAbilities();
+    HashMap<Integer, Ability> getAbilities();
     Ultimate getUlt();
     Gun getPrimaryGun();
     Gun getSecondaryGun();
@@ -38,10 +39,10 @@ public interface VPlayer {
     Spike getSpike();
     Settings.Chat getChatSettings();
     Stats getStats();
+    int getUltPoints();
     boolean isHoldingSpike();
     boolean isFlashed();
     boolean isDead();
-    boolean isAwaitingUlt();
     boolean isUsingUlt();
     boolean isDiffusing();
 
@@ -58,8 +59,9 @@ public interface VPlayer {
     void holdSpike(Spike spike);
     void setChatSettings(Settings.Chat setting);
     void setFlashed(boolean flashed);
-    void setAwaitUlt(boolean ult);
     void setUseUlt(boolean ult);
+    void setUltPoints(int points);
+    void addUltPoint(int points);
     void chooseAgent(Agent agent);
     void save();
     void setDiffusing(boolean diffusing);
@@ -74,6 +76,9 @@ public interface VPlayer {
         ItemFactory.GET_CLASSIC().give(this);
         getPlayer().getInventory().setItem(0, null);
         getPlayer().getInventory().setHeldItemSlot(1);
+        for (Map.Entry<Integer, Ability> entry : getAbilities().entrySet()) {
+            getPlayer().getInventory().setItem(entry.getKey(), entry.getValue().getShopDisplay());
+        }
     }
     default Match getMatch() {
         return getTeam().getMatch();

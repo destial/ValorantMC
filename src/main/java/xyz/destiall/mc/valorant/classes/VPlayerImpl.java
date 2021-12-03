@@ -36,7 +36,7 @@ public class VPlayerImpl implements VPlayer {
     private final AtomicReference<Player> player;
     private final Economy econ;
     private final Knife knife;
-    private final HashMap<Ability, Integer> abilities = new HashMap<>();
+    private final HashMap<Integer, Ability> abilities = new HashMap<>();
     private final Stats stats;
     private final Settings settings;
     private Party party;
@@ -48,9 +48,9 @@ public class VPlayerImpl implements VPlayer {
     private int kills;
     private int deaths;
     private int assists;
+    private int ultPoints;
     private boolean dead;
     private boolean flashed;
-    private boolean ultimate;
     private boolean usingUlt;
     private ScheduledTask diffusingTask;
 
@@ -64,7 +64,7 @@ public class VPlayerImpl implements VPlayer {
         agent = null;
         spike = null;
         party = null;
-        flashed = dead = ultimate = usingUlt = false;
+        flashed = dead = usingUlt = false;
         settings = new Settings();
         econ = new Economy(500);
         stats = new Stats(getUUID());
@@ -79,7 +79,7 @@ public class VPlayerImpl implements VPlayer {
         knife = new Knife(new ItemStack(Material.IRON_SWORD));
         agent = null;
         spike = null;
-        flashed = dead = ultimate = usingUlt = false;
+        flashed = dead = usingUlt = false;
         settings = new Settings();
         econ = new Economy(500);
         stats = new Stats(getUUID());
@@ -97,7 +97,7 @@ public class VPlayerImpl implements VPlayer {
 
     @Override
     public Party getParty() {
-        return null;
+        return party;
     }
 
     @Override
@@ -145,13 +145,13 @@ public class VPlayerImpl implements VPlayer {
     }
 
     @Override
-    public HashMap<Ability, Integer> getAbilities() {
+    public HashMap<Integer, Ability> getAbilities() {
         return abilities;
     }
 
     @Override
     public Ultimate getUlt() {
-        return (Ultimate) abilities.keySet().stream().filter(a -> a instanceof Ultimate).findFirst().orElse(null);
+        return (Ultimate) abilities.values().stream().filter(a -> a instanceof Ultimate).findFirst().orElse(null);
     }
 
     @Override
@@ -197,6 +197,11 @@ public class VPlayerImpl implements VPlayer {
     @Override
     public Stats getStats() {
         return stats;
+    }
+
+    @Override
+    public int getUltPoints() {
+        return ultPoints;
     }
 
     @Override
@@ -246,13 +251,18 @@ public class VPlayerImpl implements VPlayer {
     }
 
     @Override
-    public void setAwaitUlt(boolean ult) {
-        this.ultimate = ult;
+    public void setUseUlt(boolean ult) {
+        this.usingUlt = ult;
     }
 
     @Override
-    public void setUseUlt(boolean ult) {
-        this.usingUlt = ult;
+    public void setUltPoints(int points) {
+        this.ultPoints = points;
+    }
+
+    @Override
+    public void addUltPoint(int points) {
+        this.ultPoints = points;
     }
 
     @Override
@@ -260,25 +270,22 @@ public class VPlayerImpl implements VPlayer {
         if (abilities.size() != 0) return;
         if (agent == null) {
             Collection<VPlayer> list = getMatch().getPlayers().values();
-            agent = Arrays.stream(Agent.values()).filter(a -> list.stream().noneMatch(p -> p.getAgent() == a)).findFirst().orElse(Agent.CYPHER);
+            agent = Arrays.stream(Agent.values()).filter(a -> list.stream().noneMatch(p -> p.getAgent() == a)).findFirst().orElseThrow();
         }
         this.agent = agent;
         switch (agent) {
             case JETT: {
-                Updraft up = new Updraft(this);
-                abilities.put(up, up.getMaxUses());
-                CloudBurst cb = new CloudBurst(this);
-                abilities.put(cb, cb.getMaxUses());
-                abilities.put(new BladeStorm(this), 0);
+                abilities.put(5, new Updraft(this));
+                abilities.put(6, new CloudBurst(this));
+                abilities.put(7, new BladeStorm(this));
                 break;
             }
             case REYNA: {
-                Leer l = new Leer(this);
-                abilities.put(l, l.getMaxUses());
+                abilities.put(5, new Leer(this));
                 break;
             }
             case PHOENIX: {
-                abilities.put(new Blaze(this), 0);
+                abilities.put(5, new Blaze(this));
                 break;
             }
             case CYPHER: {
@@ -310,7 +317,7 @@ public class VPlayerImpl implements VPlayer {
                     builder.append(color).append(s);
                 }
                 getPlayer().sendTitle(builder.toString(), null, 0, 2, 0);
-                sp.setDiffuse(t + 1/150f);
+                sp.setDiffuse(t + 1 / 160f);
                 if (sp.getDiffuse() >= 1f) {
                     sp.defuse();
                     sp.setDiffuse(1f);
@@ -324,7 +331,6 @@ public class VPlayerImpl implements VPlayer {
             }
             diffusingTask.cancel();
             diffusingTask = null;
-            return;
         }
     }
 
@@ -346,11 +352,6 @@ public class VPlayerImpl implements VPlayer {
     @Override
     public boolean isDead() {
         return dead;
-    }
-
-    @Override
-    public boolean isAwaitingUlt() {
-        return ultimate;
     }
 
     @Override

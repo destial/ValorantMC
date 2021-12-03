@@ -4,10 +4,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
+import xyz.destiall.mc.valorant.factories.ItemFactory;
 import xyz.destiall.mc.valorant.utils.Shooter;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.UUID;
 
 public class Gun implements ShopItem, Giveable {
     protected final ItemStack itemStack;
@@ -18,9 +21,9 @@ public class Gun implements ShopItem, Giveable {
     protected final Type type;
     protected final Name name;
     protected final Integer maxAmmo;
-    protected final HashMap<Player, Long> shots = new HashMap<>();
+    protected final HashMap<UUID, Long> shots = new HashMap<>();
+    protected final HashSet<UUID> aiming = new HashSet<>();
     protected Integer currentAmmo;
-    protected boolean aiming;
 
     public Gun(Name name, ItemStack stack, Integer damage, Integer ammo, float fireSpeed, float reloadSpeed, Integer price) {
         this.name = name;
@@ -32,7 +35,6 @@ public class Gun implements ShopItem, Giveable {
         this.type = name.getType();
         this.maxAmmo = ammo;
         this.currentAmmo = ammo;
-        aiming = false;
     }
 
     public Integer getDamage() {
@@ -64,23 +66,15 @@ public class Gun implements ShopItem, Giveable {
     }
 
     public void shoot(Player player) {
-        Long before = shots.get(player);
+        Long before = shots.get(player.getUniqueId());
         double spread = 0;
         if (before != null) {
             long now = System.currentTimeMillis();
             long diff = now - before;
             spread = 200D / diff;
         }
-        shots.put(player, System.currentTimeMillis());
+        shots.put(player.getUniqueId(), System.currentTimeMillis());
         Shooter.shoot(player, player.getEyeLocation().clone(), player.getLocation().getDirection().clone(), damage, spread);
-    }
-
-    public void setAiming(boolean aiming) {
-        this.aiming = aiming;
-    }
-
-    public boolean isAiming() {
-        return aiming;
     }
 
     @Override
@@ -99,16 +93,18 @@ public class Gun implements ShopItem, Giveable {
     }
 
     @Override
-    public void give(VPlayer VPlayer) {
-        int slot = 2;
+    public void give(VPlayer player) {
+        int slot = 1;
         if (!type.equals(Type.PISTOL)) {
-            slot = 1;
+            slot = 0;
         }
-        if (slot == 1) {
-            VPlayer.setPrimaryGun(this);
+        if (slot == 0) {
+            player.setPrimaryGun(this);
         } else {
-            VPlayer.setSecondaryGun(this);
+            player.setSecondaryGun(this);
         }
+        ItemStack gun = ItemFactory.createCrackshotGun(name.name());
+        player.getPlayer().getInventory().setItem(slot, gun);
     }
 
     @Override

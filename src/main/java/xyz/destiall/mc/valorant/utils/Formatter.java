@@ -7,10 +7,13 @@ import java.time.Duration;
 public class Formatter {
     public static String duration(Duration duration) {
         long millis = duration.toMillis();
-        double m, s;
+        double m = 0, s;
         s = millis / 1000D;
         millis -= ((int) s * 1000);
-        m = s / 60D;
+        while (s > 60D) {
+            m++;
+            s -= 60D;
+        }
         if (m < 1) {
             String mil = "" + millis;
             if (mil.length() > 3) {

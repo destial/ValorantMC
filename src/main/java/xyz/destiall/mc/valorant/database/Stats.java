@@ -4,6 +4,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import xyz.destiall.mc.valorant.api.match.MatchResult;
 import xyz.destiall.mc.valorant.api.player.ParticipantMatchResult;
+import xyz.destiall.mc.valorant.api.player.VPlayer;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -47,14 +48,14 @@ public class Stats implements JSON {
         }
     }
 
-    public void addWin(MatchResult result) {
-        ParticipantMatchResult r = new ParticipantMatchResult(uuid, result, true);
+    public void addWin(VPlayer player, MatchResult result) {
+        ParticipantMatchResult r = new ParticipantMatchResult(player, result, true);
         matchResults.add(r);
         wins++;
     }
 
-    public void addLoss(MatchResult result) {
-        ParticipantMatchResult r = new ParticipantMatchResult(uuid, result, false);
+    public void addLoss(VPlayer player, MatchResult result) {
+        ParticipantMatchResult r = new ParticipantMatchResult(player, result, false);
         matchResults.add(r);
         loses++;
     }
@@ -71,9 +72,8 @@ public class Stats implements JSON {
         totalAssists++;
     }
 
-    public boolean addXP(double xp) {
+    public void addXP(double xp) {
         totalXP += xp;
-        return false;
     }
 
     public Set<ParticipantMatchResult> getAllResults() {

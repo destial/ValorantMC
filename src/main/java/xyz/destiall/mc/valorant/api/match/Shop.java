@@ -75,7 +75,7 @@ public class Shop implements Module {
             inv.setItem(entry.getKey(), entry.getValue().getShopDisplay());
         }
         int i = 0;
-        for (Ability ability : p.getAbilities().keySet()) {
+        for (Ability ability : p.getAbilities().values()) {
             if (ability instanceof Ultimate) continue;
             Integer slot = slots.get(i);
             inv.setItem(slot, ability.getShopDisplay());

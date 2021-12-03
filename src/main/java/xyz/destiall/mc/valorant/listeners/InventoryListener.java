@@ -3,14 +3,14 @@ package xyz.destiall.mc.valorant.listeners;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.inventory.InventoryInteractEvent;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import xyz.destiall.mc.valorant.api.abilities.Ability;
-import xyz.destiall.mc.valorant.api.abilities.Ultimate;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.managers.MatchManager;
 
@@ -20,14 +20,7 @@ public class InventoryListener implements Listener {
     public void onHotbarChange(PlayerItemHeldEvent e) {
         VPlayer player = MatchManager.getInstance().getParticipant(e.getPlayer());
         if (player == null) return;
-        if (player.isUsingUlt()) {
-            e.setCancelled(true);
-            return;
-        }
-        if (player.isAwaitingUlt()) {
-            player.getUlt().remove();
-        }
-        Ability ability = player.getAbilities().keySet().stream().filter(a -> a.getSlot() == e.getNewSlot()).findFirst().orElse(null);
+        Ability ability = player.getAbilities().get(e.getNewSlot());
         if (ability == null) {
             ItemStack newSlot = e.getPlayer().getInventory().getItem(e.getNewSlot());
             if (newSlot == null) {
@@ -40,29 +33,35 @@ public class InventoryListener implements Listener {
             }
             if (e.getNewSlot() == 0 && player.getPrimaryGun() != null) {
                 player.showHotbar(player.getPrimaryGun().getName().name());
-                player.getPlayer().setWalkSpeed(0.08f);
             } else if (e.getNewSlot() == 1 && player.getSecondaryGun() != null) {
                 player.showHotbar(player.getSecondaryGun().getName().name());
-                player.getPlayer().setWalkSpeed(0.05f);
             }
             return;
         }
         player.showHotbar(ability.getName());
-        if (ability instanceof Ultimate) {
-            player.setAwaitUlt(true);
-            ability.use();
-            return;
+    }
+
+    @EventHandler
+    public void onInteract(PlayerInteractEvent e) {
+        if (!e.hasItem()) return;
+        if (e.getAction() != Action.PHYSICAL) {
+            VPlayer player = MatchManager.getInstance().getParticipant(e.getPlayer());
+            if (player == null) return;
+            Ability ability = player.getAbilities().get(e.getPlayer().getInventory().getHeldItemSlot());
+            if (ability == null) return;
+            Ability.Trigger trigger = ability.getTrigger();
+            boolean use = false;
+            if (trigger == Ability.Trigger.RIGHT && (e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK)) use = true;
+            else if (trigger == Ability.Trigger.LEFT && (e.getAction() == Action.LEFT_CLICK_AIR || e.getAction() == Action.LEFT_CLICK_BLOCK)) use = true;
+            if (use) ability.use();
         }
-        if (!ability.canHold()) return;
-        e.setCancelled(true);
-        ability.use();
     }
 
     @EventHandler
     public void onSwapHand(PlayerSwapHandItemsEvent e) {
         MatchManager matchManager = MatchManager.getInstance();
-        VPlayer vPlayer = matchManager.getParticipant(e.getPlayer());
-        if (vPlayer == null) return;
+        VPlayer player = matchManager.getParticipant(e.getPlayer());
+        if (player == null) return;
         e.setCancelled(true);
     }
 
@@ -75,12 +74,12 @@ public class InventoryListener implements Listener {
     }
 
     @EventHandler
-    public void onInventoryMove(InventoryInteractEvent e) {
-        if (!(e.getInventory() instanceof PlayerInventory)) return;
-        if (!(e.getInventory().getHolder() instanceof Player)) return;
-        Player p = (Player) e.getInventory().getHolder();
-        VPlayer vPlayer = MatchManager.getInstance().getParticipant(p);
-        if (vPlayer == null) return;
+    public void onInventoryMove(InventoryClickEvent e) {
+        if (e.getClickedInventory() == null) return;
+        if (!(e.getClickedInventory().getHolder() == e.getWhoClicked())) return;
+        Player p = (Player) e.getClickedInventory().getHolder();
+        VPlayer player = MatchManager.getInstance().getParticipant(p);
+        if (player == null) return;
         e.setCancelled(true);
     }
 }

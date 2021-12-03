@@ -1,14 +1,15 @@
 package xyz.destiall.mc.valorant.api.abilities;
 
+import org.bukkit.inventory.ItemStack;
 import xyz.destiall.mc.valorant.api.items.ShopItem;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
 
 public abstract class Ability implements ShopItem {
     protected Integer maxUses;
     protected Agent agent;
-    protected int slot;
-    protected boolean hold;
+    protected Trigger trigger;
     protected VPlayer player;
+    protected ItemStack item;
     public Ability(VPlayer player) {
         this.player = player;
     }
@@ -20,9 +21,14 @@ public abstract class Ability implements ShopItem {
     public Integer getMaxUses() {
         return maxUses;
     }
-    public int getSlot() { return slot; }
     public Agent getBelongingAgent() { return agent; }
-    public boolean canHold() {
-        return hold;
+    public Trigger getTrigger() {
+        return trigger;
+    }
+
+    public enum Trigger {
+        RIGHT,
+        LEFT,
+        HOLD
     }
 }

@@ -17,17 +17,13 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityPose;
 import net.minecraft.world.level.EnumGamemode;
 import org.bukkit.Location;
-import xyz.destiall.mc.valorant.api.match.Match;
 import xyz.destiall.mc.valorant.utils.Versioning;
 
 import java.lang.reflect.Field;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 
 public class DeadBody {
-    private static final HashMap<VPlayer, DeadBody> DEAD_BODIES = new HashMap<>();
     private int entityId;
     private GameProfile profile;
     private final Location location;
@@ -38,7 +34,7 @@ public class DeadBody {
         this.location = player.getLocation().clone();
     }
 
-    public void die() {
+    public void spawn() {
         entityId = Versioning.getNextEntityIdAtomic().get();
         profile = Versioning.cloneProfileWithRandomUUID(Versioning.getGameProfile(player.getPlayer()), "");
         DataWatcher dw = Versioning.clonePlayerDatawatcher(player.getPlayer(), entityId);
@@ -47,7 +43,6 @@ public class DeadBody {
         Location locUnder = Versioning.getNonClippableBlockUnderPlayer(location, 1);
         Location used = locUnder != null ? locUnder : location;
         player.setDead(true);
-        DEAD_BODIES.put(player, this);
         spawn(used);
     }
 
@@ -68,7 +63,8 @@ public class DeadBody {
         conn.sendPacket(new PacketPlayOutEntityMetadata(entityPlayer.getId(), entityPlayer.getDataWatcher(), false));
     }
 
-    public void spawn(Location location) {
+    private void spawn(Location location) {
+        System.out.println("Spawning dead body");
         PacketPlayOutEntity.PacketPlayOutRelEntityMove movePacket = new PacketPlayOutEntity.PacketPlayOutRelEntityMove(entityId, (short) (0), (short) (-61.8), (short) (0), false);
         PacketPlayOutNamedEntitySpawn spawnPacket = new PacketPlayOutNamedEntitySpawn(Versioning.getPlayer(player.getPlayer()));
         try {
@@ -117,6 +113,7 @@ public class DeadBody {
     }
 
     public void despawn() {
+        System.out.println("Despawning dead body");
         PacketPlayOutPlayerInfo removeInfoPacket = new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.e);
         PacketPlayOutEntityDestroy destroyPacket = Versioning.newDestroyPacket(entityId);
         try {
@@ -146,20 +143,5 @@ public class DeadBody {
         player.getPlayer().setSpectatorTarget(null);
         player.getPlayer().teleport(location);
         despawn();
-    }
-
-    public static void clear(Match match) {
-        Collection<DeadBody> bodies = DEAD_BODIES.values();
-        Collection<VPlayer> remove = new HashSet<>();
-        for (DeadBody deadBody : bodies) {
-            if (deadBody.player.getMatch() == match) {
-                deadBody.despawn();
-                remove.add(deadBody.player);
-            }
-        }
-        for (VPlayer p : remove) {
-            DEAD_BODIES.remove(p);
-        }
-        remove.clear();
     }
 }

@@ -32,6 +32,7 @@ import xyz.destiall.mc.valorant.utils.Scheduler;
 import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 public class Spike implements Module, Listener {
     private final Match match;
@@ -102,9 +103,8 @@ public class Spike implements Module, Listener {
             int r = i.get();
             if (r < 20) i.incrementAndGet();
             Effects.bombSphere(plantedLocation, r);
-            Collection<VPlayer> list = match.getPlayers().values();
+            Collection<VPlayer> list = match.getPlayers().values().stream().filter(p -> !p.isDead()).collect(Collectors.toList());
             for (VPlayer player : list) {
-                if (player.isDead()) continue;
                 if (player.getLocation().distanceSquared(plantedLocation) <= r * r) {
                     player.getPlayer().damage(player.getPlayer().getMaxHealth(), null);
                 }

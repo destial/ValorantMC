@@ -1,5 +1,6 @@
 package xyz.destiall.mc.valorant.api.items;
 
+import org.bukkit.ChatColor;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
@@ -9,7 +10,7 @@ public class Knife implements Giveable {
     public Knife(ItemStack stack) {
         this.itemStack = stack;
         ItemMeta meta = stack.getItemMeta();
-        meta.setDisplayName("Knife");
+        meta.setDisplayName(ChatColor.RESET + "Knife");
         stack.setItemMeta(meta);
     }
 
@@ -19,7 +20,7 @@ public class Knife implements Giveable {
     }
 
     @Override
-    public void give(VPlayer VPlayer) {
-        VPlayer.getPlayer().getInventory().setItem(3, itemStack);
+    public void give(VPlayer player) {
+        player.getPlayer().getInventory().setItem(2, itemStack);
     }
 }

@@ -1,7 +1,5 @@
 package xyz.destiall.mc.valorant;
 
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
 import com.github.fierioziy.particlenativeapi.api.ParticleNativeAPI;
 import com.github.fierioziy.particlenativeapi.core.ParticleNativeCore;
 import org.bukkit.Bukkit;
@@ -46,14 +44,14 @@ public class Valorant {
     }
 
     public void disable() {
-        MatchManager.getInstance().disable();
-        Debugger.debug("------ Unloaded MatchManager ------");
-        MapManager.getInstance().unloadMaps();
-        Debugger.debug("------ Unloaded MapManager ------");
         AbilityManager.stopAll();
         Debugger.debug("------ Unloaded AbilityManager ------");
         Effects.disable();
         Debugger.debug("------ Unloaded Effects ------ ");
+        MatchManager.getInstance().disable();
+        Debugger.debug("------ Unloaded MatchManager ------");
+        MapManager.getInstance().unloadMaps();
+        Debugger.debug("------ Unloaded MapManager ------");
         HandlerList.unregisterAll(plugin);
         Debugger.debug("------ Unregistered Listeners ------");
         Scheduler.cancelAll();

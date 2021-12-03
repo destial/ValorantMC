@@ -10,7 +10,7 @@ public class AbilityManager {
     public static void stop(Match match) {
         Collection<VPlayer> list = match.getPlayers().values();
         for (VPlayer p : list) {
-            for (Ability a : p.getAbilities().keySet()) {
+            for (Ability a : p.getAbilities().values()) {
                 a.remove();
             }
             p.getAbilities().clear();
