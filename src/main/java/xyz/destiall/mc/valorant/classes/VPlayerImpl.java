@@ -32,7 +32,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class VPlayerImpl implements VPlayer {
+class VPlayerImpl implements VPlayer {
     private final AtomicReference<Player> player;
     private final Economy econ;
     private final Knife knife;

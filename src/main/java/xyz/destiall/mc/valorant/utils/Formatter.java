@@ -21,7 +21,9 @@ public class Formatter {
             }
             return (int) s + "." + mil;
         }
-        return ((int) m) + ":" + ((int) s);
+        String ss = "" + ((int) s);
+        if (ss.length() < 2) ss = "0" + ss;
+        return ((int) m) + ":" + ss;
     }
 
     public static String durationSeconds(Duration duration) {

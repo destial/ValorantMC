@@ -31,7 +31,7 @@ public class Leer extends Ability implements Flash {
     public void use() {
         l = player.getEyeLocation().clone();
         as = Effects.getFlashArmorStand(l, agent);
-        Effects.sendArmorStand(as, player.getMatch());
+        Effects.sendArmorStand(as, player.getMatch(), agent);
         leerTravelTask = Scheduler.repeat(() -> {
             Vector vel = l.getDirection().multiply(1 / 20);
             l.add(vel);
@@ -71,7 +71,7 @@ public class Leer extends Ability implements Flash {
         for (VPlayer p : list) {
             if (p.getTeam() == player.getTeam()) return;
             if (Flash.isSeen(p.getPlayer(), as, (int) getFlashRange())) {
-                Effects.flash(p.getPlayer(), agent, getFlashDuration());
+                Effects.flash(p, agent, getFlashDuration());
                 p.setFlashed(true);
                 Scheduler.delay(() -> p.setFlashed(false), (long) (getFlashDuration() * 20L));
             }

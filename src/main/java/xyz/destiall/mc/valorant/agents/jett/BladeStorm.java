@@ -1,16 +1,13 @@
 package xyz.destiall.mc.valorant.agents.jett;
 
-import com.google.common.base.Predicates;
 import net.minecraft.server.level.EntityPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityLiving;
-import net.minecraft.world.entity.EnumItemSlot;
 import net.minecraft.world.entity.decoration.EntityArmorStand;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.craftbukkit.v1_17_R1.inventory.CraftItemStack;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -34,7 +31,6 @@ import xyz.destiall.mc.valorant.utils.Versioning;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class BladeStorm extends Ultimate implements Listener {
     private final HashMap<Pair<EntityArmorStand, Vector>, ScheduledTask> using = new HashMap<>();
@@ -60,23 +56,25 @@ public class BladeStorm extends Ultimate implements Listener {
     }
 
     private void spawnBlades() {
-        for (double i = -Math.PI; i <= Math.PI; i += Math.PI / 4) {
+        for (double i = 0; i <= Math.PI; i += Math.PI / 4) {
             double x = Math.cos(i);
             double z = Math.sin(i);
             final EntityArmorStand as = Effects.getBladeStormArmorStand(player.getLocation());
-            Effects.sendArmorStand(as, player.getMatch());
-            as.setSlot(EnumItemSlot.a,  CraftItemStack.asNMSCopy(item.clone()));
+            Effects.sendArmorStand(as, player.getMatch(), item);
             Pair<EntityArmorStand, Vector> asIpair = new Pair<>(as, new Vector(x, 0, z));
             using.put(asIpair, Scheduler.repeat(() -> {
                 Location ll = player.getLocation().add(0, player.getPlayer().getEyeHeight() * 0.5, 0);
                 Vector dr = ll.getDirection();
                 dr = dr.setY(0).normalize();
-                ll.add(dr.clone().multiply(0.3));
+                ll.subtract(dr.clone().multiply(0.3));
                 Vector right = dr.crossProduct(new Vector(0, 1, 0)).normalize();
                 ll.subtract(right.multiply(0.2));
                 Vector asVect = asIpair.getValue();
                 if (using.size() != 0) {
-                    Effects.teleportArmorStand(ll.add(asVect), as, player.getMatch());
+                    double yaw = Math.toRadians(-ll.getYaw());
+                    double xRotate = Math.cos(yaw) * asVect.getX() + Math.sin(yaw) * asVect.getZ();
+                    double zRotate = -Math.sin(yaw) * asVect.getX() + Math.cos(yaw) * asVect.getZ();
+                    Effects.teleportArmorStand(ll.add(xRotate, 0, zRotate), as, player.getMatch());
                 } else {
                     Effects.removeArmorStand(as, player.getMatch());
                 }
@@ -85,13 +83,11 @@ public class BladeStorm extends Ultimate implements Listener {
     }
 
     private void despawnBlades() {
-        Scheduler.run(() -> {
-            for (Map.Entry<Pair<EntityArmorStand, Vector>, ScheduledTask> entry : using.entrySet()) {
-                entry.getValue().cancel();
-                Effects.removeArmorStand(entry.getKey().getKey(), player.getMatch());
-            }
-            using.clear();
-        });
+        for (Map.Entry<Pair<EntityArmorStand, Vector>, ScheduledTask> entry : using.entrySet()) {
+            entry.getValue().cancel();
+            Effects.removeArmorStand(entry.getKey().getKey(), player.getMatch());
+        }
+        using.clear();
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -106,24 +102,23 @@ public class BladeStorm extends Ultimate implements Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void onClick(PlayerInteractEvent ev) {
         if (!ev.getPlayer().getUniqueId().equals(player.getUUID()) || using.size() == 0 || uses >= maxUses) return;
         if (ev.getAction() == Action.LEFT_CLICK_AIR) {
             ev.setUseItemInHand(Event.Result.DENY);
             //ev.getPlayer().getInventory().setItemInHand(null);
-            final Location origin = player.getEyeLocation().clone();
+            final Location origin = player.getEyeLocation();
             uses++;
             if (uses >= maxUses) {
                 player.setUseUlt(false);
                 remove();
             }
             Scheduler.run(() -> {
-                final Location loc = player.getLocation();
-                final Vector dir = player.getLocation().getDirection().multiply(2);
-                final EntityArmorStand as = Effects.getBladeStormArmorStand(origin);
-                Effects.sendArmorStand(as, player.getMatch());
-                as.setSlot(EnumItemSlot.a,  CraftItemStack.asNMSCopy(item.clone()));
+                final Location loc = player.getEyeLocation();
+                final Vector dir = loc.getDirection().multiply(2);
+                final EntityArmorStand as = Effects.getBladeStormArmorStand(loc);
+                Effects.sendArmorStand(as, player.getMatch(), item);
                 knives.put(as, Scheduler.repeat(() -> {
                     loc.add(dir);
                     if (!loc.getBlock().isPassable()) {
@@ -132,15 +127,16 @@ public class BladeStorm extends Ultimate implements Listener {
                         return;
                     }
                     Effects.teleportArmorStand(loc, as, player.getMatch());
-                    List<Entity> hit = Versioning.getWorld(loc.getWorld()).getEntities(as, as.getBoundingBox().grow(0.5, 0.5, 0.5), Predicates.alwaysTrue()).stream().filter(e -> e instanceof EntityLiving && e != as && !e.getUniqueID().equals(player.getUUID())).filter(e -> {
+                    List<Entity> hit = Versioning.getWorld(loc.getWorld()).getEntities(as, as.getBoundingBox(), entity -> true).stream().filter(e -> e instanceof EntityLiving && e != as && !e.getUniqueID().equals(player.getUUID())).filter(e -> {
                         EntityLiving le = (EntityLiving) e;
                         if (le instanceof EntityPlayer) {
                             VPlayer p = player.getMatch().getPlayer(le.getUniqueID());
                             if (p == null) return false;
                             return !p.getTeam().getSide().equals(player.getTeam().getSide());
+                        } else {
+                            return true;
                         }
-                        return false;
-                    }).collect(Collectors.toList());
+                    }).toList();
                     for (Entity e : hit) {
                         EntityLiving live = (EntityLiving) e;
                         ((LivingEntity) live.getBukkitEntity()).damage(5);
@@ -161,15 +157,13 @@ public class BladeStorm extends Ultimate implements Listener {
 
     @Override
     public void remove() {
-        HandlerList.unregisterAll(this);
         despawnBlades();
-        Scheduler.delay(() -> {
-            for (Map.Entry<EntityArmorStand, ScheduledTask> entry : knives.entrySet()) {
-                Effects.removeArmorStand(entry.getKey(), player.getMatch());
-                entry.getValue().cancel();
-            }
-            knives.clear();
-        }, 20L);
+        HandlerList.unregisterAll(this);
+        for (Map.Entry<EntityArmorStand, ScheduledTask> entry : knives.entrySet()) {
+            Effects.removeArmorStand(entry.getKey(), player.getMatch());
+            entry.getValue().cancel();
+        }
+        knives.clear();
     }
 
     @Override

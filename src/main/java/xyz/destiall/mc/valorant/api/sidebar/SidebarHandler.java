@@ -25,22 +25,25 @@ public class SidebarHandler implements Module, Listener {
             }
         } catch (Exception e) {
             for (Team team : match.getTeams()) {
-                sidebars.add(new FastBoardSidebar(team));
+                sidebars.add(new BukkitSidebar(team));
             }
         }
-        render();
+        Collection<VPlayer> list = match.getPlayers().values();
+        for (VPlayer player : list) {
+            render(player);
+        }
     }
 
     public void rejoin(VPlayer player) {
         for (Sidebar bar : sidebars) {
             bar.rejoin(player);
         }
-        render();
+        render(player);
     }
 
-    public void render() {
+    public void render(VPlayer player) {
         for (Sidebar bar : sidebars) {
-            bar.render();
+            bar.render(player);
         }
     }
 
@@ -55,11 +58,17 @@ public class SidebarHandler implements Module, Listener {
 
     @EventHandler
     public void onDeath(DeathEvent e) {
-        render();
+        for (VPlayer player : e.getVictim().getTeam().getMembers()) {
+            render(player);
+        }
     }
 
     @EventHandler
     public void onRound(RoundFinishEvent e) {
-        render();
+        for (Team team : e.getMatch().getTeams()) {
+            for (VPlayer player : team.getMembers()) {
+                render(player);
+            }
+        }
     }
 }

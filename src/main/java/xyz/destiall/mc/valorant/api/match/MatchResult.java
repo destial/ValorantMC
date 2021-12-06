@@ -54,6 +54,6 @@ public class MatchResult implements JSON {
             array.put(round.toJSON());
         }
         object.put("rounds", array);
-        return null;
+        return object.toString();
     }
 }

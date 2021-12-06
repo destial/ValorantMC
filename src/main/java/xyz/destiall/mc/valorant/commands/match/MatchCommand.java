@@ -24,12 +24,12 @@ public class MatchCommand extends SubCommand {
     @Override
     public void runPlayer(Player player, String[] args) {
         if (args.length == 0) {
-            ValorantCommand.sendError(player);
+            ValorantCommand.sendCommands(this, player);
             return;
         }
         SubCommand cmd = subCommands.stream().filter(c -> c.getName().equalsIgnoreCase(args[0])).findFirst().orElse(null);
         if (cmd == null) {
-            ValorantCommand.sendError(player);
+            ValorantCommand.sendCommands(this, player);
             return;
         }
         cmd.runPlayer(player, Arrays.copyOfRange(args, 1, args.length));

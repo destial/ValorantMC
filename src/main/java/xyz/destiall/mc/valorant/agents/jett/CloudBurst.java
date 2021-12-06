@@ -18,8 +18,8 @@ import xyz.destiall.mc.valorant.utils.Scheduler;
 import java.time.Duration;
 
 public class CloudBurst extends Ability implements Smoke {
-    private final Vector gravity = new Vector(0, -1F, 0);
-    private final AtomicDouble time = new AtomicDouble(0D);
+    private final Vector gravity = new Vector(0, -1f, 0);
+    private final AtomicDouble time = new AtomicDouble(0d);
     private ScheduledTask smokeTravelTask;
     private ScheduledTask smokeTask;
     private Location l;
@@ -30,6 +30,7 @@ public class CloudBurst extends Ability implements Smoke {
         agent = Agent.JETT;
         smokeTravelTask = null;
         trigger = Trigger.RIGHT;
+        cancel = true;
         item = new ItemStack(Material.SNOWBALL);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.AQUA + getName());
@@ -39,15 +40,17 @@ public class CloudBurst extends Ability implements Smoke {
     @Override
     public void use() {
         l = player.getEyeLocation().clone();
-        Vector direction = player.getDirection();
         smokeTravelTask = Scheduler.repeat(() -> {
-            l.add(direction).add(gravity.multiply(time.get()));
-            time.addAndGet(0.1D);
+            Vector direction = player.getDirection();
+            l.add(direction.multiply(2)).add(gravity.multiply(time.get()));
+            time.addAndGet(0.15);
             Effects.smokeTravel(l, agent);
             if (!l.getBlock().isPassable()) {
                 this.appear(l);
             }
         }, 1L);
+        ItemStack snowball = player.getPlayer().getInventory().getItemInMainHand();
+        snowball.setAmount(snowball.getAmount() - 1);
     }
 
     @Override

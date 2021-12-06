@@ -10,6 +10,7 @@ public abstract class Ability implements ShopItem {
     protected Trigger trigger;
     protected VPlayer player;
     protected ItemStack item;
+    protected boolean cancel;
     public Ability(VPlayer player) {
         this.player = player;
     }
@@ -24,6 +25,9 @@ public abstract class Ability implements ShopItem {
     public Agent getBelongingAgent() { return agent; }
     public Trigger getTrigger() {
         return trigger;
+    }
+    public boolean cancelEvent() {
+        return cancel;
     }
 
     public enum Trigger {

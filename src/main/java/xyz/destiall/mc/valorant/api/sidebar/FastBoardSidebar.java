@@ -26,9 +26,9 @@ public class FastBoardSidebar extends Sidebar {
     }
 
     @Override
-    public void render() {
+    public void render(VPlayer player) {
         int i = 1;
-        for (VPlayer player : team.getMembers()) {
+        for (VPlayer p : team.getMembers()) {
             final FastBoard board = boards.get(player.getUUID());
             if (board == null) continue;
             for (VPlayer p1 : team.getMembers()) {

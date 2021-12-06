@@ -1,5 +1,6 @@
 package xyz.destiall.mc.valorant.commands;
 
+import org.apache.logging.log4j.util.Strings;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -10,6 +11,7 @@ import xyz.destiall.mc.valorant.commands.map.MapCommand;
 import xyz.destiall.mc.valorant.commands.match.MatchCommand;
 import xyz.destiall.mc.valorant.commands.party.PartyCommand;
 
+import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -28,7 +30,7 @@ public class ValorantCommand implements CommandExecutor, TabExecutor {
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+    public boolean onCommand(@Nonnull CommandSender sender, @Nonnull Command command, @Nonnull String label, String[] args) {
         if (args.length == 0) {
             sendHelp(sender);
             return false;
@@ -44,8 +46,7 @@ public class ValorantCommand implements CommandExecutor, TabExecutor {
                 return false;
             }
         }
-        if (sender instanceof Player) {
-            Player player = (Player) sender;
+        if (sender instanceof Player player) {
             cmd.runPlayer(player, Arrays.copyOfRange(args, 1, args.length));
         } else {
             cmd.runConsole(sender, Arrays.copyOfRange(args, 1, args.length));
@@ -54,8 +55,8 @@ public class ValorantCommand implements CommandExecutor, TabExecutor {
     }
 
     @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (args == null || args.length == 0) return new LinkedList<>();
+    public List<String> onTabComplete(@Nonnull CommandSender sender, @Nonnull Command command, @Nonnull String alias, @Nonnull String[] args) {
+        if (args.length == 0) return new LinkedList<>();
         if (args.length == 1) {
             return commands.stream().filter(c -> c.getName().toLowerCase().contains(args[0]) && (c.getPermission() == null || sender.hasPermission(c.getPermission()))).map(SubCommand::getName).collect(Collectors.toList());
         }
@@ -79,10 +80,14 @@ public class ValorantCommand implements CommandExecutor, TabExecutor {
     }
 
     public static void sendError(CommandSender sender) {
-        sender.sendMessage("Error while using command!");
+        sender.sendMessage(ChatColor.RED + "Error while using command!");
     }
 
     public static void sendUnauthorized(CommandSender sender) {
         sender.sendMessage(ChatColor.RED + "You are unauthorized to use this command!");
+    }
+
+    public static void sendCommands(SubCommand command, CommandSender sender) {
+        sender.sendMessage(ChatColor.RED + "Possible commands: " + Strings.join(command.getSubCommands(), ','));
     }
 }

@@ -9,7 +9,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.UUID;
 
-public class TeamImpl implements Team {
+class TeamImpl implements Team {
     private final HashMap<UUID, VPlayer> members = new HashMap<>();
     private int score;
     private final Match match;

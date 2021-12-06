@@ -8,7 +8,7 @@ import xyz.destiall.mc.valorant.api.events.match.MatchTerminateEvent;
 import xyz.destiall.mc.valorant.api.items.Gun;
 import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.api.map.Map;
-import xyz.destiall.mc.valorant.api.player.DeadBody;
+import xyz.destiall.mc.valorant.api.deadbodies.DeadBody;
 import xyz.destiall.mc.valorant.api.player.Party;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
 
@@ -42,7 +42,6 @@ public interface Match extends Modular {
     void joinParty(Party party);
     MatchState getState();
     void setState(MatchState state);
-    void addBody(DeadBody body);
 
     default void sendMessage(String message) {
         Collection<VPlayer> list = getPlayers().values();

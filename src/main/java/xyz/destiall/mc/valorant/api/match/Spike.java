@@ -86,6 +86,8 @@ public class Spike implements Module, Listener {
         match.callEvent(new SpikeDefuseEvent(this));
         match.setCountdown(null);
         match.getDefender().addScore();
+        match.getRound().setWinningSide(Team.Side.DEFENDER);
+        match.getRound().setLosingSide(Team.Side.ATTACKER);
         match.endRound();
         beep.cancel();
         place.cancel();
@@ -94,6 +96,8 @@ public class Spike implements Module, Listener {
     public void detonate() {
         match.callEvent(new SpikeDetonateEvent(this));
         match.getAttacker().addScore();
+        match.getRound().setLosingSide(Team.Side.DEFENDER);
+        match.getRound().setWinningSide(Team.Side.ATTACKER);
         match.endRound();
         beep.cancel();
         place.cancel();

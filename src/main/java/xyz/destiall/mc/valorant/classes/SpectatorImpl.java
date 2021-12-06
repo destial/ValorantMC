@@ -4,7 +4,7 @@ import org.bukkit.entity.Player;
 import xyz.destiall.mc.valorant.api.match.Match;
 import xyz.destiall.mc.valorant.api.match.Spectator;
 
-public class SpectatorImpl implements Spectator {
+class SpectatorImpl implements Spectator {
     private final Player player;
     private final Match match;
 

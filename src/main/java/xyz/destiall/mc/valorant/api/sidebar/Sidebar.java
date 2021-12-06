@@ -12,5 +12,5 @@ public abstract class Sidebar {
     public abstract void rejoin(VPlayer player);
     public abstract void invalidate(VPlayer player);
     public abstract void destroy();
-    public abstract void render();
+    public abstract void render(VPlayer player);
 }

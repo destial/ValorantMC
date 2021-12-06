@@ -16,6 +16,7 @@ public class MatchTerminateEvent extends MatchEvent {
     public enum Reason {
         HACK("A hacker was detected in your match!"),
         FORCE("Forcefully terminated your match!"),
+        CANCEL("This match start was cancelled!"),
         COMPLETE("This match was completed!");
 
         private final String reason;

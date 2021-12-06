@@ -28,7 +28,7 @@ public class ChatListener implements Listener {
             recipients.addAll(vPlayer.getTeam().getMembers());
         }
         for (VPlayer p : recipients) {
-            ChatColor color = ChatColor.BLUE;
+            ChatColor color = ChatColor.AQUA;
             if (p.getTeam() != vPlayer.getTeam()) {
                 color = ChatColor.RED;
             }

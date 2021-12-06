@@ -39,6 +39,9 @@ public class InventoryListener implements Listener {
             return;
         }
         player.showHotbar(ability.getName());
+        if (ability.getTrigger() == Ability.Trigger.HOLD) {
+            ability.use();
+        }
     }
 
     @EventHandler
@@ -54,6 +57,7 @@ public class InventoryListener implements Listener {
             if (trigger == Ability.Trigger.RIGHT && (e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK)) use = true;
             else if (trigger == Ability.Trigger.LEFT && (e.getAction() == Action.LEFT_CLICK_AIR || e.getAction() == Action.LEFT_CLICK_BLOCK)) use = true;
             if (use) ability.use();
+            if (ability.cancelEvent()) e.setCancelled(true);
         }
     }
 

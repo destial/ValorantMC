@@ -17,11 +17,11 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
+import xyz.destiall.mc.valorant.api.deadbodies.DeadBodyHandler;
 import xyz.destiall.mc.valorant.api.events.player.DeathEvent;
 import xyz.destiall.mc.valorant.api.items.Gun;
 import xyz.destiall.mc.valorant.api.items.Knife;
 import xyz.destiall.mc.valorant.api.match.Countdown;
-import xyz.destiall.mc.valorant.api.player.DeadBody;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.api.session.CreationSession;
 import xyz.destiall.mc.valorant.api.sidebar.SidebarHandler;
@@ -69,7 +69,7 @@ public class MatchListener implements Listener {
         }
         victim.setDead(true);
         victim.getPlayer().setGameMode(GameMode.SPECTATOR);
-        if (!victim.getMatch().getModule(Countdown.class).getContext().equals(Countdown.Context.ROUND_ENDING)) victim.getMatch().addBody(new DeadBody(victim));
+        if (!victim.getMatch().getModule(Countdown.class).getContext().equals(Countdown.Context.ROUND_ENDING)) victim.getMatch().getModule(DeadBodyHandler.class).addBody(victim);
         DeathEvent deathEvent = new DeathEvent(victim, killer, gun, knife);
         for (ItemStack item : victim.getPlayer().getInventory()) {
             if (item == null || item.getType() == Material.AIR) continue;

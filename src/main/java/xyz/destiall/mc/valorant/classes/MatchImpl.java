@@ -5,6 +5,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import xyz.destiall.mc.valorant.api.deadbodies.DeadBodyHandler;
 import xyz.destiall.mc.valorant.api.events.match.MatchCompleteEvent;
 import xyz.destiall.mc.valorant.api.events.match.MatchStartEvent;
 import xyz.destiall.mc.valorant.api.events.match.MatchTerminateEvent;
@@ -22,7 +23,6 @@ import xyz.destiall.mc.valorant.api.match.Module;
 import xyz.destiall.mc.valorant.api.match.Round;
 import xyz.destiall.mc.valorant.api.match.Shop;
 import xyz.destiall.mc.valorant.api.match.Spike;
-import xyz.destiall.mc.valorant.api.player.DeadBody;
 import xyz.destiall.mc.valorant.api.player.Party;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.api.sidebar.BukkitSidebar;
@@ -45,7 +45,6 @@ public class MatchImpl implements Match {
     private final List<Round> rounds = new ArrayList<>();
     private final HashMap<VPlayer, ItemStack[]> inventories = new HashMap<>();
     private final HashMap<Item, Gun> droppedGuns = new HashMap<>();
-    private final HashMap<VPlayer, DeadBody> bodies = new HashMap<>();
     private final Map map;
     private final int id;
     private boolean buyPeriod;
@@ -123,15 +122,11 @@ public class MatchImpl implements Match {
         callEvent(new RoundFinishEvent(this));
         setCountdown(null);
         removeModule(spike);
+        removeModule(DeadBodyHandler.class);
         Collection<VPlayer> list = getPlayers().values();
         for (VPlayer p : list) {
             if (p.isDiffusing()) p.setDiffusing(false);
         }
-        Collection<DeadBody> bodies = this.bodies.values();
-        for (DeadBody body : bodies) {
-            body.despawn();
-        }
-        this.bodies.clear();
         if (!isComplete()) nextRound();
         else {
             Scheduler.delay(() -> {
@@ -141,7 +136,7 @@ public class MatchImpl implements Match {
     }
 
     private void startRound() {
-        if ((float) rounds.size() / 12f == 1f) switchSides();
+        if ((float) rounds.size() / 12f == 1f || rounds.size() > 24) switchSides();
         buyPeriod = true;
         final Countdown startingCountdown = new Countdown(Countdown.Context.ROUND_STARTING);
         setCountdown(startingCountdown);
@@ -162,6 +157,7 @@ public class MatchImpl implements Match {
         rounds.add(new RoundImpl(rounds.size() + 1));
         spike = new Spike(this);
         addModule(spike);
+        addModule(new DeadBodyHandler(this));
         Location spawn = map.getAttackerCenter();
         Location spikeDrop = spawn.add(spawn.getDirection().multiply(3));
         spike.setDrop(map.getWorld().dropItem(spikeDrop, spike.getItem()));
@@ -178,6 +174,8 @@ public class MatchImpl implements Match {
             startedCountdown.start();
             startedCountdown.onComplete(() -> {
                 getDefender().addScore();
+                getRound().setWinningSide(Team.Side.DEFENDER);
+                getRound().setLosingSide(Team.Side.ATTACKER);
                 endRound();
             });
         });
@@ -217,7 +215,7 @@ public class MatchImpl implements Match {
             nextRound();
             return true;
         }
-        end(MatchTerminateEvent.Reason.COMPLETE);
+        end(MatchTerminateEvent.Reason.CANCEL);
         return false;
     }
 
@@ -238,8 +236,8 @@ public class MatchImpl implements Match {
         Collection<VPlayer> list = getPlayers().values();
         for (VPlayer p : list) {
             p.getPlayer().getInventory().clear();
-            ItemStack[] stacks = inventories.get(p);
-            p.getPlayer().getInventory().addItem(stacks);
+            //ItemStack[] stacks = inventories.get(p);
+            //p.getPlayer().getInventory().addItem(stacks);
             p.getPlayer().teleport(loc);
             if (getWinningTeam() == p.getTeam()) {
                 p.getStats().addWin(p, result);
@@ -255,6 +253,7 @@ public class MatchImpl implements Match {
             team.getMembers().clear();
         }
         teams.clear();
+        MatchManager.getInstance().removeMatch(this);
         return result;
     }
 
@@ -316,12 +315,6 @@ public class MatchImpl implements Match {
     @Override
     public void setState(MatchState state) {
         this.state = state;
-    }
-
-    @Override
-    public void addBody(DeadBody body) {
-        bodies.put(body.getBelongingPlayer(), body);
-        body.spawn();
     }
 
     @Override

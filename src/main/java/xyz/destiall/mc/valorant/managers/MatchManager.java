@@ -36,9 +36,13 @@ public class MatchManager {
 
     public void disable() {
         for (Match match : MATCHES) {
-            match.end(MatchTerminateEvent.Reason.FORCE);
+            match.end(MatchTerminateEvent.Reason.CANCEL);
         }
         MATCHES.clear();
+    }
+
+    public void removeMatch(Match match) {
+        MATCHES.remove(match);
     }
 
     public Location getLobby() {

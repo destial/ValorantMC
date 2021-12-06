@@ -1,4 +1,4 @@
-package xyz.destiall.mc.valorant.api.player;
+package xyz.destiall.mc.valorant.api.deadbodies;
 
 import com.mojang.authlib.GameProfile;
 import net.minecraft.core.BlockPosition;
@@ -17,6 +17,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityPose;
 import net.minecraft.world.level.EnumGamemode;
 import org.bukkit.Location;
+import xyz.destiall.mc.valorant.api.player.VPlayer;
+import xyz.destiall.mc.valorant.utils.Scheduler;
 import xyz.destiall.mc.valorant.utils.Versioning;
 
 import java.lang.reflect.Field;
@@ -66,6 +68,7 @@ public class DeadBody {
     private void spawn(Location location) {
         System.out.println("Spawning dead body");
         PacketPlayOutEntity.PacketPlayOutRelEntityMove movePacket = new PacketPlayOutEntity.PacketPlayOutRelEntityMove(entityId, (short) (0), (short) (-61.8), (short) (0), false);
+        @SuppressWarnings("all")
         PacketPlayOutNamedEntitySpawn spawnPacket = new PacketPlayOutNamedEntitySpawn(Versioning.getPlayer(player.getPlayer()));
         try {
             Field a = spawnPacket.getClass().getDeclaredField("a");
@@ -102,10 +105,12 @@ public class DeadBody {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        PacketPlayOutPlayerInfo removeInfoPacket = new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.e);
         Collection<VPlayer> list = player.getMatch().getPlayers().values();
         for (VPlayer p : list) {
             PlayerConnection connection = Versioning.getConnection(p.getPlayer());
             connection.sendPacket(addInfoPacket);
+            Scheduler.delay(() -> connection.sendPacket(removeInfoPacket), 3L);
             connection.sendPacket(spawnPacket);
             connection.sendPacket(movePacket);
             makePlayerSleep(connection, new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ()));
@@ -121,7 +126,7 @@ public class DeadBody {
             b.setAccessible(true);
             @SuppressWarnings("unchecked")
             List<PacketPlayOutPlayerInfo.PlayerInfoData> data = (List<PacketPlayOutPlayerInfo.PlayerInfoData>) b.get(removeInfoPacket);
-            data.add(new PacketPlayOutPlayerInfo.PlayerInfoData(profile, -1, EnumGamemode.b, new ChatMessage("[DB]")));
+            data.add(new PacketPlayOutPlayerInfo.PlayerInfoData(profile, -1, EnumGamemode.b, new ChatMessage("")));
             Collection<VPlayer> list = player.getMatch().getPlayers().values();
             for (VPlayer p : list) {
                 PlayerConnection connection = Versioning.getConnection(p.getPlayer());
@@ -131,10 +136,6 @@ public class DeadBody {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    public VPlayer getBelongingPlayer() {
-        return player;
     }
 
     public void revive() {
