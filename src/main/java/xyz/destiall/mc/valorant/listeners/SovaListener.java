@@ -66,7 +66,7 @@ public class SovaListener implements Listener {
         arrow.setMetadata("valorant_sova_rebounds", new FixedMetadataValue(Valorant.getInstance().getPlugin(), amt));
         arrow.setMetadata("valorant_sova_type", new FixedMetadataValue(Valorant.getInstance().getPlugin(), type));
         ScheduledTask task = Scheduler.repeat(() -> {
-            VPlayer VPlayer = MatchManager.getInstance().getParticipant(player);
+            VPlayer VPlayer = MatchManager.getInstance().getPlayer(player);
             Effects.dartTravel(arrow.getLocation(), VPlayer);
             if (arrow.isDead()) {
                 arrows.get(arrow).cancel();
@@ -181,7 +181,7 @@ public class SovaListener implements Listener {
             arrow1.setMetadata("valorant_sova_rebounds", new FixedMetadataValue(Valorant.getInstance().getPlugin(), rebounds));
             arrow1.setMetadata("valorant_sova_type", new FixedMetadataValue(Valorant.getInstance().getPlugin(), type));
             ScheduledTask task = Scheduler.repeat(() -> {
-                VPlayer VPlayer = MatchManager.getInstance().getParticipant(player);
+                VPlayer VPlayer = MatchManager.getInstance().getPlayer(player);
                 Effects.dartTravel(arrow.getLocation(), VPlayer);
                 if (arrow1.isDead()) {
                     arrows.get(arrow1).cancel();

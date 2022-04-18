@@ -16,7 +16,6 @@ import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
-import org.bukkit.craftbukkit.v1_17_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -27,7 +26,6 @@ import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.api.match.Match;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -296,7 +294,7 @@ public class Effects {
         EntityArmorStand as = createArmorStand(location);
         as.setArms(true);
         as.setSmall(true);
-        as.setSlot(EnumItemSlot.a, CraftItemStack.asNMSCopy(new ItemStack(Material.DIAMOND_SWORD)));
+        as.setSlot(EnumItemSlot.a, Versioning.getItemStack(new ItemStack(Material.DIAMOND_SWORD)));
         return as;
     }
 
@@ -317,7 +315,7 @@ public class Effects {
 
     public static void sendArmorStand(EntityArmorStand e, Match match, Agent agent) {
         PacketPlayOutSpawnEntityLiving packet = new PacketPlayOutSpawnEntityLiving(e);
-        PacketPlayOutEntityEquipment equip = new PacketPlayOutEntityEquipment(e.getId(), List.of(Pair.of(EnumItemSlot.f, CraftItemStack.asNMSCopy(new ItemStack(agent.WOOL)))));
+        PacketPlayOutEntityEquipment equip = new PacketPlayOutEntityEquipment(e.getId(), List.of(Pair.of(EnumItemSlot.f, Versioning.getItemStack(new ItemStack(agent.WOOL)))));
         PacketPlayOutEntityMetadata metadata = new PacketPlayOutEntityMetadata(e.getId(), e.getDataWatcher(), true);
         Collection<VPlayer> list = match.getPlayers().values();
         for (VPlayer player : list) {
@@ -334,7 +332,7 @@ public class Effects {
 
     public static void sendArmorStand(EntityArmorStand e, Match match, EnumItemSlot slot, ItemStack item) {
         PacketPlayOutSpawnEntityLiving packet = new PacketPlayOutSpawnEntityLiving(e);
-        PacketPlayOutEntityEquipment equip = new PacketPlayOutEntityEquipment(e.getId(), List.of(Pair.of(slot, CraftItemStack.asNMSCopy(item))));
+        PacketPlayOutEntityEquipment equip = new PacketPlayOutEntityEquipment(e.getId(), List.of(Pair.of(slot, Versioning.getItemStack(item))));
         PacketPlayOutEntityMetadata metadata = new PacketPlayOutEntityMetadata(e.getId(), e.getDataWatcher(), true);
         Collection<VPlayer> list = match.getPlayers().values();
         for (VPlayer player : list) {
@@ -348,7 +346,7 @@ public class Effects {
     public static void sendArmorStand(EntityArmorStand e, VPlayer player) {
         PacketPlayOutSpawnEntityLiving packet = new PacketPlayOutSpawnEntityLiving(e);
         PacketPlayOutEntityMetadata metadata = new PacketPlayOutEntityMetadata(e.getId(), e.getDataWatcher(), true);
-        PacketPlayOutEntityEquipment equip = new PacketPlayOutEntityEquipment(e.getId(), List.of(Pair.of(EnumItemSlot.f, CraftItemStack.asNMSCopy(new ItemStack(player.getAgent().WOOL)))));
+        PacketPlayOutEntityEquipment equip = new PacketPlayOutEntityEquipment(e.getId(), List.of(Pair.of(EnumItemSlot.f, Versioning.getItemStack(new ItemStack(player.getAgent().WOOL)))));
         PlayerConnection connection = Versioning.getConnection(player.getPlayer());
         connection.sendPacket(packet);
         connection.sendPacket(metadata);

@@ -10,6 +10,7 @@ import net.minecraft.server.level.WorldServer;
 import net.minecraft.server.network.PlayerConnection;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.EntityHuman;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.World;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -27,18 +28,22 @@ public class Versioning {
     private static Method getProfile;
     private static Method getWorldHandle;
     private static Method getPlayerHandle;
+    private static Method getNmsCopy;
 
     static {
         try {
             String version = Bukkit.getServer().getClass().toString().split("\\.")[3];
             craftPlayerClass = Class.forName("org.bukkit.craftbukkit." + version + ".entity.CraftPlayer");
             craftWorldClass = Class.forName("org.bukkit.craftbukkit." + version + ".CraftWorld");
+            Class<?> craftItemStackClass = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftItemStack");
+
             getProfile = craftPlayerClass.getDeclaredMethod("getProfile");
             getProfile.setAccessible(true);
             getWorldHandle = craftWorldClass.getDeclaredMethod("getHandle");
             getWorldHandle.setAccessible(true);
             getPlayerHandle = craftPlayerClass.getDeclaredMethod("getHandle");
             getPlayerHandle.setAccessible(true);
+            getNmsCopy = craftItemStackClass.getDeclaredMethod("asNMSCopy");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -145,5 +150,14 @@ public class Versioning {
             // e.printStackTrace();
         }
         return new PacketPlayOutEntityDestroy(entityId);
+    }
+
+    public static ItemStack getItemStack(org.bukkit.inventory.ItemStack bukkit) {
+        try {
+            return (ItemStack) getNmsCopy.invoke(null, bukkit);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

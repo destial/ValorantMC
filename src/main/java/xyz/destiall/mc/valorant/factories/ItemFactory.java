@@ -52,7 +52,7 @@ public class ItemFactory {
             meta.setDisplayName(ChatColor.YELLOW + gname + ChatColor.WHITE + "«" + ammo + "»");
             stack.setItemMeta(meta);
             gun = new Gun(gunName, stack, damage, ammo, fireSpeed, reloadSpeed, price);
-            if (gunName.equals(Gun.Name.CLASSIC)) {
+            if (gunName == Gun.Name.CLASSIC) {
                 CLASSIC = gun;
             }
             // TODO: Stop using crackshot as dependency

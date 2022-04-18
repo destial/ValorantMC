@@ -120,6 +120,12 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>com.sk89q.worldguard</groupId>
+            <artifactId>worldguard-bukkit</artifactId>
+            <version>7.0.5-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>com.shampaggon.crackshot</groupId>
             <artifactId>crackshot</artifactId>
             <version>0.98.11</version>

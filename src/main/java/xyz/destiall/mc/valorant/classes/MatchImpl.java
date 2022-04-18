@@ -157,7 +157,7 @@ public class MatchImpl implements Match {
         rounds.add(new RoundImpl(rounds.size() + 1));
         spike = new Spike(this);
         addModule(spike);
-        addModule(new DeadBodyHandler(this));
+        addModule(new DeadBodyHandler());
         Location spawn = map.getAttackerCenter();
         Location spikeDrop = spawn.add(spawn.getDirection().multiply(3));
         spike.setDrop(map.getWorld().dropItem(spikeDrop, spike.getItem()));

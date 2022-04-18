@@ -25,6 +25,7 @@ public class Updraft extends Ability {
         meta.setDisplayName(ChatColor.AQUA + getName());
         item.setItemMeta(meta);
     }
+
     @Override
     public void use() {
         Vector velocity = player.getPlayer().getVelocity();

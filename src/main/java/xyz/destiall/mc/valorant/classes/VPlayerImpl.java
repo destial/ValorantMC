@@ -3,8 +3,10 @@ package xyz.destiall.mc.valorant.classes;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import xyz.destiall.mc.valorant.agents.cypher.CyberCage;
 import xyz.destiall.mc.valorant.agents.jett.BladeStorm;
 import xyz.destiall.mc.valorant.agents.jett.CloudBurst;
 import xyz.destiall.mc.valorant.agents.jett.Updraft;
@@ -16,6 +18,7 @@ import xyz.destiall.mc.valorant.api.abilities.Ultimate;
 import xyz.destiall.mc.valorant.api.items.Gun;
 import xyz.destiall.mc.valorant.api.items.Knife;
 import xyz.destiall.mc.valorant.api.items.Team;
+import xyz.destiall.mc.valorant.api.match.Countdown;
 import xyz.destiall.mc.valorant.api.match.Economy;
 import xyz.destiall.mc.valorant.api.match.Spike;
 import xyz.destiall.mc.valorant.api.player.Party;
@@ -24,6 +27,8 @@ import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.database.Datastore;
 import xyz.destiall.mc.valorant.database.Stats;
 import xyz.destiall.mc.valorant.factories.ItemFactory;
+import xyz.destiall.mc.valorant.listeners.MatchListener;
+import xyz.destiall.mc.valorant.managers.MatchManager;
 import xyz.destiall.mc.valorant.utils.ScheduledTask;
 import xyz.destiall.mc.valorant.utils.Scheduler;
 
@@ -274,25 +279,15 @@ class VPlayerImpl implements VPlayer {
         }
         this.agent = agent;
         switch (agent) {
-            case JETT: {
+            case JETT -> {
                 abilities.put(5, new Updraft(this));
                 abilities.put(6, new CloudBurst(this));
                 abilities.put(7, new BladeStorm(this));
-                break;
             }
-            case REYNA: {
-                abilities.put(5, new Leer(this));
-                break;
-            }
-            case PHOENIX: {
-                abilities.put(5, new Blaze(this));
-                break;
-            }
-            case CYPHER: {
-                //abilities.put(new CyberCage(this), 0);
-                break;
-            }
-            default: break;
+            case REYNA -> abilities.put(5, new Leer(this));
+            case PHOENIX -> abilities.put(5, new Blaze(this));
+            case CYPHER -> abilities.put(5, new CyberCage(this));
+            default -> {}
         }
     }
 
@@ -342,6 +337,31 @@ class VPlayerImpl implements VPlayer {
             getTeam().getMembers().stream().filter(t -> t != this).findFirst().ifPresent(spectateTarget -> player.setSpectatorTarget(spectateTarget.getPlayer()));
         }
         toTeam();
+    }
+
+    @Override
+    public void leave() {
+        getPlayer().closeInventory();
+        for (ItemStack item : getPlayer().getInventory()) {
+            if (item == null || item.getType() == Material.AIR) continue;
+            if (isHoldingSpike() && item.isSimilar(getMatch().getSpike().getItem())) {
+                Item drop = getPlayer().getWorld().dropItem(getLocation(), item);
+                MatchListener.spikeDropped(this, drop);
+                continue;
+            }
+            if ((getPrimaryGun() != null && item.isSimilar(getPrimaryGun().getItem())) || (getSecondaryGun() != null && item.isSimilar(getSecondaryGun().getItem()))) {
+                getPlayer().getWorld().dropItem(getLocation(), item);
+            }
+        }
+        getPlayer().getInventory().clear();
+        getTeam().removeMember(getUUID());
+        Countdown countdown = getMatch().getModule(Countdown.class);
+        if (countdown != null) {
+            countdown.getBossBar().removePlayer(getPlayer());
+        }
+        getPlayer().setHealth(20d);
+        setDead(false);
+        getPlayer().teleport(MatchManager.getInstance().getLobby());
     }
 
     @Override

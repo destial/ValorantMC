@@ -18,7 +18,7 @@ public class InventoryListener implements Listener {
 
     @EventHandler
     public void onHotbarChange(PlayerItemHeldEvent e) {
-        VPlayer player = MatchManager.getInstance().getParticipant(e.getPlayer());
+        VPlayer player = MatchManager.getInstance().getPlayer(e.getPlayer());
         if (player == null) return;
         Ability ability = player.getAbilities().get(e.getNewSlot());
         if (ability == null) {
@@ -39,7 +39,7 @@ public class InventoryListener implements Listener {
             return;
         }
         player.showHotbar(ability.getName());
-        if (ability.getTrigger() == Ability.Trigger.HOLD) {
+        if (!ability.isUsing() && ability.getTrigger() == Ability.Trigger.HOLD) {
             ability.use();
         }
     }
@@ -48,7 +48,7 @@ public class InventoryListener implements Listener {
     public void onInteract(PlayerInteractEvent e) {
         if (!e.hasItem()) return;
         if (e.getAction() != Action.PHYSICAL) {
-            VPlayer player = MatchManager.getInstance().getParticipant(e.getPlayer());
+            VPlayer player = MatchManager.getInstance().getPlayer(e.getPlayer());
             if (player == null) return;
             Ability ability = player.getAbilities().get(e.getPlayer().getInventory().getHeldItemSlot());
             if (ability == null) return;
@@ -64,14 +64,14 @@ public class InventoryListener implements Listener {
     @EventHandler
     public void onSwapHand(PlayerSwapHandItemsEvent e) {
         MatchManager matchManager = MatchManager.getInstance();
-        VPlayer player = matchManager.getParticipant(e.getPlayer());
+        VPlayer player = matchManager.getPlayer(e.getPlayer());
         if (player == null) return;
         e.setCancelled(true);
     }
 
     @EventHandler
     public void onOpenInventory(InventoryOpenEvent e) {
-        VPlayer player = MatchManager.getInstance().getParticipant((Player) e.getPlayer());
+        VPlayer player = MatchManager.getInstance().getPlayer((Player) e.getPlayer());
         if (player == null) return;
         if (player.getMatch().isWaitingForPlayers()) return;
         e.setCancelled(true);
@@ -82,7 +82,7 @@ public class InventoryListener implements Listener {
         if (e.getClickedInventory() == null) return;
         if (!(e.getClickedInventory().getHolder() == e.getWhoClicked())) return;
         Player p = (Player) e.getClickedInventory().getHolder();
-        VPlayer player = MatchManager.getInstance().getParticipant(p);
+        VPlayer player = MatchManager.getInstance().getPlayer(p);
         if (player == null) return;
         e.setCancelled(true);
     }

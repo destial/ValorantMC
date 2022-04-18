@@ -81,7 +81,7 @@ public class CyberCage extends Ability implements Smoke, Listener {
         if (e.getTo() == null) return;
         if (e.getTo().toVector().isInSphere(finalLoc.toVector(), getSmokeRange())) {
             if (team != null) {
-                VPlayer p = MatchManager.getInstance().getParticipant(e.getPlayer());
+                VPlayer p = MatchManager.getInstance().getPlayer(e.getPlayer());
                 if (p == null) return;
                 if (p.getTeam() == team) return;
                 p.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 2, 1));

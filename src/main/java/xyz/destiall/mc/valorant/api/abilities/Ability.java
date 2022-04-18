@@ -11,6 +11,7 @@ public abstract class Ability implements ShopItem {
     protected VPlayer player;
     protected ItemStack item;
     protected boolean cancel;
+    protected boolean using;
     public Ability(VPlayer player) {
         this.player = player;
     }
@@ -28,6 +29,10 @@ public abstract class Ability implements ShopItem {
     }
     public boolean cancelEvent() {
         return cancel;
+    }
+
+    public boolean isUsing() {
+        return using;
     }
 
     public enum Trigger {

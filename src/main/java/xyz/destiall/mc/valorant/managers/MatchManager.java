@@ -11,7 +11,7 @@ import xyz.destiall.mc.valorant.api.match.MatchResult;
 import xyz.destiall.mc.valorant.api.match.Shop;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.database.Datastore;
-import xyz.destiall.mc.valorant.factories.MatchFactory;
+import xyz.destiall.mc.valorant.factories.MapMatchFactory;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -56,7 +56,7 @@ public class MatchManager {
     public Match createNewMatch() {
         Map map = MapManager.getInstance().getRandomMap();
         if (map == null) return null;
-        Match match = MatchFactory.createMatch(map);
+        Match match = MapMatchFactory.createMatch(map);
         MATCHES.add(match);
         return match;
     }
@@ -67,14 +67,14 @@ public class MatchManager {
         return createNewMatch();
     }
 
-    public VPlayer getParticipant(Player player) {
+    public VPlayer getPlayer(Player player) {
         Match match = MATCHES.stream().filter(m -> m.isInMatch(player)).findFirst().orElse(null);
         if (match == null) return null;
         return match.getPlayer(player.getUniqueId());
     }
 
     public Match getMatch(Player player) {
-        VPlayer VPlayer = getParticipant(player);
+        VPlayer VPlayer = getPlayer(player);
         if (VPlayer == null) return null;
         return VPlayer.getMatch();
     }

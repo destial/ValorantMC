@@ -66,7 +66,6 @@ public class DeadBody {
     }
 
     private void spawn(Location location) {
-        System.out.println("Spawning dead body");
         PacketPlayOutEntity.PacketPlayOutRelEntityMove movePacket = new PacketPlayOutEntity.PacketPlayOutRelEntityMove(entityId, (short) (0), (short) (-61.8), (short) (0), false);
         @SuppressWarnings("all")
         PacketPlayOutNamedEntitySpawn spawnPacket = new PacketPlayOutNamedEntitySpawn(Versioning.getPlayer(player.getPlayer()));
@@ -118,7 +117,6 @@ public class DeadBody {
     }
 
     public void despawn() {
-        System.out.println("Despawning dead body");
         PacketPlayOutPlayerInfo removeInfoPacket = new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.e);
         PacketPlayOutEntityDestroy destroyPacket = Versioning.newDestroyPacket(entityId);
         try {

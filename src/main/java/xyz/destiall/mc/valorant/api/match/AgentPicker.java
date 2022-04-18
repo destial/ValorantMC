@@ -10,10 +10,10 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import xyz.destiall.mc.valorant.Valorant;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
 import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
+import xyz.destiall.mc.valorant.utils.Scheduler;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -36,6 +36,7 @@ public class AgentPicker implements Listener, Module {
         setup();
     }
 
+    @SuppressWarnings("all")
     public void setup() {
         int i = 0;
         for (Agent agent : Agent.values()) {
@@ -76,6 +77,12 @@ public class AgentPicker implements Listener, Module {
         startMeta.setDisplayName(ChatColor.RED + "Start");
         start.setItemMeta(startMeta);
         inventory.setItem(32, start);
+
+        ItemStack dodge = new ItemStack(Material.OAK_DOOR);
+        ItemMeta dodgeMeta = dodge.getItemMeta();
+        dodgeMeta.setDisplayName(ChatColor.RED + "Dodge");
+        dodge.setItemMeta(dodgeMeta);
+        inventory.setItem(30, dodge);
     }
 
     public void show(VPlayer player) {
@@ -92,13 +99,12 @@ public class AgentPicker implements Listener, Module {
     public void onQuitInventory(InventoryCloseEvent e) {
         if (!match.getState().equals(Match.MatchState.PLAYING)) {
             if (viewers.contains(e.getPlayer().getUniqueId())) {
-                Bukkit.getScheduler().runTaskLater(Valorant.getInstance().getPlugin(), () -> {
-                    e.getPlayer().openInventory(inventory);
-                }, 1L);
+                Scheduler.delay(() -> e.getPlayer().openInventory(inventory), 1L);
             }
         }
     }
 
+    @SuppressWarnings("all")
     @EventHandler
     public void onClickInventory(InventoryClickEvent e) {
         UUID uuid = e.getWhoClicked().getUniqueId();
@@ -123,7 +129,20 @@ public class AgentPicker implements Listener, Module {
                         player.chooseAgent(player.getAgent());
                     }
                     match.start(true);
-                    return;
+                } else if (item.getType().equals(Material.OAK_DOOR)) {
+                    if (choices.get(p.getUUID()) != null && p.getAgent() != null) {
+                        Agent prevAgent = p.getAgent();
+                        Integer slot = choices.get(uuid);
+                        ItemStack prevItem = inventory.getItem(slot);
+                        prevItem.setType(prevAgent.WOOL);
+                        ItemMeta meta = prevItem.getItemMeta();
+                        meta.setDisplayName(ChatColor.RESET + prevAgent.name());
+                        prevItem.setItemMeta(meta);
+                    }
+                    viewers.remove(p.getUUID());
+                    choices.remove(p.getUUID());
+                    lockedIn.remove(p.getUUID());
+                    p.leave();
                 }
                 return;
             }

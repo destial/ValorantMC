@@ -1,6 +1,7 @@
 package xyz.destiall.mc.valorant.factories;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.Configuration;
@@ -22,7 +23,7 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-public class MatchFactory {
+public class MapMatchFactory {
     private static int MATCHES = 0;
     public static Match createMatch(Map map) {
         return new MatchImpl(map, ++MATCHES);
@@ -69,7 +70,9 @@ public class MatchFactory {
         String fileName = session.getMapName() + ".yml";
         fileName = fileName.replace(" ", "-");
         File file = new File(MapManager.getInstance().getMapFolder(), fileName);
-        if (file.exists()) return createMap(YamlConfiguration.loadConfiguration(file));
+        if (file.exists()) {
+            session.getPlayer().sendMessage(ChatColor.RED + "Overwriting previous configuration of this map!");
+        }
         try {
             config.set("name", session.getMapName());
             config.set("world", session.getWorld().getName());

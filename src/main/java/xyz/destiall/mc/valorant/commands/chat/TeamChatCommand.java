@@ -14,7 +14,7 @@ public class TeamChatCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) return false;
         Player player = (Player) sender;
-        VPlayer vPlayer = MatchManager.getInstance().getParticipant(player);
+        VPlayer vPlayer = MatchManager.getInstance().getPlayer(player);
         if (vPlayer == null) return false;
         vPlayer.setChatSettings(Settings.Chat.TEAM);
         vPlayer.sendMessage(ChatColor.BLUE + "Set chat messages to team");

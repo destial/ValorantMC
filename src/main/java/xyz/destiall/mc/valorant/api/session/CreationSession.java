@@ -5,7 +5,7 @@ import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
 import xyz.destiall.mc.valorant.api.map.Site;
-import xyz.destiall.mc.valorant.factories.MatchFactory;
+import xyz.destiall.mc.valorant.factories.MapMatchFactory;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -85,7 +85,7 @@ public class CreationSession {
     }
 
     public boolean finish() {
-        if (MatchFactory.createMap(this) != null) {
+        if (MapMatchFactory.createMap(this) != null) {
             ACTIVE_SESSIONS.remove(this);
             return true;
         }

@@ -66,6 +66,7 @@ public interface VPlayer {
     void save();
     void setDiffusing(boolean diffusing);
     void rejoin(Player player);
+    void leave();
 
     default void addArmour(Integer armour) {
         getPlayer().setAbsorptionAmount(armour / 100F * 20);

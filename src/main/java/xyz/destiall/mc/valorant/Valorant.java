@@ -1,6 +1,6 @@
 package xyz.destiall.mc.valorant;
 
-import com.github.fierioziy.particlenativeapi.api.ParticleNativeAPI;
+import com.comphenix.protocol.ProtocolLibrary;
 import com.github.fierioziy.particlenativeapi.core.ParticleNativeCore;
 import org.bukkit.Bukkit;
 import org.bukkit.command.PluginCommand;
@@ -26,12 +26,16 @@ import xyz.destiall.mc.valorant.utils.Scheduler;
 
 import java.io.File;
 
-public class Valorant {
+public final class Valorant {
     private static Valorant instance;
     private final JavaPlugin plugin;
     public static final String VERSION = "1.1";
     public Valorant(JavaPlugin plugin) {
-        instance = this;
+        if (plugin != null && instance == null) {
+            instance = this;
+        } else {
+            instance = null;
+        }
         this.plugin = plugin;
     }
 
@@ -53,6 +57,7 @@ public class Valorant {
         MapManager.getInstance().unloadMaps();
         Debugger.debug("------ Unloaded MapManager ------");
         HandlerList.unregisterAll(plugin);
+        ProtocolLibrary.getProtocolManager().removePacketListeners(plugin);
         Debugger.debug("------ Unregistered Listeners ------");
         Scheduler.cancelAll();
         Bukkit.getScheduler().cancelTasks(plugin);
@@ -61,6 +66,7 @@ public class Valorant {
         if (command != null) {
             command.setExecutor(null);
         }
+        Debugger.debug("------ Unregistered Commands ------");
     }
 
     public void enable() {
@@ -74,8 +80,7 @@ public class Valorant {
         MatchManager.getInstance();
         Debugger.debug("------ Loaded MatchManager ------");
         try {
-            ParticleNativeAPI api = ParticleNativeCore.loadAPI(plugin);
-            new Effects(api);
+            new Effects(ParticleNativeCore.loadAPI(plugin));
             Debugger.debug("------ Loaded Effects ------");
         } catch (Exception e) {
             e.printStackTrace();
@@ -108,6 +113,7 @@ public class Valorant {
             return;
         }
         command.setExecutor(new ValorantCommand());
+
         command = plugin.getServer().getPluginCommand("globalchat");
         if (command == null) {
             Debugger.warn("------ Error while loading commands ------");
@@ -116,6 +122,7 @@ public class Valorant {
             return;
         }
         command.setExecutor(new GlobalChatCommand());
+
         command = plugin.getServer().getPluginCommand("teamchat");
         if (command == null) {
             Debugger.warn("------ Error while loading commands ------");

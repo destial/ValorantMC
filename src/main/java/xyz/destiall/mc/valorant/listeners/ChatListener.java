@@ -15,8 +15,8 @@ import java.util.Set;
 public class ChatListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onChat(AsyncPlayerChatEvent e) {
-        e.getRecipients().removeIf(p -> MatchManager.getInstance().getParticipant(p) != null);
-        VPlayer vPlayer = MatchManager.getInstance().getParticipant(e.getPlayer());
+        e.getRecipients().removeIf(p -> MatchManager.getInstance().getPlayer(p) != null);
+        VPlayer vPlayer = MatchManager.getInstance().getPlayer(e.getPlayer());
         if (vPlayer == null) return;
         e.setCancelled(true);
         final Set<VPlayer> recipients = new HashSet<>();

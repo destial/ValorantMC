@@ -1,5 +1,9 @@
 package xyz.destiall.mc.valorant.listeners;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.events.PacketAdapter;
+import com.comphenix.protocol.events.PacketEvent;
 import com.shampaggon.crackshot.events.WeaponDamageEntityEvent;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -17,10 +21,12 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
+import xyz.destiall.mc.valorant.Valorant;
 import xyz.destiall.mc.valorant.api.deadbodies.DeadBodyHandler;
 import xyz.destiall.mc.valorant.api.events.player.DeathEvent;
 import xyz.destiall.mc.valorant.api.items.Gun;
 import xyz.destiall.mc.valorant.api.items.Knife;
+import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.api.match.Countdown;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.api.session.CreationSession;
@@ -35,13 +41,23 @@ import java.util.HashSet;
 import java.util.UUID;
 
 public class MatchListener implements Listener {
+    public MatchListener() {
+        ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter(Valorant.getInstance().getPlugin(), PacketType.Play.Server.PLAYER_COMBAT_KILL) {
+            @Override
+            public void onPacketSending(PacketEvent event) {
+                VPlayer player = MatchManager.getInstance().getPlayer(event.getPlayer());
+                if (player != null) return;
+                super.onPacketSending(event);
+            }
+        });
+    }
 
     private final HashSet<UUID> leftPlayers = new HashSet<>();
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerDeath(PlayerDeathEvent e) {
         Player p = e.getEntity();
-        VPlayer victim = MatchManager.getInstance().getParticipant(p);
+        VPlayer victim = MatchManager.getInstance().getPlayer(p);
         if (victim == null) return;
         Player k = p.getKiller();
         VPlayer killer;
@@ -96,7 +112,7 @@ public class MatchListener implements Listener {
     public void onEscapeSpectator(PlayerTeleportEvent e) {
         if (e.getCause() != PlayerTeleportEvent.TeleportCause.SPECTATE) return;
         if (e.getPlayer().getSpectatorTarget() == null) return;
-        VPlayer p = MatchManager.getInstance().getParticipant(e.getPlayer());
+        VPlayer p = MatchManager.getInstance().getPlayer(e.getPlayer());
         if (p == null) return;
         e.setCancelled(true);
     }
@@ -104,14 +120,12 @@ public class MatchListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onWeaponDamage(WeaponDamageEntityEvent e) {
         if (!(e.getVictim() instanceof Player)) return;
-        VPlayer victim = MatchManager.getInstance().getParticipant((Player) e.getVictim());
+        VPlayer victim = MatchManager.getInstance().getPlayer((Player) e.getVictim());
         if (victim == null) return;
-        VPlayer damager = MatchManager.getInstance().getParticipant(e.getPlayer());
+        VPlayer damager = MatchManager.getInstance().getPlayer(e.getPlayer());
         if (damager == null) return;
         if (victim.getTeam() == damager.getTeam()) {
             e.setCancelled(true);
-            //e.setDamage(0);
-            //e.getDamager().teleport(e.getDamager().getLocation().clone().add(e.getDamager().getVelocity().clone().normalize()));
         }
     }
 
@@ -120,21 +134,13 @@ public class MatchListener implements Listener {
         String symbol = "✇";
         if (e.getGun() != null) {
             switch (e.getGun().getType()) {
-                case SNIPER:
-                    symbol = "︻╦̵̵̿╤──";
-                    break;
-                case SHOTGUN:
-                    symbol = "︻┳══";
-                    break;
-                case RIFLE:
-                    symbol = "︻╦╤─";
-                    break;
-                case SMG:
-                    symbol = "⌐╦╦═";
-                    break;
-                case PISTOL:
-                    symbol = "╦═";
-                    break;
+                case SNIPER -> symbol = "︻╦̵̵̿╤──";
+                case SHOTGUN -> symbol = "︻┳══";
+                case RIFLE -> symbol = "︻╦╤─";
+                case SMG -> symbol = "⌐╦╦═";
+                case PISTOL -> symbol = "╦═";
+                default -> {
+                }
             }
         } else if (e.getKnife() != null) {
             symbol = "\uD83D\uDDE1️";
@@ -148,11 +154,20 @@ public class MatchListener implements Listener {
             }
             p.getPlayer().sendMessage(color + message);
         }
+        if (e.getVictim().getTeam().getMembers().stream().allMatch(VPlayer::isDead)) {
+            if (e.getVictim().getTeam().getSide() == Team.Side.ATTACKER) {
+                e.getMatch().getDefender().addScore();
+                e.getMatch().endRound();
+            } else if (e.getMatch().getModule(Countdown.class).getContext() == Countdown.Context.BEFORE_SPIKE) {
+                e.getMatch().getAttacker().addScore();
+                e.getMatch().endRound();
+            }
+        }
     }
 
     @EventHandler
     public void onDropItem(PlayerDropItemEvent e) {
-        VPlayer player = MatchManager.getInstance().getParticipant(e.getPlayer());
+        VPlayer player = MatchManager.getInstance().getPlayer(e.getPlayer());
         if (player == null) return;
         // TODO: Implement dropping weapons
         ItemStack drop = e.getItemDrop().getItemStack();
@@ -172,7 +187,7 @@ public class MatchListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent e) {
-        VPlayer player = MatchManager.getInstance().getParticipant(e.getPlayer());
+        VPlayer player = MatchManager.getInstance().getPlayer(e.getPlayer());
         if (player == null) return;
         if (!player.isHoldingSpike()) {
             e.setCancelled(true);
@@ -185,7 +200,7 @@ public class MatchListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent e) {
-        VPlayer player = MatchManager.getInstance().getParticipant(e.getPlayer());
+        VPlayer player = MatchManager.getInstance().getPlayer(e.getPlayer());
         if (player == null) return;
         e.setCancelled(true);
     }
@@ -196,7 +211,7 @@ public class MatchListener implements Listener {
         if (session != null) {
             CreationSession.ACTIVE_SESSIONS.remove(session);
         }
-        VPlayer player = MatchManager.getInstance().getParticipant(e.getPlayer());
+        VPlayer player = MatchManager.getInstance().getPlayer(e.getPlayer());
         if (player != null) {
             e.setQuitMessage(null);
             leftPlayers.add(player.getUUID());
@@ -210,7 +225,7 @@ public class MatchListener implements Listener {
             e.getPlayer().sendMessage(Formatter.color("&eRejoining the match..."));
             Scheduler.delay(() -> {
                 if (!e.getPlayer().isOnline()) return;
-                VPlayer player = MatchManager.getInstance().getParticipant(e.getPlayer());
+                VPlayer player = MatchManager.getInstance().getPlayer(e.getPlayer());
                 if (player == null) return;
                 player.rejoin(e.getPlayer());
                 SidebarHandler sidebar = player.getMatch().getModule(SidebarHandler.class);
