@@ -15,6 +15,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -22,12 +23,13 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.inventory.ItemStack;
 import xyz.destiall.mc.valorant.Valorant;
-import xyz.destiall.mc.valorant.api.deadbodies.DeadBodyHandler;
+import xyz.destiall.mc.valorant.api.events.match.MatchTerminateEvent;
 import xyz.destiall.mc.valorant.api.events.player.DeathEvent;
 import xyz.destiall.mc.valorant.api.items.Gun;
 import xyz.destiall.mc.valorant.api.items.Knife;
 import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.api.match.Countdown;
+import xyz.destiall.mc.valorant.api.match.Match;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.api.session.CreationSession;
 import xyz.destiall.mc.valorant.api.sidebar.SidebarHandler;
@@ -37,10 +39,13 @@ import xyz.destiall.mc.valorant.utils.Formatter;
 import xyz.destiall.mc.valorant.utils.Scheduler;
 
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 public class MatchListener implements Listener {
+    private final Map<UUID, Match> leftPlayers = new HashMap<>();
+
     public MatchListener() {
         ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter(Valorant.getInstance().getPlugin(), PacketType.Play.Server.PLAYER_COMBAT_KILL) {
             @Override
@@ -52,64 +57,31 @@ public class MatchListener implements Listener {
         });
     }
 
-    private final HashSet<UUID> leftPlayers = new HashSet<>();
-
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onPlayerDeath(PlayerDeathEvent e) {
-        Player p = e.getEntity();
-        VPlayer victim = MatchManager.getInstance().getPlayer(p);
-        if (victim == null) return;
-        Player k = p.getKiller();
-        VPlayer killer;
-        if (k != null) {
-            killer = victim.getMatch().getPlayer(k.getUniqueId());
-        } else {
-            killer = victim;
-        }
+    public void onPlayerVanillaDeath(PlayerDeathEvent e) {
+        e.getEntity().spigot().respawn();
         e.setDeathMessage(null);
-        e.setDroppedExp(0);
-        e.setKeepInventory(false);
         e.setKeepLevel(false);
-        e.setNewTotalExp(0);
         e.setNewExp(0);
         e.setNewLevel(0);
+        e.setNewTotalExp(0);
+        e.setKeepInventory(false);
+        e.setDroppedExp(0);
         e.getDrops().clear();
-        victim.getPlayer().setHealth(20d);
-        victim.addDeath();
-        Gun gun = null;
-        Knife knife = null;
-        if (victim != killer) {
-            killer.addKill();
-            gun = ItemFactory.getGun(killer.getPlayer().getInventory().getItemInMainHand());
-            knife = killer.getKnife().getItem().isSimilar(killer.getPlayer().getInventory().getItemInMainHand()) ? killer.getKnife() : null;
+        handleDeath(e.getEntity());
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerDamage(EntityDamageEvent e) {
+        if (!(e.getEntity() instanceof Player p)) return;
+        if (e.getFinalDamage() >= p.getHealth()) {
+            e.setCancelled(true);
+            handleDeath(p);
         }
-        victim.setDead(true);
-        victim.getPlayer().setGameMode(GameMode.SPECTATOR);
-        if (!victim.getMatch().getModule(Countdown.class).getContext().equals(Countdown.Context.ROUND_ENDING)) victim.getMatch().getModule(DeadBodyHandler.class).addBody(victim);
-        DeathEvent deathEvent = new DeathEvent(victim, killer, gun, knife);
-        for (ItemStack item : victim.getPlayer().getInventory()) {
-            if (item == null || item.getType() == Material.AIR) continue;
-            if (victim.isHoldingSpike() && item.isSimilar(victim.getMatch().getSpike().getItem())) {
-                Item drop = victim.getPlayer().getWorld().dropItem(victim.getLocation(), item);
-                spikeDropped(victim, drop);
-                deathEvent.getDrops().put(drop, item);
-                continue;
-            }
-            if ((victim.getPrimaryGun() != null && item.isSimilar(victim.getPrimaryGun().getItem())) ||
-                (victim.getSecondaryGun() != null && item.isSimilar(victim.getSecondaryGun().getItem()))) {
-                Item drop = victim.getPlayer().getWorld().dropItem(victim.getLocation(), item);
-                deathEvent.getDrops().put(drop, item);
-            }
-        }
-        victim.getPlayer().getInventory().clear();
-        victim.getMatch().callEvent(deathEvent);
-        VPlayer spectateTarget = victim.getTeam().getMembers().stream().filter(t -> t != victim).findFirst().orElse(null);
-        if (spectateTarget == null) return;
-        victim.getPlayer().setSpectatorTarget(spectateTarget.getPlayer());
     }
 
     @EventHandler
-    public void onEscapeSpectator(PlayerTeleportEvent e) {
+    public void onSpectator(PlayerTeleportEvent e) {
         if (e.getCause() != PlayerTeleportEvent.TeleportCause.SPECTATE) return;
         if (e.getPlayer().getSpectatorTarget() == null) return;
         VPlayer p = MatchManager.getInstance().getPlayer(e.getPlayer());
@@ -117,7 +89,7 @@ public class MatchListener implements Listener {
         e.setCancelled(true);
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void onWeaponDamage(WeaponDamageEntityEvent e) {
         if (!(e.getVictim() instanceof Player)) return;
         VPlayer victim = MatchManager.getInstance().getPlayer((Player) e.getVictim());
@@ -129,7 +101,7 @@ public class MatchListener implements Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onMatchDeath(DeathEvent e) {
         String symbol = "✇";
         if (e.getGun() != null) {
@@ -154,7 +126,7 @@ public class MatchListener implements Listener {
             }
             p.getPlayer().sendMessage(color + message);
         }
-        if (e.getVictim().getTeam().getMembers().stream().allMatch(VPlayer::isDead)) {
+        if (!e.getMatch().getRound().isOver() && e.getVictim().getTeam().getMembers().stream().allMatch(VPlayer::isDead)) {
             if (e.getVictim().getTeam().getSide() == Team.Side.ATTACKER) {
                 e.getMatch().getDefender().addScore();
                 e.getMatch().endRound();
@@ -185,20 +157,14 @@ public class MatchListener implements Listener {
         e.setCancelled(true);
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void onBlockPlace(BlockPlaceEvent e) {
         VPlayer player = MatchManager.getInstance().getPlayer(e.getPlayer());
         if (player == null) return;
-        if (!player.isHoldingSpike()) {
-            e.setCancelled(true);
-            return;
-        }
-        if (!e.getItemInHand().isSimilar(player.getSpike().getItem())) {
-            e.setCancelled(true);
-        }
+        e.setCancelled(true);
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler
     public void onBlockBreak(BlockBreakEvent e) {
         VPlayer player = MatchManager.getInstance().getPlayer(e.getPlayer());
         if (player == null) return;
@@ -214,14 +180,25 @@ public class MatchListener implements Listener {
         VPlayer player = MatchManager.getInstance().getPlayer(e.getPlayer());
         if (player != null) {
             e.setQuitMessage(null);
-            leftPlayers.add(player.getUUID());
+            leftPlayers.put(player.getUUID(), player.getMatch());
+            if (player.getMatch().isEmpty()) {
+                player.getMatch().end(MatchTerminateEvent.Reason.CANCEL);
+                return;
+            }
         }
     }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent e) {
         if (e.getPlayer().getWalkSpeed() != 0.2f) e.getPlayer().setWalkSpeed(0.2f);
-        if (leftPlayers.contains(e.getPlayer().getUniqueId())) {
+        if (leftPlayers.containsKey(e.getPlayer().getUniqueId())) {
+            Match match = leftPlayers.get(e.getPlayer().getUniqueId());
+            if (match.isOver()) {
+                e.getPlayer().sendMessage(Formatter.color("&cThe match ended while you were gone..."));
+                e.getPlayer().getInventory().clear();
+                e.getPlayer().teleport(MatchManager.getInstance().getLobby());
+                return;
+            }
             e.getPlayer().sendMessage(Formatter.color("&eRejoining the match..."));
             Scheduler.delay(() -> {
                 if (!e.getPlayer().isOnline()) return;
@@ -244,5 +221,49 @@ public class MatchListener implements Listener {
         }
         holder.getSpike().setDrop(drop);
         holder.holdSpike(null);
+    }
+
+    public static void handleDeath(Player p) {
+        VPlayer victim = MatchManager.getInstance().getPlayer(p);
+        if (victim == null || victim.isDead()) return;
+        Player k = p.getKiller();
+        VPlayer killer;
+        if (k != null) {
+            killer = victim.getMatch().getPlayer(k.getUniqueId());
+        } else {
+            killer = victim;
+        }
+        victim.getPlayer().setHealth(victim.getPlayer().getMaxHealth());
+        victim.addDeath();
+        Gun gun = null;
+        Knife knife = null;
+        if (victim != killer) {
+            killer.addKill();
+            gun = ItemFactory.getGun(killer.getPlayer().getInventory().getItemInMainHand());
+            knife = killer.getKnife().getItem().isSimilar(killer.getPlayer().getInventory().getItemInMainHand()) ? killer.getKnife() : null;
+        }
+        victim.setDead(true);
+        victim.getPlayer().setGameMode(GameMode.SPECTATOR);
+
+        DeathEvent deathEvent = new DeathEvent(victim, killer, gun, knife);
+        for (ItemStack item : victim.getPlayer().getInventory()) {
+            if (item == null || item.getType() == Material.AIR) continue;
+            if (victim.isHoldingSpike() && item.isSimilar(victim.getMatch().getSpike().getItem())) {
+                Item drop = victim.getPlayer().getWorld().dropItem(victim.getLocation(), item);
+                spikeDropped(victim, drop);
+                deathEvent.getDrops().put(drop, item);
+                continue;
+            }
+            if ((victim.getPrimaryGun() != null && item.isSimilar(victim.getPrimaryGun().getItem())) ||
+                    (victim.getSecondaryGun() != null && item.isSimilar(victim.getSecondaryGun().getItem()))) {
+                Item drop = victim.getPlayer().getWorld().dropItem(victim.getLocation(), item);
+                deathEvent.getDrops().put(drop, item);
+            }
+        }
+        victim.getPlayer().getInventory().clear();
+        victim.getMatch().callEvent(deathEvent);
+        VPlayer spectateTarget = victim.getTeam().getMembers().stream().filter(t -> t != victim).findFirst().orElse(null);
+        if (spectateTarget == null) return;
+        victim.getPlayer().setSpectatorTarget(spectateTarget.getPlayer());
     }
 }

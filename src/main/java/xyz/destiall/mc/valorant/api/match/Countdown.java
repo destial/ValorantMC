@@ -88,7 +88,7 @@ public class Countdown implements Module {
         ROUND_ENDING(10, "Next Round in ", BarColor.BLUE),
         ROUND_STARTING(5, "Round Starting in ", BarColor.BLUE),
         BEFORE_SPIKE(100, "Pre Plant: ", BarColor.WHITE),
-        AFTER_SPIKE(10, "Post Plant: ", BarColor.WHITE);
+        AFTER_SPIKE(45, "Post Plant: ", BarColor.WHITE);
 
         private final long time;
         private final String title;

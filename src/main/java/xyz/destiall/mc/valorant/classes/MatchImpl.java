@@ -5,7 +5,6 @@ import org.bukkit.Location;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import xyz.destiall.mc.valorant.api.deadbodies.DeadBodyHandler;
 import xyz.destiall.mc.valorant.api.events.match.MatchCompleteEvent;
 import xyz.destiall.mc.valorant.api.events.match.MatchStartEvent;
 import xyz.destiall.mc.valorant.api.events.match.MatchTerminateEvent;
@@ -109,6 +108,11 @@ public class MatchImpl implements Match {
     }
 
     @Override
+    public boolean isOver() {
+        return state == MatchState.ENDING;
+    }
+
+    @Override
     public void switchSides() {
         Team attacker = getAttacker();
         Team defender = getDefender();
@@ -122,7 +126,7 @@ public class MatchImpl implements Match {
         callEvent(new RoundFinishEvent(this));
         setCountdown(null);
         removeModule(spike);
-        removeModule(DeadBodyHandler.class);
+        //removeModule(DeadBodyHandler.class);
         Collection<VPlayer> list = getPlayers().values();
         for (VPlayer p : list) {
             if (p.isDiffusing()) p.setDiffusing(false);
@@ -155,9 +159,11 @@ public class MatchImpl implements Match {
             p.getPlayer().setGameMode(GameMode.SURVIVAL);
         }
         rounds.add(new RoundImpl(rounds.size() + 1));
+        if (spike != null) spike.destroy();
         spike = new Spike(this);
+
         addModule(spike);
-        addModule(new DeadBodyHandler());
+        //addModule(new DeadBodyHandler());
         Location spawn = map.getAttackerCenter();
         Location spikeDrop = spawn.add(spawn.getDirection().multiply(3));
         spike.setDrop(map.getWorld().dropItem(spikeDrop, spike.getItem()));
@@ -175,7 +181,6 @@ public class MatchImpl implements Match {
             startedCountdown.onComplete(() -> {
                 getDefender().addScore();
                 getRound().setWinningSide(Team.Side.DEFENDER);
-                getRound().setLosingSide(Team.Side.ATTACKER);
                 endRound();
             });
         });
@@ -235,9 +240,8 @@ public class MatchImpl implements Match {
         Location loc = MatchManager.getInstance().getLobby();
         Collection<VPlayer> list = getPlayers().values();
         for (VPlayer p : list) {
+            if (!p.getPlayer().isOnline()) continue;
             p.getPlayer().getInventory().clear();
-            //ItemStack[] stacks = inventories.get(p);
-            //p.getPlayer().getInventory().addItem(stacks);
             p.getPlayer().teleport(loc);
             if (getWinningTeam() == p.getTeam()) {
                 p.getStats().addWin(p, result);

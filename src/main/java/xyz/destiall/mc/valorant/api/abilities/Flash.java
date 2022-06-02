@@ -12,9 +12,9 @@ public interface Flash {
     double getFlashDuration();
     double getFlashRange();
     static boolean isSeen(Player player, Entity flash, int range) {
-        if (distanceSquared(player.getLocation(), flash.locX(), flash.locY(), flash.locZ()) > range * range) return false;
+        if (distanceSquared(player.getLocation(), flash.getX(), flash.getY(), flash.getZ()) > range * range) return false;
         if (Versioning.getPlayer(player).hasLineOfSight(flash)) {
-            Vector vect = new Vector(flash.locX(), flash.locY(), flash.locZ());
+            Vector vect = new Vector(flash.getX(), flash.getY(), flash.getZ());
             Vector flashDirection = vect.subtract(player.getLocation().toVector()).clone().normalize();
             Vector playerDirection = player.getLocation().getDirection().clone();
             double angle = Math.acos(flashDirection.dot(playerDirection) / flashDirection.length() * playerDirection.length());

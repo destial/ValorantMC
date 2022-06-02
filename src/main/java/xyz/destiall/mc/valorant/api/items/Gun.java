@@ -4,7 +4,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
+import xyz.destiall.mc.valorant.factories.CSItemFactory;
 import xyz.destiall.mc.valorant.factories.ItemFactory;
+import xyz.destiall.mc.valorant.utils.Formatter;
 import xyz.destiall.mc.valorant.utils.Shooter;
 
 import java.util.HashMap;
@@ -74,7 +76,7 @@ public class Gun implements ShopItem, Giveable {
             spread = 200D / diff;
         }
         shots.put(player.getUniqueId(), System.currentTimeMillis());
-        Shooter.shoot(player, player.getEyeLocation().clone(), player.getLocation().getDirection().clone(), damage, spread);
+        Shooter.shoot(player, player.getEyeLocation(), player.getLocation().getDirection(), damage, spread);
     }
 
     @Override
@@ -82,7 +84,7 @@ public class Gun implements ShopItem, Giveable {
         ItemStack clone = itemStack.clone();
         ItemMeta meta = clone.getItemMeta();
         List<String> lores = meta.getLore();
-        lores.add("Price: $" + price);
+        lores.add(Formatter.color("&bPrice: $" + price));
         clone.setItemMeta(meta);
         return clone;
     }
@@ -103,7 +105,7 @@ public class Gun implements ShopItem, Giveable {
         } else {
             player.setSecondaryGun(this);
         }
-        ItemStack gun = ItemFactory.createCrackshotGun(name.name());
+        ItemStack gun = ItemFactory.generateGun(name);
         player.getPlayer().getInventory().setItem(slot, gun);
     }
 
@@ -142,7 +144,7 @@ public class Gun implements ShopItem, Giveable {
         OPERATOR(Type.SNIPER),
         TACTICAL(Type.TACTICAL);
 
-        Type type;
+        private final Type type;
         Name(Type type) {
             this.type = type;
         }

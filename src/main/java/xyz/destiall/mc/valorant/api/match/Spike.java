@@ -1,10 +1,14 @@
 package xyz.destiall.mc.valorant.api.match;
 
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
+import com.mojang.authlib.properties.PropertyMap;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.block.Skull;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -26,10 +30,13 @@ import xyz.destiall.mc.valorant.api.map.Site;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.listeners.MatchListener;
 import xyz.destiall.mc.valorant.utils.Effects;
+import xyz.destiall.mc.valorant.utils.Formatter;
 import xyz.destiall.mc.valorant.utils.ScheduledTask;
 import xyz.destiall.mc.valorant.utils.Scheduler;
 
+import java.lang.reflect.Field;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
@@ -41,6 +48,7 @@ public class Spike implements Module, Listener {
     private Item drop;
     private ScheduledTask beep;
     private float diffuse;
+    private float plant;
     private ScheduledTask place;
 
     public Spike(Match match) {
@@ -58,17 +66,36 @@ public class Spike implements Module, Listener {
         return item;
     }
 
-    public void place(Location location) {
+    public void place(VPlayer player, Location location) {
+        player.setPlanting(false);
+        player.holdSpike(null);
         plantedLocation = location;
+        location.getBlock().setType(item.getType());
+        Skull skull = (Skull) location.getBlock().getState();
+        try {
+            Field profileField = skull.getClass().getDeclaredField("profile");
+            profileField.setAccessible(true);
+            GameProfile profile = new GameProfile(UUID.randomUUID(), null);
+            Field propertiesField = profile.getClass().getDeclaredField("properties");
+            propertiesField.setAccessible(true);
+            PropertyMap propertyMap = (PropertyMap) propertiesField.get(profile);
+            propertyMap.put("textures", new Property("textures", "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNzYzMThhMTMxNzJhOTllYmZhYjg2NTVlNmM5MjFjNzc0MmQ0ZDdmODcwNTg1ZjQ4OTllYWE0ZjM2NTE5NSJ9fX0="));
+            profileField.set(skull, profile);
+            skull.update(true, false);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        skull.setRawData((byte) 1);
         match.callEvent(new SpikePlaceEvent(this));
         Countdown c = new Countdown(Countdown.Context.AFTER_SPIKE);
         Collection<VPlayer> list = match.getPlayers().values();
         list.forEach(p -> {
             c.getBossBar().addPlayer(p.getPlayer());
-            p.sendMessage("The spike has been planted!");
+            p.sendMessage(Formatter.color("&bThe spike has been planted!"));
         });
-        beep = Scheduler.repeatAsync(() -> list.forEach(p -> p.getPlayer().playSound(plantedLocation, Sound.BLOCK_LEVER_CLICK, 1f, 1f)), 20L);
-        place = Scheduler.repeatAsync(() -> Effects.spikeRing(plantedLocation.clone().add(0.5, 0, 0.5), 2), 5L);
+        beep = Scheduler.repeatAsync(() -> list.forEach(p -> p.getPlayer().playSound(plantedLocation, Sound.BLOCK_LEVER_CLICK, 5f, 1f)), 20L);
+        place = Scheduler.repeatAsync(() -> Effects.spikeRing(plantedLocation.getBlock().getLocation().add(0.5, 0, 0.5), 2), 5L);
         match.setCountdown(c);
         c.onComplete(this::detonate);
         c.start();
@@ -76,6 +103,14 @@ public class Spike implements Module, Listener {
 
     public void setDiffuse(float d) {
         diffuse = d;
+    }
+
+    public void setPlant(float p) {
+        plant = p;
+    }
+
+    public float getPlant() {
+        return plant;
     }
 
     public float getDiffuse() {
@@ -87,7 +122,6 @@ public class Spike implements Module, Listener {
         match.setCountdown(null);
         match.getDefender().addScore();
         match.getRound().setWinningSide(Team.Side.DEFENDER);
-        match.getRound().setLosingSide(Team.Side.ATTACKER);
         match.endRound();
         beep.cancel();
         place.cancel();
@@ -96,7 +130,6 @@ public class Spike implements Module, Listener {
     public void detonate() {
         match.callEvent(new SpikeDetonateEvent(this));
         match.getAttacker().addScore();
-        match.getRound().setLosingSide(Team.Side.DEFENDER);
         match.getRound().setWinningSide(Team.Side.ATTACKER);
         match.endRound();
         beep.cancel();
@@ -105,12 +138,14 @@ public class Spike implements Module, Listener {
         AtomicInteger i = new AtomicInteger(1);
         ScheduledTask task = Scheduler.repeat(() -> {
             int r = i.get();
-            if (r < 20) i.incrementAndGet();
+            if (r < 30) i.incrementAndGet();
             Effects.bombSphere(plantedLocation, r);
-            Collection<VPlayer> list = match.getPlayers().values().stream().filter(p -> !p.isDead()).collect(Collectors.toList());
-            for (VPlayer player : list) {
+            Iterator<VPlayer> it = match.getPlayers().values().stream().filter(p -> !p.isDead()).iterator();
+            while (it.hasNext()) {
+                VPlayer player = it.next();
                 if (player.getLocation().distanceSquared(plantedLocation) <= r * r) {
-                    player.getPlayer().damage(player.getPlayer().getMaxHealth(), null);
+                    if (player.isDead()) continue;
+                    MatchListener.handleDeath(player.getPlayer());
                 }
             }
         }, 1L);
@@ -160,36 +195,37 @@ public class Spike implements Module, Listener {
     }
 
     @EventHandler
-    public void onSpikeDiffusing(PlayerToggleSneakEvent e) {
-        if (!isPlanted()) return;
-        if (plantedLocation.distanceSquared(e.getPlayer().getLocation()) > 5) return;
+    public void onSpikeDiffusePlant(PlayerToggleSneakEvent e) {
         VPlayer player = match.getPlayer(e.getPlayer().getUniqueId());
         if (player == null) return;
-        if (player.getTeam().getSide().equals(Team.Side.ATTACKER)) return;
-        if (e.isSneaking() && !player.isDiffusing()) player.setDiffusing(true);
-        else if (!e.isSneaking() && player.isDiffusing()) player.setDiffusing(false);
+        if (!isPlanted() && player.getTeam().getSide() == Team.Side.ATTACKER) {
+            ItemStack holding = player.getInventory().getItemInMainHand();
+            if (match.getMap().getSite(e.getPlayer().getLocation()) != null && holding.isSimilar(item) && e.isSneaking() && !player.isPlanting()) {
+                player.setPlanting(true);
+            } else if (!e.isSneaking() && player.isPlanting()) {
+                plant = 0;
+                player.setPlanting(false);
+            }
+            return;
+        }
+        if (isPlanted()) {
+            if (player.getTeam().getSide() == Team.Side.ATTACKER) return;
+            if (plantedLocation.distanceSquared(e.getPlayer().getLocation()) > 5) return;
+            if (e.isSneaking() && !player.isDiffusing()) player.setDiffusing(true);
+            else if (!e.isSneaking() && player.isDiffusing()) player.setDiffusing(false);
+        }
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onPlayerMove(PlayerMoveEvent e) {
         if (e.getTo() == null) return;
-        if (e.getFrom().getX() == e.getTo().getX() && e.getFrom().getY() == e.getTo().getY() && e.getFrom().getZ() == e.getTo().getZ()) return;
+        if (e.getFrom().getX() == e.getTo().getX() && e.getFrom().getZ() == e.getTo().getZ()) return;
         VPlayer player = match.getPlayer(e.getPlayer().getUniqueId());
         if (player == null) return;
-        if (!player.isDiffusing()) return;
-        e.setCancelled(true);
-    }
-
-    @EventHandler(ignoreCancelled = true)
-    public void onSpikePlace(BlockPlaceEvent e) {
-        if (isPlanted()) return;
-        if (e.getItemInHand().isSimilar(item)) {
-            Site site = match.getMap().getSite(e.getBlockPlaced().getLocation());
-            if (site == null) {
+        if (player.isDiffusing() || player.isPlanting()) {
+            if (e.getFrom().getX() != e.getTo().getX() || e.getFrom().getZ() != e.getTo().getZ() || e.getTo().getY() > e.getFrom().getY()) {
                 e.setCancelled(true);
-                return;
             }
-            place(e.getBlockPlaced().getLocation());
         }
     }
 

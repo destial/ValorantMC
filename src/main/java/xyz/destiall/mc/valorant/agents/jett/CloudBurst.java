@@ -39,7 +39,7 @@ public class CloudBurst extends Ability implements Smoke {
 
     @Override
     public void use() {
-        l = player.getEyeLocation().clone();
+        l = player.getEyeLocation();
         smokeTravelTask = Scheduler.repeat(() -> {
             Vector direction = player.getDirection();
             l.add(direction.multiply(2)).add(gravity.multiply(time.get()));
@@ -55,7 +55,7 @@ public class CloudBurst extends Ability implements Smoke {
 
     @Override
     public String getName() {
-        return "CloudBurst";
+        return "Cloud Burst";
     }
 
     @Override

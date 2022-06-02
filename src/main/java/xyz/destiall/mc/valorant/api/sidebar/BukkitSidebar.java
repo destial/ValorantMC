@@ -24,8 +24,8 @@ public class BukkitSidebar extends Sidebar {
         boards = new HashMap<>();
         emptyBoard = Bukkit.getScoreboardManager().getNewScoreboard();
         board = new ScoreboardWrapper("Match");
-        boardTeam = board.getScoreboard().registerNewTeam(""+team.hashCode());
-        boardTeam.setNameTagVisibility(NameTagVisibility.NEVER);
+        boardTeam = board.getScoreboard().registerNewTeam("" + team.hashCode());
+        boardTeam.setNameTagVisibility(NameTagVisibility.HIDE_FOR_OTHER_TEAMS);
         boardTeam.setAllowFriendlyFire(false);
     }
 
@@ -69,14 +69,13 @@ public class BukkitSidebar extends Sidebar {
         ScoreboardWrapper board = boards.get(player.getUUID());
         if (board == null) return;
         int i = 0;
-        board.setLine(i, ChatColor.AQUA + "Alive Members:");
+        board.setLine(i++, ChatColor.AQUA + "Alive Members:");
         for (VPlayer p1 : team.getMembers()) {
-            i++;
             if (p1.isDead()) {
-                board.setLine(i, "");
+                board.setLine(i++, "");
                 continue;
             }
-            board.setLine(i, ChatColor.GREEN + p1.getPlayer().getName());
+            board.setLine(i++, ChatColor.GREEN + p1.getPlayer().getName());
         }
         board.setLine(++i, " ");
         board.setLine(++i, ChatColor.AQUA + "Your points: " + team.getScore());

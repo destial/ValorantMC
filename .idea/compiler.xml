@@ -11,7 +11,7 @@
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="Valorant" target="1.8" />
-      <module name="ValorantMC" target="16" />
+      <module name="ValorantMC" target="17" />
     </bytecodeTargetLevel>
   </component>
 </project>

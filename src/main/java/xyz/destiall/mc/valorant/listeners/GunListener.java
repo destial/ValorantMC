@@ -24,7 +24,7 @@ public class GunListener implements Listener {
 
     @EventHandler
     public void onGunInteract(PlayerInteractEvent e) {
-        if (e.getAction() == Action.LEFT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_AIR) {
+        if (e.getAction() == Action.LEFT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.LEFT_CLICK_BLOCK) {
             ItemStack item = e.getPlayer().getInventory().getItemInMainHand();
             if (item.getType() == Material.AIR) return;
             if (item.getType() == Material.SPYGLASS) {

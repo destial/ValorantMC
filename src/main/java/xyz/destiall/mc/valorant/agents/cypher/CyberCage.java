@@ -34,6 +34,7 @@ public class CyberCage extends Ability implements Smoke, Listener {
         cageTask = null;
         finalLoc = null;
         team = player.getTeam();
+        trigger = Trigger.RIGHT;
     }
 
     @Override

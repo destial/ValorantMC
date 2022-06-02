@@ -1,6 +1,6 @@
 package xyz.destiall.mc.valorant.agents.reyna;
 
-import net.minecraft.world.entity.decoration.EntityArmorStand;
+import net.minecraft.world.entity.decoration.ArmorStand;
 import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
@@ -17,7 +17,7 @@ import java.util.Collection;
 public class Leer extends Ability implements Flash {
     private ScheduledTask leerTravelTask;
     private Location l;
-    private EntityArmorStand as;
+    private ArmorStand as;
     public Leer(VPlayer player) {
         super(player);
         leerTravelTask = null;

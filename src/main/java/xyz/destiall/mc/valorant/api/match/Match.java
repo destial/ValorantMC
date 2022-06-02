@@ -8,7 +8,6 @@ import xyz.destiall.mc.valorant.api.events.match.MatchTerminateEvent;
 import xyz.destiall.mc.valorant.api.items.Gun;
 import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.api.map.Map;
-import xyz.destiall.mc.valorant.api.deadbodies.DeadBody;
 import xyz.destiall.mc.valorant.api.player.Party;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
 
@@ -29,6 +28,7 @@ public interface Match extends Modular {
     HashMap<Item, Gun> getDroppedGuns();
     boolean isBuyPeriod();
     boolean isWaitingForPlayers();
+    boolean isOver();
 
     void setCountdown(Countdown countdown);
     void switchSides();
@@ -55,6 +55,10 @@ public interface Match extends Modular {
                  getDefender().getScore() > getAttacker().getScore() + 1);
     }
 
+    default boolean isEmpty() {
+        return !getTeams().stream().anyMatch(t -> t.getMembers().stream().anyMatch(m -> m.getPlayer().isOnline()));
+    }
+
     default Team getWinningTeam() {
         if (!isComplete()) return null;
         return getTeams().stream().max(Comparator.comparingInt(Team::getScore)).orElse(null);
@@ -63,6 +67,7 @@ public interface Match extends Modular {
     default boolean isInMatch(Player player) {
         return getPlayers().keySet().stream().anyMatch(k -> k.equals(player.getUniqueId()));
     }
+
     default HashMap<UUID, VPlayer> getPlayers() {
         HashMap<UUID, VPlayer> players = new HashMap<>();
         for (Team team : getTeams()) {

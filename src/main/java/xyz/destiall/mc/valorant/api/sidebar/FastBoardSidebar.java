@@ -27,19 +27,22 @@ public class FastBoardSidebar extends Sidebar {
 
     @Override
     public void render(VPlayer player) {
-        int i = 1;
-        for (VPlayer p : team.getMembers()) {
-            final FastBoard board = boards.get(player.getUUID());
-            if (board == null) continue;
-            for (VPlayer p1 : team.getMembers()) {
-                if (p1.isDead()) {
-                    board.updateLine(i++, "");
-                    continue;
-                }
-                board.updateLine(0, ChatColor.BLUE + "Alive Members:");
-                board.updateLine(i++, p1.getPlayer().getName());
+        FastBoard board = boards.get(player.getUUID());
+        if (board == null) return;
+        int i = 0;
+        board.updateLine(i++, ChatColor.AQUA + "Alive Members:");
+        for (VPlayer p1 : team.getMembers()) {
+            if (p1.isDead()) {
+                board.updateLine(i++, "");
+                continue;
             }
+            board.updateLine(i++, ChatColor.GREEN + p1.getPlayer().getName());
         }
+        board.updateLine(++i, " ");
+        board.updateLine(++i, ChatColor.AQUA + "Your points: " + team.getScore());
+        board.updateLine(++i, ChatColor.RED + "Enemy points: " + team.getMatch().getOtherTeam(team).getScore());
+        board.updateLine(++i, " ");
+        board.updateLine(++i, ChatColor.GREEN + "Money: $" + player.getEconomy().getBalance());
     }
 
     @Override

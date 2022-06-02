@@ -4,6 +4,7 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.util.Vector;
 import xyz.destiall.mc.valorant.api.abilities.Ability;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
@@ -45,6 +46,7 @@ public interface VPlayer {
     boolean isDead();
     boolean isUsingUlt();
     boolean isDiffusing();
+    boolean isPlanting();
 
     void setPrimaryGun(Gun gun);
     void setSecondaryGun(Gun gun);
@@ -65,6 +67,7 @@ public interface VPlayer {
     void chooseAgent(Agent agent);
     void save();
     void setDiffusing(boolean diffusing);
+    void setPlanting(boolean planting);
     void rejoin(Player player);
     void leave();
 
@@ -100,15 +103,18 @@ public interface VPlayer {
         getPlayer().sendMessage(Formatter.color(message));
     }
     default Location getLocation() {
-        return getPlayer().getLocation().clone();
+        return getPlayer().getLocation();
     }
     default Location getEyeLocation() {
-        return getPlayer().getEyeLocation().clone();
+        return getPlayer().getEyeLocation();
     }
     default Vector getDirection() {
-        return getLocation().getDirection().clone();
+        return getLocation().getDirection();
     }
     default UUID getUUID() {
         return getPlayer().getUniqueId();
+    }
+    default PlayerInventory getInventory() {
+        return getPlayer().getInventory();
     }
 }

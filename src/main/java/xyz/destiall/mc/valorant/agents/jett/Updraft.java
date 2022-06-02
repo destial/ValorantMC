@@ -19,7 +19,7 @@ public class Updraft extends Ability {
         super(player);
         maxUses = 2;
         agent = Agent.JETT;
-        trigger = Trigger.RIGHT;
+        trigger = Trigger.HOLD;
         item = new ItemStack(Material.FEATHER);
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName(ChatColor.AQUA + getName());
@@ -38,13 +38,13 @@ public class Updraft extends Ability {
             }
             if (!player.getPlayer().isOnGround()) {
                 if (player.getPlayer().getVelocity().getY() <= -0.8)
-                    player.getPlayer().addPotionEffect(PotionEffectType.SLOW_FALLING.createEffect(10, 1));
+                    player.getPlayer().addPotionEffect(PotionEffectType.SLOW_FALLING.createEffect(20, 1));
             } else {
                 remove();
             }
         }, 10L);
 
-        ItemStack feather = player.getPlayer().getItemInHand();
+        ItemStack feather = player.getPlayer().getInventory().getItem(5);
         feather.setAmount(feather.getAmount() - 1);
     }
 

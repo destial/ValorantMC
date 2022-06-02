@@ -13,6 +13,7 @@ import xyz.destiall.mc.valorant.api.items.Giveable;
 import xyz.destiall.mc.valorant.api.items.Gun;
 import xyz.destiall.mc.valorant.api.items.ShopItem;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
+import xyz.destiall.mc.valorant.factories.CSItemFactory;
 import xyz.destiall.mc.valorant.factories.ItemFactory;
 
 import java.io.File;
@@ -45,7 +46,9 @@ public class Shop implements Module {
             if (gun == null) continue;
             ITEMS.put(Integer.parseInt(key), gun);
         }
-        ItemFactory.saveCSFile();
+        if (Bukkit.getPluginManager().getPlugin("CrackShot") != null) {
+            CSItemFactory.saveCSFile();
+        }
         for (String key : config.getConfigurationSection("armor").getKeys(false)) {
             String name = config.getString("armor." + key + ".name", "LIGHT ARMOR");
             Integer amount = config.getInt("armor." + key + ".amount", 25);

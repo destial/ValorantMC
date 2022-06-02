@@ -1,89 +1,25 @@
 package xyz.destiall.mc.valorant.utils;
 
 import com.mojang.authlib.GameProfile;
-import net.minecraft.core.BlockPosition;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy;
-import net.minecraft.network.syncher.DataWatcher;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.EntityPlayer;
-import net.minecraft.server.level.WorldServer;
-import net.minecraft.server.network.PlayerConnection;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.EntityHuman;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.World;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.craftbukkit.v1_18_R2.CraftWorld;
+import org.bukkit.craftbukkit.v1_18_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Versioning {
-    private static Class<?> craftPlayerClass;
-    private static Class<?> craftWorldClass;
-    private static Method getProfile;
-    private static Method getWorldHandle;
-    private static Method getPlayerHandle;
-    private static Method getNmsCopy;
-
-    static {
+    public static ServerLevel getWorld(org.bukkit.World world) {
         try {
-            String version = Bukkit.getServer().getClass().toString().split("\\.")[3];
-            craftPlayerClass = Class.forName("org.bukkit.craftbukkit." + version + ".entity.CraftPlayer");
-            craftWorldClass = Class.forName("org.bukkit.craftbukkit." + version + ".CraftWorld");
-            Class<?> craftItemStackClass = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftItemStack");
-
-            getProfile = craftPlayerClass.getDeclaredMethod("getProfile");
-            getProfile.setAccessible(true);
-            getWorldHandle = craftWorldClass.getDeclaredMethod("getHandle");
-            getWorldHandle.setAccessible(true);
-            getPlayerHandle = craftPlayerClass.getDeclaredMethod("getHandle");
-            getPlayerHandle.setAccessible(true);
-            getNmsCopy = craftItemStackClass.getDeclaredMethod("asNMSCopy");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static AtomicInteger getNextEntityIdAtomic() {
-        try {
-            Field entityCount = Entity.class.getDeclaredField("b");
-            entityCount.setAccessible(true);
-            AtomicInteger id = (AtomicInteger) entityCount.get(null);
-            id.incrementAndGet();
-            return id;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return new AtomicInteger((int) Math.round(Math.random() * Integer.MAX_VALUE * 0.25));
-        }
-    }
-
-    @SuppressWarnings("all")
-    public static DataWatcher clonePlayerDatawatcher(Player player, int currentEntId) {
-        Location loc = player.getLocation();
-        EntityHuman h = new EntityHuman(getWorld(player.getWorld()), new BlockPosition(loc.getX(),loc.getY(),loc.getZ()), loc.getYaw(), getGameProfile(player)) {
-            public BlockPosition getChunkCoordinates() {
-                return null;
-            }
-            public boolean isSpectator() {
-                return false;
-            }
-            @Override
-            public boolean isCreative() {
-                return false;
-            }
-        };
-        h.e(currentEntId);
-        return h.getDataWatcher();
-    }
-
-    public static World getWorld(org.bukkit.World world) {
-        try {
-            return (World) getWorldHandle.invoke(craftWorldClass.cast(world));
+            return ((CraftWorld) world).getHandle();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -91,32 +27,31 @@ public class Versioning {
     }
 
     @SuppressWarnings("all")
-    public static WorldServer getWorldServer(org.bukkit.World world) {
+    public static ServerLevel getWorldServer(org.bukkit.World world) {
         return getWorld(world).getMinecraftWorld();
     }
 
     @SuppressWarnings("all")
     public static MinecraftServer getMinecraftServer(org.bukkit.World world) {
-        return getWorld(world).getMinecraftServer();
+        return getWorld(world).getServer();
     }
 
-    public static EntityPlayer getPlayer(Player player) {
+    public static ServerPlayer getPlayer(Player player) {
         try {
-            return (EntityPlayer) getPlayerHandle.invoke(craftPlayerClass.cast(player.getPlayer()));
+            return ((CraftPlayer) player).getHandle();
         } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    @SuppressWarnings("all")
-    public static PlayerConnection getConnection(Player player) {
-        return getPlayer(player).b;
+    public static Connection getConnection(Player player) {
+        return getPlayer(player).connection.getConnection();
     }
 
     public static GameProfile getGameProfile(Player player) {
         try {
-            return (GameProfile) getProfile.invoke(craftPlayerClass.cast(player.getPlayer()));
+            return getPlayer(player).getGameProfile();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -142,19 +77,13 @@ public class Versioning {
         return newProf;
     }
 
-    @SuppressWarnings("all")
-    public static PacketPlayOutEntityDestroy newDestroyPacket(int entityId) {
-        try {
-            return PacketPlayOutEntityDestroy.class.getConstructor(int.class).newInstance(entityId);
-        } catch (Exception ignored) {
-            // e.printStackTrace();
-        }
-        return new PacketPlayOutEntityDestroy(entityId);
+    public static ClientboundRemoveEntitiesPacket newDestroyPacket(int entityId) {
+            return new ClientboundRemoveEntitiesPacket(entityId);
     }
 
     public static ItemStack getItemStack(org.bukkit.inventory.ItemStack bukkit) {
         try {
-            return (ItemStack) getNmsCopy.invoke(null, bukkit);
+            return CraftItemStack.asNMSCopy(bukkit);
         } catch (Exception e) {
             e.printStackTrace();
         }

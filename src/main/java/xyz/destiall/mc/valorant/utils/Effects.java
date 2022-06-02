@@ -3,15 +3,15 @@ package xyz.destiall.mc.valorant.utils;
 import com.github.fierioziy.particlenativeapi.api.ParticleNativeAPI;
 import com.github.fierioziy.particlenativeapi.api.Particles_1_13;
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.core.Vector3f;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityDestroy;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityEquipment;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityMetadata;
-import net.minecraft.network.protocol.game.PacketPlayOutEntityTeleport;
-import net.minecraft.network.protocol.game.PacketPlayOutSpawnEntityLiving;
-import net.minecraft.server.network.PlayerConnection;
-import net.minecraft.world.entity.EnumItemSlot;
-import net.minecraft.world.entity.decoration.EntityArmorStand;
+import net.minecraft.core.Rotations;
+import net.minecraft.network.Connection;
+import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
+import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
+import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
+import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
+import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.decoration.ArmorStand;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -116,6 +116,11 @@ public class Effects {
         }
     }
 
+    public static void showDust(VPlayer player, Location location, Color color) {
+        Object dust = PARTICLES.DUST().color(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, 2).packet(true, location);
+        PARTICLES.sendPacket(player.getPlayer(), dust);
+    }
+
     public static void shockDart(Location location) {
         for (Vector vect : SMOKE_SPHERE) {
             location.add(vect);
@@ -145,7 +150,7 @@ public class Effects {
             double x = vect.getX() * radius;
             double z = vect.getZ() * radius;
             location.add(x, 0, z);
-            Object dust = PARTICLES.DUST().color(0.0f, 0.5f, 0.5f, 1).packet(true, location);
+            Object dust = PARTICLES.DUST().color(0.0f, 0.5f, 0.5f, 2).packet(true, location);
             PARTICLES.sendPacket(location, 10, dust);
             location.subtract(x, 0, z);
         }
@@ -158,17 +163,17 @@ public class Effects {
     }
 
     public static ScheduledTask smoke(Match match, Location location, Agent type, double duration) {
-        final Set<EntityArmorStand> asList = new HashSet<>();
+        final Set<ArmorStand> asList = new HashSet<>();
         for (Vector vect : type.equals(Agent.CYPHER) ? SMOKE_CYLINDER : SMOKE_SPHERE) {
             location.add(vect);
             location.setDirection(vect);
-            EntityArmorStand as = getSmokeArmorStand(location.clone(), type);
+            ArmorStand as = getSmokeArmorStand(location.clone(), type);
             sendArmorStand(as, match, type);
             asList.add(as);
             location.subtract(vect);
         }
         return Scheduler.delay(() -> {
-            for (final EntityArmorStand as : asList) {
+            for (final ArmorStand as : asList) {
                 removeArmorStand(as, match);
             }
             asList.clear();
@@ -209,8 +214,9 @@ public class Effects {
     }
 
     public static ScheduledTask wall(Match match, Location origin, Vector direction, Agent type, double l, double h, double d) {
-        final Vector dir = direction.clone().normalize();
+        final Vector dir = direction.normalize();
         final Set<Vector> locationList = new HashSet<>();
+        origin.subtract(0, 2, 0);
         for (double i = 0; i <= l; i += 0.6) {
             Vector vect = new Vector(-dir.getX() * i, 0, -dir.getZ() * i);
             Location location = origin.clone().subtract(0, 2, 0).add(vect);
@@ -224,16 +230,16 @@ public class Effects {
                 locationList.add(vectt.clone());
             }
         }
-        final Set<EntityArmorStand> asList = new HashSet<>();
+        final Set<ArmorStand> asList = new HashSet<>();
         for (Vector vect : locationList) {
             Location loc = origin.clone().add(vect).clone();
-            EntityArmorStand as = getSmokeArmorStand(loc, type);
+            ArmorStand as = getSmokeArmorStand(loc, type);
             sendArmorStand(as, match, type);
             teleportArmorStand(loc, as, match);
             asList.add(as);
         }
         return Scheduler.delay(() -> {
-            for (EntityArmorStand as : asList) {
+            for (ArmorStand as : asList) {
                 removeArmorStand(as, match);
             }
             asList.clear();
@@ -243,24 +249,24 @@ public class Effects {
     public static ScheduledTask flash(VPlayer player, Agent type, double duration) {
         Location location = player.getEyeLocation();
         player.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, (int) duration + 2, 1));
-        final Set<EntityArmorStand> asList = new HashSet<>();
+        final Set<ArmorStand> asList = new HashSet<>();
         for (Vector vect : FLASH_SPHERE) {
             location.add(vect);
             location.setDirection(vect);
-            EntityArmorStand as = getFlashArmorStand(location, type);
+            ArmorStand as = getFlashArmorStand(location, type);
             sendArmorStand(as, player);
             asList.add(as);
             location.subtract(vect);
         }
         final ScheduledTask task = Scheduler.repeat(() -> {
-            for (EntityArmorStand as : asList) {
-                Location loc = new Location(player.getPlayer().getWorld(), as.locX(), as.locY(), as.locZ());
+            for (ArmorStand as : asList) {
+                Location loc = new Location(player.getPlayer().getWorld(), as.getX(), as.getY(), as.getZ());
                 Vector dist = player.getEyeLocation().subtract(loc).toVector();
                 teleportArmorStand(loc.add(dist), as, player.getPlayer());
             }
         }, 1L);
         return Scheduler.delay(() -> {
-            for (EntityArmorStand as : asList) {
+            for (ArmorStand as : asList) {
                 removeArmorStand(as, player.getPlayer());
             }
             asList.clear();
@@ -268,108 +274,97 @@ public class Effects {
         }, (long) (duration * 20L));
     }
 
-    private static EntityArmorStand createArmorStand(Location location) {
-        EntityArmorStand as = new EntityArmorStand(Versioning.getWorld(location.getWorld()), location.getX(), location.getY(), location.getZ());
+    private static ArmorStand createArmorStand(Location location) {
+        ArmorStand as = new ArmorStand(Versioning.getWorld(location.getWorld()), location.getX(), location.getY(), location.getZ());
         as.setNoGravity(true);
         as.setInvisible(true);
         as.setMarker(true);
-        as.setRightArmPose(new Vector3f((float) Math.toRadians(location.getPitch() - 10), 0f, 0f));
+        as.setRightArmPose(new Rotations((float) Math.toRadians(location.getPitch() - 10), 0f, 0f));
         return as;
     }
 
-    public static EntityArmorStand getSmokeArmorStand(Location location, Agent type) {
-        EntityArmorStand as = createArmorStand(location);
+    public static ArmorStand getSmokeArmorStand(Location location, Agent type) {
+        ArmorStand as = createArmorStand(location);
         as.setSmall(false);
-        as.setHeadPose(new Vector3f((float)location.getDirection().getX(), (float)location.getDirection().getY(), (float)location.getDirection().getZ()));
+        as.setHeadPose(new Rotations((float)location.getDirection().getX(), (float)location.getDirection().getY(), (float)location.getDirection().getZ()));
         return as;
     }
 
-    public static EntityArmorStand getFlashArmorStand(Location location, Agent type) {
-        EntityArmorStand as = getSmokeArmorStand(location, type);
+    public static ArmorStand getFlashArmorStand(Location location, Agent type) {
+        ArmorStand as = getSmokeArmorStand(location, type);
         as.setSmall(true);
         return as;
     }
 
-    public static EntityArmorStand getBladeStormArmorStand(Location location) {
-        EntityArmorStand as = createArmorStand(location);
-        as.setArms(true);
+    public static ArmorStand getBladeStormArmorStand(Location location) {
+        ArmorStand as = createArmorStand(location);
+        as.setShowArms(true);
         as.setSmall(true);
-        as.setSlot(EnumItemSlot.a, Versioning.getItemStack(new ItemStack(Material.DIAMOND_SWORD)));
+        as.setItemSlot(EquipmentSlot.MAINHAND, Versioning.getItemStack(new ItemStack(Material.DIAMOND_SWORD)));
         return as;
     }
 
-    public static void removeArmorStand(EntityArmorStand e, Match match) {
-        PacketPlayOutEntityDestroy packet = new PacketPlayOutEntityDestroy(e.getId());
+    public static void removeArmorStand(ArmorStand e, Match match) {
+        ClientboundRemoveEntitiesPacket packet = Versioning.newDestroyPacket(e.getId());
         Collection<VPlayer> list = match.getPlayers().values();
         for (VPlayer player : list) {
-            PlayerConnection connection = Versioning.getConnection(player.getPlayer());
-            connection.sendPacket(packet);
+            Connection connection = Versioning.getConnection(player.getPlayer());
+            connection.send(packet);
         }
     }
 
-    public static void removeArmorStand(EntityArmorStand e, Player player) {
-        PacketPlayOutEntityDestroy packet = Versioning.newDestroyPacket(e.getId());
-        PlayerConnection connection = Versioning.getConnection(player);
-        connection.sendPacket(packet);
+    public static void removeArmorStand(ArmorStand e, Player player) {
+        ClientboundRemoveEntitiesPacket packet = Versioning.newDestroyPacket(e.getId());
+        Connection connection = Versioning.getConnection(player);
+        connection.send(packet);
     }
 
-    public static void sendArmorStand(EntityArmorStand e, Match match, Agent agent) {
-        PacketPlayOutSpawnEntityLiving packet = new PacketPlayOutSpawnEntityLiving(e);
-        PacketPlayOutEntityEquipment equip = new PacketPlayOutEntityEquipment(e.getId(), List.of(Pair.of(EnumItemSlot.f, Versioning.getItemStack(new ItemStack(agent.WOOL)))));
-        PacketPlayOutEntityMetadata metadata = new PacketPlayOutEntityMetadata(e.getId(), e.getDataWatcher(), true);
+    public static void sendArmorStand(ArmorStand e, Match match, Agent agent) {
+        sendArmorStand(e, match, EquipmentSlot.HEAD, new ItemStack(agent.WOOL));
+    }
+
+    public static void sendArmorStand(ArmorStand e, Match match, ItemStack item) {
+        sendArmorStand(e, match, EquipmentSlot.HEAD, item);
+    }
+
+    public static void sendArmorStand(ArmorStand e, Match match, EquipmentSlot slot, ItemStack item) {
+        ClientboundAddEntityPacket packet = new  ClientboundAddEntityPacket(e);
+        ClientboundSetEquipmentPacket equip = new ClientboundSetEquipmentPacket(e.getId(), List.of(Pair.of(slot, Versioning.getItemStack(item))));
+        ClientboundSetEntityDataPacket metadata = new ClientboundSetEntityDataPacket(e.getId(), e.getEntityData(), true);
         Collection<VPlayer> list = match.getPlayers().values();
         for (VPlayer player : list) {
-            PlayerConnection connection = Versioning.getConnection(player.getPlayer());
-            connection.sendPacket(packet);
-            connection.sendPacket(metadata);
-            Scheduler.delay(() -> connection.sendPacket(equip), 2L);
+            Connection connection = Versioning.getConnection(player.getPlayer());
+            connection.send(packet);
+            connection.send(metadata);
+            Scheduler.delay(() -> connection.send(equip), 2L);
         }
     }
 
-    public static void sendArmorStand(EntityArmorStand e, Match match, ItemStack item) {
-        sendArmorStand(e, match, EnumItemSlot.a, item);
+    public static void sendArmorStand(ArmorStand e, VPlayer player) {
+        ClientboundAddEntityPacket packet = new  ClientboundAddEntityPacket(e);
+        ClientboundSetEquipmentPacket equip = new ClientboundSetEquipmentPacket(e.getId(), List.of(Pair.of(EquipmentSlot.HEAD, Versioning.getItemStack(new ItemStack(player.getAgent().WOOL)))));
+        ClientboundSetEntityDataPacket metadata = new ClientboundSetEntityDataPacket(e.getId(), e.getEntityData(), true);
+        Connection connection = Versioning.getConnection(player.getPlayer());
+        connection.send(packet);
+        connection.send(metadata);
+        Scheduler.delay(() -> connection.send(equip), 2L);
     }
 
-    public static void sendArmorStand(EntityArmorStand e, Match match, EnumItemSlot slot, ItemStack item) {
-        PacketPlayOutSpawnEntityLiving packet = new PacketPlayOutSpawnEntityLiving(e);
-        PacketPlayOutEntityEquipment equip = new PacketPlayOutEntityEquipment(e.getId(), List.of(Pair.of(slot, Versioning.getItemStack(item))));
-        PacketPlayOutEntityMetadata metadata = new PacketPlayOutEntityMetadata(e.getId(), e.getDataWatcher(), true);
+    public static void teleportArmorStand(Location loc, ArmorStand e, Match match) {
+        e.setPos(loc.getX(), loc.getY(), loc.getZ());
+        ClientboundTeleportEntityPacket packet = new ClientboundTeleportEntityPacket(e);
         Collection<VPlayer> list = match.getPlayers().values();
         for (VPlayer player : list) {
-            PlayerConnection connection = Versioning.getConnection(player.getPlayer());
-            connection.sendPacket(packet);
-            connection.sendPacket(metadata);
-            Scheduler.delay(() -> connection.sendPacket(equip), 2L);
+            Connection connection = Versioning.getConnection(player.getPlayer());
+            connection.send(packet);
         }
     }
 
-    public static void sendArmorStand(EntityArmorStand e, VPlayer player) {
-        PacketPlayOutSpawnEntityLiving packet = new PacketPlayOutSpawnEntityLiving(e);
-        PacketPlayOutEntityMetadata metadata = new PacketPlayOutEntityMetadata(e.getId(), e.getDataWatcher(), true);
-        PacketPlayOutEntityEquipment equip = new PacketPlayOutEntityEquipment(e.getId(), List.of(Pair.of(EnumItemSlot.f, Versioning.getItemStack(new ItemStack(player.getAgent().WOOL)))));
-        PlayerConnection connection = Versioning.getConnection(player.getPlayer());
-        connection.sendPacket(packet);
-        connection.sendPacket(metadata);
-        Scheduler.delay(() -> connection.sendPacket(equip), 2L);
-    }
-
-    public static void teleportArmorStand(Location loc, EntityArmorStand e, Match match) {
-        e.setLocation(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
-        e.setPosition(loc.getX(), loc.getY(), loc.getZ());
-        PacketPlayOutEntityTeleport packet = new PacketPlayOutEntityTeleport(e);
-        Collection<VPlayer> list = match.getPlayers().values();
-        for (VPlayer player : list) {
-            PlayerConnection connection = Versioning.getConnection(player.getPlayer());
-            connection.sendPacket(packet);
-        }
-    }
-
-    public static void teleportArmorStand(Location loc, EntityArmorStand e, Player player) {
-        e.setLocation(loc.getX(), loc.getY(), loc.getZ(), loc.getYaw(), loc.getPitch());
-        e.setPosition(loc.getX(), loc.getY(), loc.getZ());
-        PacketPlayOutEntityTeleport packet = new PacketPlayOutEntityTeleport(e);
-        PlayerConnection connection = Versioning.getConnection(player);
-        connection.sendPacket(packet);
+    public static void teleportArmorStand(Location loc, ArmorStand e, Player player) {
+        e.setPos(loc.getX(), loc.getY(), loc.getZ());
+        ClientboundTeleportEntityPacket packet = new ClientboundTeleportEntityPacket(e);
+        Connection connection = Versioning.getConnection(player.getPlayer());
+        connection.send(packet);
     }
 
     public static void disable() {

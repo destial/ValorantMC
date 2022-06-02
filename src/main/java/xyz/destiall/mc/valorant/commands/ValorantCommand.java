@@ -1,6 +1,5 @@
 package xyz.destiall.mc.valorant.commands;
 
-import org.apache.logging.log4j.util.Strings;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -88,6 +87,6 @@ public class ValorantCommand implements CommandExecutor, TabExecutor {
     }
 
     public static void sendCommands(SubCommand command, CommandSender sender) {
-        sender.sendMessage(ChatColor.RED + "Possible commands: " + Strings.join(command.getSubCommands(), ','));
+        sender.sendMessage(ChatColor.RED + "Possible commands: " + String.join(",", command.getSubCommands().stream().map(SubCommand::getName).collect(Collectors.toList())));
     }
 }

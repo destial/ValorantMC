@@ -7,6 +7,7 @@ import xyz.destiall.mc.valorant.commands.SubCommand;
 public class StartCommand extends SubCommand {
     public StartCommand() {
         super("start");
+        permission = "valorant.match.start";
     }
 
     @Override

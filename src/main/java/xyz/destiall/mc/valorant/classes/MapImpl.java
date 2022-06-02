@@ -113,7 +113,7 @@ public class MapImpl implements Map {
                 for (double y = bounds.getMinY(); y <= bounds.getMaxY(); ++y) {
                     for (double z = bounds.getMinZ(); z <=bounds.getMaxZ(); ++z) {
                         Block block = world.getBlockAt((int)x, (int)y, (int)z);
-                        if (block.getType().equals(Material.BLUE_STAINED_GLASS)) {
+                        if (block.getType() == Material.BLUE_STAINED_GLASS) {
                             block.setType(Material.AIR);
                         }
                     }
@@ -129,7 +129,7 @@ public class MapImpl implements Map {
                 for (double y = bounds.getMinY(); y <= bounds.getMaxY(); ++y) {
                     for (double z = bounds.getMinZ(); z <=bounds.getMaxZ(); ++z) {
                         Block block = world.getBlockAt((int)x, (int)y, (int)z);
-                        if (block.getType().equals(Material.AIR)) {
+                        if (block.getType() == Material.AIR) {
                             block.setType(Material.BLUE_STAINED_GLASS);
                         }
                     }

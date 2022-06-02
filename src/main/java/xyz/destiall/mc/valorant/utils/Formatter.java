@@ -9,7 +9,7 @@ public class Formatter {
         long millis = duration.toMillis();
         double m = 0, s;
         s = millis / 1000D;
-        millis -= ((int) s * 1000);
+        millis -= ((int) s * 1000L);
         while (s > 60D) {
             m++;
             s -= 60D;

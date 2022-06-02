@@ -6,8 +6,9 @@ authors: [ destiall ]
 description: Valorant in Minecraft!
 depend:
   - WorldEdit
-  - CrackShot
   - ProtocolLib
+softdepend:
+  - CrackShot
 commands:
   valorant:
     aliases:

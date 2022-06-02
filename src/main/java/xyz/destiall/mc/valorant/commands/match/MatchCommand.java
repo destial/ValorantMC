@@ -10,7 +10,7 @@ import java.util.Arrays;
 public class MatchCommand extends SubCommand {
     public MatchCommand() {
         super("match");
-        permission = "valorant.admin";
+        permission = "valorant.match";
         subCommands.add(new StartCommand());
         subCommands.add(new StopCommand());
         subCommands.add(new NewCommand());
@@ -32,7 +32,9 @@ public class MatchCommand extends SubCommand {
             ValorantCommand.sendCommands(this, player);
             return;
         }
-        cmd.runPlayer(player, Arrays.copyOfRange(args, 1, args.length));
+        if (cmd.getPermission() == null || player.hasPermission(cmd.getPermission())) {
+            cmd.runPlayer(player, Arrays.copyOfRange(args, 1, args.length));
+        }
     }
 
     @Override

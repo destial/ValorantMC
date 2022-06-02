@@ -10,6 +10,7 @@ import xyz.destiall.mc.valorant.managers.MatchManager;
 public class JoinCommand extends SubCommand {
     public JoinCommand() {
         super("join");
+        permission = "valorant.match.join";
         tab.add("attack");
         tab.add("defend");
     }
@@ -26,7 +27,7 @@ public class JoinCommand extends SubCommand {
             player.sendMessage("No available matches found!");
             return;
         }
-        if (args.length == 0) {
+        if (args.length == 0 || !player.hasPermission("valorant.match.join.team")) {
             match.join(player);
             return;
         }
@@ -35,6 +36,8 @@ public class JoinCommand extends SubCommand {
             match.joinTeam(Team.Side.ATTACKER, player);
         } else if (team.equalsIgnoreCase("defend")) {
             match.joinTeam(Team.Side.DEFENDER, player);
+        } else {
+            match.join(player);
         }
     }
 

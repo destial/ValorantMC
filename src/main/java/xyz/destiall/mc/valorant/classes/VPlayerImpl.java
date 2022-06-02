@@ -10,6 +10,8 @@ import xyz.destiall.mc.valorant.agents.cypher.CyberCage;
 import xyz.destiall.mc.valorant.agents.jett.BladeStorm;
 import xyz.destiall.mc.valorant.agents.jett.CloudBurst;
 import xyz.destiall.mc.valorant.agents.jett.Updraft;
+import xyz.destiall.mc.valorant.agents.omen.Paranoia;
+import xyz.destiall.mc.valorant.agents.omen.ShroudedStep;
 import xyz.destiall.mc.valorant.agents.phoenix.Blaze;
 import xyz.destiall.mc.valorant.agents.reyna.Leer;
 import xyz.destiall.mc.valorant.api.abilities.Ability;
@@ -18,6 +20,7 @@ import xyz.destiall.mc.valorant.api.abilities.Ultimate;
 import xyz.destiall.mc.valorant.api.items.Gun;
 import xyz.destiall.mc.valorant.api.items.Knife;
 import xyz.destiall.mc.valorant.api.items.Team;
+import xyz.destiall.mc.valorant.api.map.Site;
 import xyz.destiall.mc.valorant.api.match.Countdown;
 import xyz.destiall.mc.valorant.api.match.Economy;
 import xyz.destiall.mc.valorant.api.match.Spike;
@@ -58,6 +61,8 @@ class VPlayerImpl implements VPlayer {
     private boolean flashed;
     private boolean usingUlt;
     private ScheduledTask diffusingTask;
+    private ScheduledTask plantingTask;
+    private ScheduledTask beforePlant;
 
     public VPlayerImpl(Player player, Team team) {
         this.player = new AtomicReference<>(player);
@@ -212,12 +217,26 @@ class VPlayerImpl implements VPlayer {
     @Override
     public void holdSpike(Spike spike) {
         this.spike = spike;
-        if (spike == null) return;
-        spike.getDrop().remove();
+        if (spike == null) {
+            getPlayer().getInventory().setItem(3, null);
+            if (beforePlant != null) {
+                beforePlant.cancel();
+                beforePlant = null;
+            }
+            return;
+        }
+        if (spike.getDrop() != null) spike.getDrop().remove();
         if (!getPlayer().isOnline()) return;
+
         getPlayer().getInventory().remove(spike.getItem());
         getPlayer().getInventory().setItem(3, spike.getItem());
         sendMessage("&cYou are holding the spike!");
+
+        beforePlant = Scheduler.repeat(() -> {
+            for (Site site : getMatch().getMap().getSites()) {
+                site.render(this, getMatch().getMap());
+            }
+        }, 5L);
     }
 
     @Override
@@ -287,6 +306,10 @@ class VPlayerImpl implements VPlayer {
             case REYNA -> abilities.put(5, new Leer(this));
             case PHOENIX -> abilities.put(5, new Blaze(this));
             case CYPHER -> abilities.put(5, new CyberCage(this));
+            case OMEN -> {
+                abilities.put(5, new Paranoia(this));
+                abilities.put(6, new ShroudedStep(this));
+            }
             default -> {}
         }
     }
@@ -330,6 +353,37 @@ class VPlayerImpl implements VPlayer {
     }
 
     @Override
+    public void setPlanting(boolean planting) {
+        Spike sp = getMatch().getSpike();
+        if (planting && plantingTask == null) {
+            String s = "█";
+            plantingTask = Scheduler.repeat(() -> {
+                StringBuilder builder = new StringBuilder();
+                float t = sp.getPlant();
+                for (float i = 0; i < 10; i++) {
+                    ChatColor color = ChatColor.GRAY;
+                    if (i / 10f <= t) {
+                        color = ChatColor.BLUE;
+                    }
+                    builder.append(color).append(s);
+                }
+                getPlayer().sendTitle(builder.toString(), null, 0, 2, 0);
+                sp.setPlant(t + 1 / 75f);
+                getInventory().setHeldItemSlot(3);
+                if (sp.getPlant() >= 1f) {
+                    sp.place(this, getLocation());
+                    sp.setPlant(1f);
+                }
+            }, 1L);
+            return;
+        }
+        if (!planting && plantingTask != null) {
+            plantingTask.cancel();
+            plantingTask = null;
+        }
+    }
+
+    @Override
     public void rejoin(Player player) {
         this.player.set(player);
         if (isDead()) {
@@ -367,6 +421,11 @@ class VPlayerImpl implements VPlayer {
     @Override
     public boolean isDiffusing() {
         return diffusingTask != null;
+    }
+
+    @Override
+    public boolean isPlanting() {
+        return plantingTask != null;
     }
 
     @Override

@@ -7,6 +7,7 @@ import xyz.destiall.mc.valorant.commands.SubCommand;
 public class StopCommand extends SubCommand {
     public StopCommand() {
         super("stop");
+        permission = "valorant.match.stop";
     }
 
     @Override
