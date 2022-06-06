@@ -5,6 +5,7 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import xyz.destiall.mc.valorant.api.events.match.MatchTerminateEvent;
+import xyz.destiall.mc.valorant.api.items.Drop;
 import xyz.destiall.mc.valorant.api.items.Gun;
 import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.api.map.Map;
@@ -17,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public interface Match extends Modular {
     int getID();
@@ -25,7 +27,7 @@ public interface Match extends Modular {
     List<Round> getRounds();
     Map getMap();
     Spike getSpike();
-    HashMap<Item, Gun> getDroppedGuns();
+    ConcurrentHashMap<Item, Drop> getDroppedItems();
     boolean isBuyPeriod();
     boolean isWaitingForPlayers();
     boolean isOver();
@@ -51,6 +53,7 @@ public interface Match extends Modular {
     default boolean isComplete() {
         if (getRound() == null) return false;
         return getRound().getNumber() > 12 &&
+                (getAttacker().getScore() > 12 || getDefender().getScore() > 12) &&
                 (getAttacker().getScore() > getDefender().getScore() + 1 ||
                  getDefender().getScore() > getAttacker().getScore() + 1);
     }
@@ -88,16 +91,16 @@ public interface Match extends Modular {
     default void callEvent(Event event) {
         Bukkit.getPluginManager().callEvent(event);
     }
+
     default Team getAttacker() {
-        return getTeams().stream().filter(t -> t.getSide().equals(Team.Side.ATTACKER)).findFirst().orElse(null);
+        return getTeams().stream().filter(t -> t.getSide() == Team.Side.ATTACKER).findFirst().orElse(null);
     }
     default Team getDefender() {
-        return getTeams().stream().filter(t -> t.getSide().equals(Team.Side.DEFENDER)).findFirst().orElse(null);
+        return getTeams().stream().filter(t -> t.getSide() == Team.Side.DEFENDER).findFirst().orElse(null);
     }
 
     default Team getOtherTeam(Team team) {
-        if (team.getSide().equals(Team.Side.ATTACKER)) return getDefender();
-        return getAttacker();
+        return team.getSide() == Team.Side.ATTACKER ? getDefender() : getAttacker();
     }
 
     enum MatchState {

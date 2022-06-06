@@ -16,11 +16,12 @@ import xyz.destiall.mc.valorant.utils.Scheduler;
 import xyz.destiall.mc.valorant.utils.Shooter;
 
 import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class GunListener implements Listener {
-    private final HashMap<Player, Boolean> list = new HashMap<>();
-    private final HashMap<Player, Boolean> list2 = new HashMap<>();
-    private final HashMap<Player, ScheduledTask> tasks = new HashMap<>();
+    private final ConcurrentHashMap<Player, Boolean> list = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Player, Boolean> list2 = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Player, ScheduledTask> tasks = new ConcurrentHashMap<>();
 
     @EventHandler
     public void onGunInteract(PlayerInteractEvent e) {
@@ -58,7 +59,7 @@ public class GunListener implements Listener {
                         list.put(e.getPlayer(), false);
                         if (list2.get(e.getPlayer())) return;
                         list2.put(e.getPlayer(), true);
-                        Shooter.shoot(e.getPlayer(), e.getPlayer().getEyeLocation(), e.getPlayer().getLocation().getDirection(), finalDmg, 0);
+                        Shooter.shoot(e.getPlayer(), e.getPlayer().getEyeLocation(), e.getPlayer().getLocation().getDirection(), finalDmg, 0, false);
                         t.cancel();
                     } else if (!e.getPlayer().getInventory().getItemInMainHand().equals(e.getItem())) {
                         list.put(e.getPlayer(), false);

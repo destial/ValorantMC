@@ -1,13 +1,16 @@
 package xyz.destiall.mc.valorant.agents.cypher;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
@@ -35,16 +38,23 @@ public class CyberCage extends Ability implements Smoke, Listener {
         finalLoc = null;
         team = player.getTeam();
         trigger = Trigger.RIGHT;
+        maxUses = 3;
+
+        item = new ItemStack(Material.IRON_BARS);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ChatColor.GRAY + getName());
+        item.setItemMeta(meta);
     }
 
     @Override
     public void use() {
+        Bukkit.getPluginManager().registerEvents(this, Valorant.getInstance().getPlugin());
         appear(player.getLocation().subtract(new Vector(0, -2, 0)));
     }
 
     @Override
     public String getName() {
-        return null;
+        return "Cyber Cage";
     }
 
     @Override
@@ -55,13 +65,8 @@ public class CyberCage extends Ability implements Smoke, Listener {
     }
 
     @Override
-    public ItemStack getShopDisplay() {
-        return null;
-    }
-
-    @Override
     public Integer getPrice() {
-        return null;
+        return 150;
     }
 
     @Override
@@ -85,11 +90,11 @@ public class CyberCage extends Ability implements Smoke, Listener {
                 VPlayer p = MatchManager.getInstance().getPlayer(e.getPlayer());
                 if (p == null) return;
                 if (p.getTeam() == team) return;
-                p.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 2, 1));
+                p.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 40, 1));
                 return;
             }
             Player player = e.getPlayer();
-            player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 2, 1));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 40, 1));
         }
     }
 

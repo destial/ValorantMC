@@ -20,19 +20,19 @@ public interface Modular {
         getModules().add(module);
     }
 
-    default <N extends Module> void removeModule(Class<N> key) {
-        if (!hasModule(key)) return;
+    default <N extends Module> boolean removeModule(Class<N> key) {
+        if (!hasModule(key)) return false;
         N module = getModule(key);
-        removeModule(module);
+        return removeModule(module);
     }
 
-    default void removeModule(Module module) {
-        if (!hasModule(module.getClass())) return;
+    default boolean removeModule(Module module) {
+        if (!hasModule(module.getClass())) return false;
         module.destroy();
         if (module instanceof Listener) {
             HandlerList.unregisterAll((Listener) module);
         }
-        getModules().remove(module);
+        return getModules().remove(module);
     }
 
     default <N extends Module> boolean hasModule(Class<N> key) {

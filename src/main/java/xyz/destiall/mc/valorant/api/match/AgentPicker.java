@@ -45,7 +45,8 @@ public class AgentPicker implements Listener, Module {
     public void setup() {
         int original = 0;
         int i = original;
-        for (Agent agent : Agent.values()) {
+        Agent[] agents = new Agent[] { Agent.JETT, Agent.REYNA, Agent.PHOENIX, Agent.OMEN, Agent.CYPHER }; //Agent.values();
+        for (Agent agent : agents) {
             if (i >= inventory.getSize()) {
                 i = ++original;
             }
@@ -57,12 +58,11 @@ public class AgentPicker implements Listener, Module {
             slots.get(Team.Side.DEFENDER).add(i);
             i += 9;
         }
-
-        original = 6;
+        original = 8;
         i = original;
-        for (Agent agent : Agent.values()) {
+        for (Agent agent : agents) {
             if (i >= inventory.getSize()) {
-                i = ++original;
+                i = --original;
             }
             ItemStack stack = agent.getHead();
             ItemMeta meta = stack.getItemMeta();
@@ -129,14 +129,18 @@ public class AgentPicker implements Listener, Module {
                 p.chooseAgent(p.getAgent());
                 return;
             } else if (item.getType() == Material.STONE_BUTTON) {
-                Collection<VPlayer> list = match.getPlayers().values();
-                for (VPlayer player : list) {
-                    player.chooseAgent(player.getAgent());
+                if (p.getPlayer().hasPermission("valorant.admin")) {
+                    Collection<VPlayer> list = match.getPlayers().values();
+                    for (VPlayer player : list) {
+                        player.chooseAgent(player.getAgent());
+                    }
+                    match.start(true);
+                } else {
+                    p.sendMessage("&cYou do not have permission to force start!");
                 }
-                match.start(true);
                 return;
             } else if (item.getType() == Material.OAK_DOOR) {
-                if (choices.get(p.getUUID()) != null && p.getAgent() != null) {
+                if (choices.get(uuid) != null && p.getAgent() != null) {
                     Agent prevAgent = p.getAgent();
                     Integer slot = choices.get(uuid);
                     ItemStack prevItem = prevAgent.getHead();
@@ -148,7 +152,7 @@ public class AgentPicker implements Listener, Module {
                 viewers.remove(p.getUUID());
                 choices.remove(p.getUUID());
                 lockedIn.remove(p.getUUID());
-                p.leave();
+                p.leave(false);
                 return;
             } else if (item.getType() == Material.BARRIER) {
                 return;

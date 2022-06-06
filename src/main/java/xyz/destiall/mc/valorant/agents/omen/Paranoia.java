@@ -49,8 +49,6 @@ public class Paranoia extends Ability {
                 remove();
             }
         }, 1L);
-        ItemStack inc = player.getPlayer().getInventory().getItem(5);
-        inc.setAmount(inc.getAmount() - 1);
     }
 
     @Override
@@ -61,11 +59,6 @@ public class Paranoia extends Ability {
     @Override
     public void remove() {
         if (travelTask != null) travelTask.cancel();
-    }
-
-    @Override
-    public ItemStack getShopDisplay() {
-        return item.clone();
     }
 
     @Override

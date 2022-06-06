@@ -36,10 +36,10 @@ public class CSItemFactory {
         CS_WEAPON_CONFIG.set(gun.getName().name() + ".Shooting.Remove_Arrows_On_Impact", true);
         CS_WEAPON_CONFIG.set(gun.getName().name() + ".Shooting.Remove_Bullet_Drop", true);
         CS_WEAPON_CONFIG.set(gun.getName().name() + ".Shooting.Projectile_Amount", 1);
-        CS_WEAPON_CONFIG.set(gun.getName().name() + ".Shooting.Projectile_Type", "arrow");
-        CS_WEAPON_CONFIG.set(gun.getName().name() + ".Shooting.Projectile_Speed", 100);
+        CS_WEAPON_CONFIG.set(gun.getName().name() + ".Shooting.Projectile_Type", "snowball");
+        CS_WEAPON_CONFIG.set(gun.getName().name() + ".Shooting.Projectile_Speed", 50);
         CS_WEAPON_CONFIG.set(gun.getName().name() + ".Shooting.Projectile_Damage", gun.getDamage());
-        CS_WEAPON_CONFIG.set(gun.getName().name() + ".Shooting.Bullet_Spread", 0.5);
+        CS_WEAPON_CONFIG.set(gun.getName().name() + ".Shooting.Bullet_Spread", 1f / gun.getFireSpeed());
         CS_WEAPON_CONFIG.set(gun.getName().name() + ".Shooting.Sounds_Shoot", "IRONGOLEM_HIT-1-2-0,SKELETON_HURT-1-2-0,ZOMBIE_WOOD-1-2-0");
 
         CS_WEAPON_CONFIG.set(gun.getName().name() + ".Sneak.Enable", true);

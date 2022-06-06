@@ -64,11 +64,6 @@ public class CloudBurst extends Ability implements Smoke {
     }
 
     @Override
-    public ItemStack getShopDisplay() {
-        return item.clone();
-    }
-
-    @Override
     public Integer getPrice() {
         return 400;
     }

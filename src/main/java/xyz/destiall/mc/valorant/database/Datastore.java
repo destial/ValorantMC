@@ -91,7 +91,7 @@ public class Datastore {
         try {
             PreparedStatement statement = connection.prepareStatement(Query.INSERT_PLAYER);
             statement.setString(1, player.getUUID().toString());
-            statement.setString(2, player.getStats().toJSON());
+            statement.setString(2, player.getStats().toJSON().toString());
             statement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -102,7 +102,7 @@ public class Datastore {
         if (connection == null) return;
         try {
             PreparedStatement statement = connection.prepareStatement(Query.UPDATE_PLAYER);
-            statement.setString(1, player.getStats().toJSON());
+            statement.setString(1, player.getStats().toJSON().toString());
             statement.setString(2, player.getUUID().toString());
             statement.executeUpdate();
         } catch (SQLException e) {
@@ -115,7 +115,7 @@ public class Datastore {
         try {
             PreparedStatement statement = connection.prepareStatement(Query.INSERT_MATCH);
             statement.setString(1, result.getUUID().toString());
-            statement.setString(2, result.toJSON());
+            statement.setString(2, result.toJSON().toString());
             statement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();

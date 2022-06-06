@@ -8,13 +8,13 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.block.Block;
 import org.bukkit.block.Skull;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
@@ -22,6 +22,7 @@ import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import xyz.destiall.mc.valorant.Valorant;
+import xyz.destiall.mc.valorant.api.events.player.DeathEvent;
 import xyz.destiall.mc.valorant.api.events.spike.SpikeDefuseEvent;
 import xyz.destiall.mc.valorant.api.events.spike.SpikeDetonateEvent;
 import xyz.destiall.mc.valorant.api.events.spike.SpikePlaceEvent;
@@ -39,7 +40,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class Spike implements Module, Listener {
     private final Match match;
@@ -50,6 +51,7 @@ public class Spike implements Module, Listener {
     private float diffuse;
     private float plant;
     private ScheduledTask place;
+    private Block block;
 
     public Spike(Match match) {
         this.match = match;
@@ -70,7 +72,10 @@ public class Spike implements Module, Listener {
         player.setPlanting(false);
         player.holdSpike(null);
         plantedLocation = location;
-        location.getBlock().setType(item.getType());
+        block = plantedLocation.getBlock();
+        block.setType(item.getType());
+        Location pl = block.getLocation().add(0.5, 0, 0.5);
+        location.getWorld().playSound(pl, Sound.BLOCK_ANVIL_LAND, 10, 1);
         Skull skull = (Skull) location.getBlock().getState();
         try {
             Field profileField = skull.getClass().getDeclaredField("profile");
@@ -88,17 +93,43 @@ public class Spike implements Module, Listener {
 
         skull.setRawData((byte) 1);
         match.callEvent(new SpikePlaceEvent(this));
-        Countdown c = new Countdown(Countdown.Context.AFTER_SPIKE);
-        Collection<VPlayer> list = match.getPlayers().values();
-        list.forEach(p -> {
-            c.getBossBar().addPlayer(p.getPlayer());
-            p.sendMessage(Formatter.color("&bThe spike has been planted!"));
-        });
-        beep = Scheduler.repeatAsync(() -> list.forEach(p -> p.getPlayer().playSound(plantedLocation, Sound.BLOCK_LEVER_CLICK, 5f, 1f)), 20L);
-        place = Scheduler.repeatAsync(() -> Effects.spikeRing(plantedLocation.getBlock().getLocation().add(0.5, 0, 0.5), 2), 5L);
-        match.setCountdown(c);
-        c.onComplete(this::detonate);
-        c.start();
+        Countdown previousCountdown = match.getModule(Countdown.class);
+        if (previousCountdown.getContext() != Countdown.Context.ROUND_ENDING) {
+            Countdown c = new Countdown(Countdown.Context.AFTER_SPIKE);
+            Collection<VPlayer> list = match.getPlayers().values();
+            Site.Type siteType = match.getMap().getSite(plantedLocation).getSiteType();
+            list.forEach(p -> p.sendMessage(Formatter.color("&bThe spike has been planted on " + siteType.name())));
+            AtomicLong i = new AtomicLong(20);
+            setBeep(list, c, i);
+            place = Scheduler.repeatAsync(() -> Effects.spikeRing(pl, 2), 5L);
+            match.setCountdown(c);
+            c.onComplete(this::detonate);
+            c.start();
+        }
+    }
+
+    private void setBeep(Collection<VPlayer> list, Countdown c, AtomicLong i) {
+        if (beep != null) {
+            beep.setRunOnCancel(false);
+            beep.cancel();
+        }
+        beep = Scheduler.repeatAsync(() -> {
+            if (block == null) return;
+            list.forEach(p -> p.getPlayer().playSound(block.getLocation(), Sound.BLOCK_LEVER_CLICK, 5f, 1f));
+            if (c.getRemaining().getSeconds() <= 3 && i.get() > 3) {
+                i.set(1);
+                setBeep(list, c, i);
+            } else if (c.getRemaining().getSeconds() <= 5 && i.get() > 5) {
+                i.set(5);
+                setBeep(list, c, i);
+            } else if (c.getRemaining().getSeconds() <= 10 && i.get() > 10) {
+                i.set(10);
+                setBeep(list, c, i);
+            } else if (c.getRemaining().getSeconds() <= 15 && i.get() > 15) {
+                i.set(15);
+                setBeep(list, c, i);
+            }
+        }, i.get());
     }
 
     public void setDiffuse(float d) {
@@ -123,8 +154,10 @@ public class Spike implements Module, Listener {
         match.getDefender().addScore();
         match.getRound().setWinningSide(Team.Side.DEFENDER);
         match.endRound();
+        block.setType(Material.AIR);
         beep.cancel();
         place.cancel();
+        block = null;
     }
 
     public void detonate() {
@@ -134,6 +167,8 @@ public class Spike implements Module, Listener {
         match.endRound();
         beep.cancel();
         place.cancel();
+        block.setType(Material.AIR);
+        block = null;
         Effects.detonate(plantedLocation);
         AtomicInteger i = new AtomicInteger(1);
         ScheduledTask task = Scheduler.repeat(() -> {
@@ -149,7 +184,7 @@ public class Spike implements Module, Listener {
                 }
             }
         }, 1L);
-        Scheduler.delay(task::cancel, 20L * 3) ;
+        Scheduler.delay(task::cancel, 20L * 3);
     }
 
     public boolean isPlanted() {
@@ -178,7 +213,7 @@ public class Spike implements Module, Listener {
             if (e.getEntity() instanceof Player) {
                 UUID uuid = e.getEntity().getUniqueId();
                 VPlayer p = match.getPlayer(uuid);
-                if (p == null || p.getTeam().getSide().equals(Team.Side.DEFENDER)) return;
+                if (p == null || p.getTeam().getSide() == Team.Side.DEFENDER) return;
                 p.holdSpike(this);
                 setDrop(null);
             }
@@ -197,10 +232,13 @@ public class Spike implements Module, Listener {
     @EventHandler
     public void onSpikeDiffusePlant(PlayerToggleSneakEvent e) {
         VPlayer player = match.getPlayer(e.getPlayer().getUniqueId());
-        if (player == null) return;
+        if (player == null || player.isDead()) return;
+
         if (!isPlanted() && player.getTeam().getSide() == Team.Side.ATTACKER) {
             ItemStack holding = player.getInventory().getItemInMainHand();
             if (match.getMap().getSite(e.getPlayer().getLocation()) != null && holding.isSimilar(item) && e.isSneaking() && !player.isPlanting()) {
+                Location location = e.getPlayer().getLocation();
+                if (location.getBlock().getType() != Material.AIR) return;
                 player.setPlanting(true);
             } else if (!e.isSneaking() && player.isPlanting()) {
                 plant = 0;
@@ -213,6 +251,13 @@ public class Spike implements Module, Listener {
             if (plantedLocation.distanceSquared(e.getPlayer().getLocation()) > 5) return;
             if (e.isSneaking() && !player.isDiffusing()) player.setDiffusing(true);
             else if (!e.isSneaking() && player.isDiffusing()) player.setDiffusing(false);
+        }
+    }
+
+    @EventHandler
+    public void onDeath(DeathEvent e) {
+        if (e.getVictim().isPlanting()) {
+            e.getVictim().setPlanting(false);
         }
     }
 
@@ -231,8 +276,14 @@ public class Spike implements Module, Listener {
 
     @Override
     public void destroy() {
-        if (plantedLocation != null) {
-            plantedLocation.getBlock().setType(Material.AIR);
+        if (block != null) {
+            block.setType(Material.AIR);
+        }
+        if (beep != null) {
+            beep.cancel();
+        }
+        if (place != null) {
+            place.cancel();
         }
         setDrop(null);
         HandlerList.unregisterAll(this);

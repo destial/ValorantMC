@@ -46,7 +46,7 @@ public class MatchResult implements JSON {
     }
 
     @Override
-    public String toJSON() {
+    public JSONObject toJSON() {
         JSONObject object = new JSONObject();
         object.put("uuid", uuid.toString());
         JSONArray array = new JSONArray();
@@ -54,6 +54,6 @@ public class MatchResult implements JSON {
             array.put(round.toJSON());
         }
         object.put("rounds", array);
-        return object.toString();
+        return object;
     }
 }

@@ -46,7 +46,7 @@ public class ParticipantMatchResult implements JSON {
     }
 
     @Override
-    public String toJSON() {
+    public JSONObject toJSON() {
         JSONObject object = new JSONObject();
         object.put("participant", participant.toString());
         object.put("match", matchUUID.toString());
@@ -54,6 +54,6 @@ public class ParticipantMatchResult implements JSON {
         object.put("kills", kills);
         object.put("deaths", deaths);
         object.put("assists", assists);
-        return object.toString();
+        return object;
     }
 }

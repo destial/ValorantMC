@@ -1,31 +1,28 @@
 package xyz.destiall.mc.valorant.api.match;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
-import org.bukkit.boss.BossBar;
-import org.bukkit.entity.Player;
-import xyz.destiall.mc.valorant.utils.Formatter;
 import xyz.destiall.mc.valorant.utils.ScheduledTask;
 import xyz.destiall.mc.valorant.utils.Scheduler;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class Countdown implements Module {
-    private final BossBar bossBar;
+    private final List<Consumer<Duration>> events;
     private final Context context;
+
     private Runnable func;
     private Duration timer;
     private ScheduledTask repeatTask;
     private long startTime;
+
     public Countdown(Context context) {
         this.context = context;
         this.timer = Duration.ofSeconds(context.getTime());
+        events = new ArrayList<>();
         func = null;
-        bossBar = Bukkit.createBossBar(context.getTitle(), context.getColor(), BarStyle.SOLID);
-        bossBar.setVisible(true);
     }
 
     public void start() {
@@ -38,37 +35,21 @@ public class Countdown implements Module {
                 return;
             }
             startTime = System.currentTimeMillis();
-            double progress = bossBar.getProgress();
-            ChatColor c = ChatColor.WHITE;
-            if (progress < 0.25 && bossBar.getColor() != BarColor.RED) {
-                bossBar.setColor(BarColor.RED);
+            for (Consumer<Duration> event : events) {
+                event.accept(timer);
             }
-            if (progress < 0.25) {
-                c = ChatColor.RED;
-            }
-            String duration = Formatter.duration(timer);
-            if (timer.getSeconds() < 60 && timer.getSeconds() > 10) {
-                duration = Formatter.durationSeconds(timer);
-            }
-            bossBar.setTitle(context.getTitle() + c + duration);
-            bossBar.setProgress((float) timer.getSeconds() / context.getTime());
         }, 1L);
+        repeatTask.setRunOnCancel(false);
     }
 
     public void stop() {
         repeatTask.cancel();
-        List<Player> players = bossBar.getPlayers();
-        for (Player p : players) {
-            bossBar.removePlayer(p);
-        }
-        bossBar.hide();
-        bossBar.setVisible(false);
-        bossBar.removeAll();
+        events.clear();
         func = null;
     }
 
-    public BossBar getBossBar() {
-        return bossBar;
+    public Duration getRemaining() {
+        return timer;
     }
 
     public Context getContext() {
@@ -77,6 +58,10 @@ public class Countdown implements Module {
 
     public void onComplete(Runnable runnable) {
         this.func = runnable;
+    }
+
+    public void addEvent(Consumer<Duration> runnable) {
+        events.add(runnable);
     }
 
     @Override

@@ -1,6 +1,5 @@
 package xyz.destiall.mc.valorant.agents.jett;
 
-import net.minecraft.core.Rotations;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.decoration.ArmorStand;
@@ -127,10 +126,12 @@ public class BladeStorm extends Ultimate implements Listener {
             final Location loc = player.getEyeLocation();
             final Vector dir = loc.getDirection().multiply(2);
             final ArmorStand as = Effects.getBladeStormArmorStand(loc);
-            as.setRightArmPose(new Rotations((float) Math.toRadians(loc.getPitch() - 10), 0f, 0f));
             Effects.sendArmorStand(as, player.getMatch(), item);
             Effects.teleportArmorStand(loc, as, player.getMatch());
-            ArmorStand blade = blades.keySet().stream().findAny().get();
+            ArmorStand blade = blades.keySet().stream().findAny().orElse(null);
+            if (blade == null) {
+                return;
+            }
             Effects.removeArmorStand(blade, player.getMatch());
             blades.remove(blade);
             knives.put(as, Scheduler.repeat(() -> {
@@ -178,11 +179,6 @@ public class BladeStorm extends Ultimate implements Listener {
         }
         knives.clear();
         using = false;
-    }
-
-    @Override
-    public ItemStack getShopDisplay() {
-        return item.clone();
     }
 
     @Override

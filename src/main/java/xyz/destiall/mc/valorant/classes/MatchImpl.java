@@ -5,17 +5,21 @@ import org.bukkit.Location;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import xyz.destiall.mc.valorant.api.topbar.TopbarHandler;
+import xyz.destiall.mc.valorant.api.events.countdown.CountdownStartEvent;
+import xyz.destiall.mc.valorant.api.events.countdown.CountdownStopEvent;
 import xyz.destiall.mc.valorant.api.events.match.MatchCompleteEvent;
 import xyz.destiall.mc.valorant.api.events.match.MatchStartEvent;
 import xyz.destiall.mc.valorant.api.events.match.MatchTerminateEvent;
 import xyz.destiall.mc.valorant.api.events.match.SwitchingSidesEvent;
 import xyz.destiall.mc.valorant.api.events.round.RoundFinishEvent;
 import xyz.destiall.mc.valorant.api.events.round.RoundStartEvent;
-import xyz.destiall.mc.valorant.api.items.Gun;
+import xyz.destiall.mc.valorant.api.items.Drop;
 import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.api.map.Map;
 import xyz.destiall.mc.valorant.api.match.AgentPicker;
 import xyz.destiall.mc.valorant.api.match.Countdown;
+import xyz.destiall.mc.valorant.api.match.DropHandler;
 import xyz.destiall.mc.valorant.api.match.Match;
 import xyz.destiall.mc.valorant.api.match.MatchResult;
 import xyz.destiall.mc.valorant.api.match.Module;
@@ -37,13 +41,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MatchImpl implements Match {
     private final List<Module> modules = new ArrayList<>();
     private final Set<Team> teams = new HashSet<>();
     private final List<Round> rounds = new ArrayList<>();
     private final HashMap<VPlayer, ItemStack[]> inventories = new HashMap<>();
-    private final HashMap<Item, Gun> droppedGuns = new HashMap<>();
+    private final ConcurrentHashMap<Item, Drop> drops = new ConcurrentHashMap<>();
     private final Map map;
     private final int id;
     private boolean buyPeriod;
@@ -58,6 +63,7 @@ public class MatchImpl implements Match {
         teams.add(new TeamImpl(this, Team.Side.DEFENDER));
         addModule(new Shop(this));
         addModule(new AgentPicker(this));
+        addModule(new DropHandler(this));
         state = MatchState.WAITING;
     }
 
@@ -93,8 +99,8 @@ public class MatchImpl implements Match {
     }
 
     @Override
-    public HashMap<Item, Gun> getDroppedGuns() {
-        return droppedGuns;
+    public ConcurrentHashMap<Item, Drop> getDroppedItems() {
+        return drops;
     }
 
     @Override
@@ -125,7 +131,6 @@ public class MatchImpl implements Match {
     public void endRound() {
         callEvent(new RoundFinishEvent(this));
         setCountdown(null);
-        removeModule(spike);
         //removeModule(DeadBodyHandler.class);
         Collection<VPlayer> list = getPlayers().values();
         for (VPlayer p : list) {
@@ -133,21 +138,24 @@ public class MatchImpl implements Match {
         }
         if (!isComplete()) nextRound();
         else {
-            Scheduler.delay(() -> {
-                end(MatchTerminateEvent.Reason.COMPLETE);
-            }, 20L);
+            Scheduler.delay(() -> end(MatchTerminateEvent.Reason.COMPLETE), 20L);
         }
     }
 
     private void startRound() {
+        if (spike != null) {
+            removeModule(spike);
+            getModule(DropHandler.class).removeDrops();
+        }
+
         if ((float) rounds.size() / 12f == 1f || rounds.size() > 24) switchSides();
+
         buyPeriod = true;
         final Countdown startingCountdown = new Countdown(Countdown.Context.ROUND_STARTING);
         setCountdown(startingCountdown);
         map.pullUpWalls();
         Collection<VPlayer> list = getPlayers().values();
         for (VPlayer p : list) {
-            startingCountdown.getBossBar().addPlayer(p.getPlayer());
             if (rounds.size() == 0 || p.isDead() || (float) rounds.size() / 12f == 1f) {
                 if (p.getPlayer().isDead()) {
                     p.getPlayer().spigot().respawn();
@@ -157,12 +165,11 @@ public class MatchImpl implements Match {
             p.setDead(false);
             p.toTeam();
             p.getPlayer().setGameMode(GameMode.SURVIVAL);
+            p.getPlayer().setHealth(p.getPlayer().getMaxHealth());
         }
         rounds.add(new RoundImpl(rounds.size() + 1));
-        if (spike != null) spike.destroy();
-        spike = new Spike(this);
 
-        addModule(spike);
+        addModule(spike = new Spike(this));
         //addModule(new DeadBodyHandler());
         Location spawn = map.getAttackerCenter();
         Location spikeDrop = spawn.add(spawn.getDirection().multiply(3));
@@ -174,9 +181,6 @@ public class MatchImpl implements Match {
             buyPeriod = false;
             final Countdown startedCountdown = new Countdown(Countdown.Context.BEFORE_SPIKE);
             setCountdown(startedCountdown);
-            for (VPlayer p : list) {
-                startedCountdown.getBossBar().addPlayer(p.getPlayer());
-            }
             startedCountdown.start();
             startedCountdown.onComplete(() -> {
                 getDefender().addScore();
@@ -191,10 +195,6 @@ public class MatchImpl implements Match {
         if (rounds.size() != 0) {
             final Countdown c = new Countdown(Countdown.Context.ROUND_ENDING);
             setCountdown(c);
-            Collection<VPlayer> list = getPlayers().values();
-            for (VPlayer vPlayer : list) {
-                c.getBossBar().addPlayer(vPlayer.getPlayer());
-            }
             c.start();
             c.onComplete(() -> {
                 removeModule(c);
@@ -214,9 +214,8 @@ public class MatchImpl implements Match {
         callEvent(e);
         if (!e.isCancelled()) {
             addModule(new SidebarHandler(this, BukkitSidebar.class));
-            AgentPicker agentPicker = getModule(AgentPicker.class);
-            if (agentPicker == null) return false;
-            removeModule(agentPicker);
+            addModule(new TopbarHandler(this));
+            removeModule(AgentPicker.class);
             nextRound();
             return true;
         }
@@ -241,14 +240,18 @@ public class MatchImpl implements Match {
         Collection<VPlayer> list = getPlayers().values();
         for (VPlayer p : list) {
             if (!p.getPlayer().isOnline()) continue;
-            p.getPlayer().getInventory().clear();
-            p.getPlayer().teleport(loc);
             if (getWinningTeam() == p.getTeam()) {
                 p.getStats().addWin(p, result);
                 p.getStats().addXP(100);
             } else {
                 p.getStats().addLoss(p, result);
                 p.getStats().addXP(10);
+            }
+            p.getPlayer().getInventory().clear();
+            p.getPlayer().teleport(loc);
+            ItemStack[] items = inventories.get(p);
+            if (items != null) {
+                p.getPlayer().getInventory().setContents(items);
             }
             p.save();
         }
@@ -273,7 +276,7 @@ public class MatchImpl implements Match {
         if ((5 - team.getSize()) < 1) return;
         VPlayer p = new VPlayerImpl(player, team);
         team.addMember(p);
-        inventories.put(p, player.getInventory().getContents().clone());
+        inventories.put(p, player.getInventory().getContents());
         player.getInventory().clear();
         Datastore.getInstance().loadPlayer(p);
         AgentPicker picker = getModule(AgentPicker.class);
@@ -287,7 +290,7 @@ public class MatchImpl implements Match {
         if (team == null) return;
         VPlayer p = new VPlayerImpl(player, team);
         team.addMember(p);
-        inventories.put(p, player.getInventory().getContents().clone());
+        inventories.put(p, player.getInventory().getContents());
         player.getInventory().clear();
         Datastore.getInstance().loadPlayer(p);
         AgentPicker picker = getModule(AgentPicker.class);
@@ -303,7 +306,7 @@ public class MatchImpl implements Match {
         for (VPlayer p : party.getMembers()) {
             p.setTeam(team);
             team.addMember(p);
-            inventories.put(p, p.getPlayer().getInventory().getContents().clone());
+            inventories.put(p, p.getPlayer().getInventory().getContents());
             p.getPlayer().getInventory().clear();
             AgentPicker picker = getModule(AgentPicker.class);
             picker.show(p);
@@ -323,8 +326,15 @@ public class MatchImpl implements Match {
 
     @Override
     public void setCountdown(Countdown countdown) {
-        removeModule(Countdown.class);
-        if (countdown != null) addModule(countdown);
+        if (hasModule(Countdown.class)) {
+            Countdown c = getModule(Countdown.class);
+            removeModule(Countdown.class);
+            callEvent(new CountdownStopEvent(this, c));
+        }
+        if (countdown != null) {
+            addModule(countdown);
+            callEvent(new CountdownStartEvent(this, countdown));
+        }
     }
 
     @Override

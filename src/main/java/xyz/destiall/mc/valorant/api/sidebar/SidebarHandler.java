@@ -15,6 +15,7 @@ import java.util.HashSet;
 
 public class SidebarHandler implements Module, Listener {
     private final Collection<Sidebar> sidebars;
+
     public SidebarHandler(Match match, Class<? extends Sidebar> clazz) {
         sidebars = new HashSet<>();
         try {
@@ -25,7 +26,9 @@ public class SidebarHandler implements Module, Listener {
             }
         } catch (Exception e) {
             for (Team team : match.getTeams()) {
-                sidebars.add(new BukkitSidebar(team));
+                Sidebar sidebar = new BukkitSidebar(team);
+                sidebar.create();
+                sidebars.add(sidebar);
             }
         }
         Collection<VPlayer> list = match.getPlayers().values();

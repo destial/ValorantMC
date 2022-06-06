@@ -15,7 +15,7 @@ import xyz.destiall.mc.valorant.listeners.GunListener;
 import xyz.destiall.mc.valorant.listeners.InventoryListener;
 import xyz.destiall.mc.valorant.listeners.MatchListener;
 import xyz.destiall.mc.valorant.listeners.SovaListener;
-import xyz.destiall.mc.valorant.listeners.TestListener;
+import xyz.destiall.mc.valorant.listeners.CSListener;
 import xyz.destiall.mc.valorant.managers.AbilityManager;
 import xyz.destiall.mc.valorant.managers.ConfigManager;
 import xyz.destiall.mc.valorant.managers.MapManager;
@@ -47,6 +47,10 @@ public final class Valorant {
         return plugin;
     }
 
+    public static Plugin plugin() {
+        return getInstance().getPlugin();
+    }
+
     public void disable() {
         AbilityManager.stopAll();
         Debugger.debug("------ Unloaded AbilityManager ------");
@@ -58,6 +62,7 @@ public final class Valorant {
         Debugger.debug("------ Unloaded MapManager ------");
         HandlerList.unregisterAll(plugin);
         ProtocolLibrary.getProtocolManager().removePacketListeners(plugin);
+        getPlugin().getServer().getMessenger().unregisterOutgoingPluginChannel(getPlugin(), "valorant:channel");
         Debugger.debug("------ Unregistered Listeners ------");
         Scheduler.cancelAll();
         Bukkit.getScheduler().cancelTasks(plugin);
@@ -96,12 +101,18 @@ public final class Valorant {
     }
 
     private void registerListeners() {
-        Bukkit.getPluginManager().registerEvents(new TestListener(), plugin);
+        if (Bukkit.getPluginManager().getPlugin("CrackShot") != null) {
+            Bukkit.getPluginManager().registerEvents(new CSListener(), plugin);
+        }
         Bukkit.getPluginManager().registerEvents(new InventoryListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new SovaListener(), plugin);
-        Bukkit.getPluginManager().registerEvents(new MatchListener(), plugin);
+        MatchListener matchListener = new MatchListener();
+        Bukkit.getPluginManager().registerEvents(matchListener, plugin);
+        ProtocolLibrary.getProtocolManager().addPacketListener(matchListener);
         Bukkit.getPluginManager().registerEvents(new GunListener(), plugin);
         Bukkit.getPluginManager().registerEvents(new ChatListener(), plugin);
+
+        getPlugin().getServer().getMessenger().registerOutgoingPluginChannel(getPlugin(), "valorant:channel");
     }
 
     private void registerCommands() {

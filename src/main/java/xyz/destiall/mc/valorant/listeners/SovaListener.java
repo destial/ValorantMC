@@ -39,7 +39,7 @@ public class SovaListener implements Listener {
     @EventHandler
     public void onSovaShoot(EntityShootBowEvent e) {
         if (!e.getBow().getItemMeta().getDisplayName().startsWith(SOVA_BOW_NAME)) return;
-        if (!(e.getProjectile() instanceof Arrow)) return;
+        if (!(e.getProjectile() instanceof Arrow arrow)) return;
         if (!(e.getEntity() instanceof Player)) return;
         Player player = (Player) e.getEntity();
         ItemMeta meta = e.getBow().getItemMeta();
@@ -60,7 +60,6 @@ public class SovaListener implements Listener {
             type = 0;
         }
         e.getBow().setItemMeta(meta);
-        Arrow arrow = (Arrow) e.getProjectile();
         arrow.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
         arrow.setCustomName(ChatColor.BLUE + (type == 1 ? "Shock Dart" : "Radar Dart"));
         arrow.setMetadata("valorant_sova_rebounds", new FixedMetadataValue(Valorant.getInstance().getPlugin(), amt));

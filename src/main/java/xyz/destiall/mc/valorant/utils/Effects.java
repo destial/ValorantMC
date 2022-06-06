@@ -5,17 +5,25 @@ import com.github.fierioziy.particlenativeapi.api.Particles_1_13;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.Rotations;
 import net.minecraft.network.Connection;
+import net.minecraft.network.chat.TextComponent;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEquipmentPacket;
+import net.minecraft.network.protocol.game.ClientboundSoundPacket;
 import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
+import org.bukkit.craftbukkit.v1_18_R2.CraftSound;
+import org.bukkit.craftbukkit.v1_18_R2.inventory.CraftItemStack;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -121,6 +129,36 @@ public class Effects {
         PARTICLES.sendPacket(player.getPlayer(), dust);
     }
 
+    public static void showDust(Location location, Color color) {
+        Object dust = PARTICLES.DUST().color(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, 2).packet(true, location);
+        PARTICLES.sendPacket(location, 50, dust);
+    }
+
+    public static void walking(VPlayer player) {
+        Location location = player.getLocation();
+        Match match = player.getMatch();
+        for (VPlayer p : match.getPlayers().values()) {
+            if (p == player) continue;
+            sendSound(location, p.getPlayer(), Sound.BLOCK_STONE_STEP, 5, 1);
+        }
+    }
+
+    public static void sendSound(Location location, Player player, Sound sound, float volume, float pitch) {
+        double x = location.getX();
+        double y = location.getY();
+        double z = location.getZ();
+        SoundEvent soundEvent = CraftSound.getSoundEffect(sound);
+        SoundSource soundSource = SoundSource.valueOf(SoundCategory.MASTER.name());
+        ClientboundSoundPacket packet = new ClientboundSoundPacket(soundEvent, soundSource, x, y, z, volume, pitch);
+        Connection connection = Versioning.getConnection(player.getPlayer());
+        connection.send(packet);
+    }
+
+    public static void showCrit(Location location) {
+        Object dust = PARTICLES.CRIT().packet(true, location);
+        PARTICLES.sendPacket(location, 50, dust);
+    }
+
     public static void shockDart(Location location) {
         for (Vector vect : SMOKE_SPHERE) {
             location.add(vect);
@@ -157,7 +195,7 @@ public class Effects {
     }
 
     public static void detonate(Location location) {
-        location.getWorld().playSound(location, Sound.ENTITY_GENERIC_EXPLODE, 1f, 1f);
+        location.getWorld().playSound(location, Sound.ENTITY_GENERIC_EXPLODE, 10f, 1f);
         Object packet = PARTICLES.EXPLOSION_EMITTER().packet(false, location, 0.5, 1);
         PARTICLES.sendPacket(location, 60, packet);
     }
@@ -209,7 +247,7 @@ public class Effects {
     }
 
     public static void flashTravel(Location location, Agent type) {
-        Object packet = PARTICLES.DUST_COLOR_TRANSITION().color(type.COLOR, type.COLOR, 2).packet(false, location);
+        Object packet = PARTICLES.DUST_COLOR_TRANSITION().color(type.COLOR, type.COLOR, 4).packet(false, location);
         PARTICLES.sendPacket(location, 50D, packet);
     }
 
@@ -261,7 +299,7 @@ public class Effects {
         final ScheduledTask task = Scheduler.repeat(() -> {
             for (ArmorStand as : asList) {
                 Location loc = new Location(player.getPlayer().getWorld(), as.getX(), as.getY(), as.getZ());
-                Vector dist = player.getEyeLocation().subtract(loc).toVector();
+                Vector dist = player.getEyeLocation().subtract(as.getX(), as.getY(), as.getZ()).toVector();
                 teleportArmorStand(loc.add(dist), as, player.getPlayer());
             }
         }, 1L);
@@ -274,18 +312,29 @@ public class Effects {
         }, (long) (duration * 20L));
     }
 
-    private static ArmorStand createArmorStand(Location location) {
+    public static ArmorStand createPickupName(Item item) {
+        ArmorStand as = createArmorStand(item.getLocation());
+        as.setCustomNameVisible(true);
+        as.setCustomName(new TextComponent("Press 'F' to pick up"));
+        return as;
+    }
+
+    public static ArmorStand createArmorStand(Location location) {
         ArmorStand as = new ArmorStand(Versioning.getWorld(location.getWorld()), location.getX(), location.getY(), location.getZ());
         as.setNoGravity(true);
         as.setInvisible(true);
         as.setMarker(true);
         as.setRightArmPose(new Rotations((float) Math.toRadians(location.getPitch() - 10), 0f, 0f));
+        as.setSmall(false);
+        as.persist = true;
+        as.persistentInvisibility = true;
+        as.noCulling = true;
         return as;
     }
 
     public static ArmorStand getSmokeArmorStand(Location location, Agent type) {
         ArmorStand as = createArmorStand(location);
-        as.setSmall(false);
+        as.setItemSlot(EquipmentSlot.HEAD, Versioning.getItemStack(new ItemStack(type.WOOL, 1)));
         as.setHeadPose(new Rotations((float)location.getDirection().getX(), (float)location.getDirection().getY(), (float)location.getDirection().getZ()));
         return as;
     }
@@ -340,6 +389,14 @@ public class Effects {
         }
     }
 
+    public static void sendArmorStand(ArmorStand e, Player player) {
+        ClientboundAddEntityPacket packet = new  ClientboundAddEntityPacket(e);
+        ClientboundSetEntityDataPacket metadata = new ClientboundSetEntityDataPacket(e.getId(), e.getEntityData(), true);
+        Connection connection = Versioning.getConnection(player.getPlayer());
+        connection.send(packet);
+        connection.send(metadata);
+    }
+
     public static void sendArmorStand(ArmorStand e, VPlayer player) {
         ClientboundAddEntityPacket packet = new  ClientboundAddEntityPacket(e);
         ClientboundSetEquipmentPacket equip = new ClientboundSetEquipmentPacket(e.getId(), List.of(Pair.of(EquipmentSlot.HEAD, Versioning.getItemStack(new ItemStack(player.getAgent().WOOL)))));
@@ -352,6 +409,9 @@ public class Effects {
 
     public static void teleportArmorStand(Location loc, ArmorStand e, Match match) {
         e.setPos(loc.getX(), loc.getY(), loc.getZ());
+        e.setYRot(loc.getYaw());
+        Rotations rot = new Rotations((float) Math.toRadians(loc.getPitch() - 10), 0f, 0f);
+        e.setRightArmPose(rot);
         ClientboundTeleportEntityPacket packet = new ClientboundTeleportEntityPacket(e);
         Collection<VPlayer> list = match.getPlayers().values();
         for (VPlayer player : list) {
@@ -362,6 +422,9 @@ public class Effects {
 
     public static void teleportArmorStand(Location loc, ArmorStand e, Player player) {
         e.setPos(loc.getX(), loc.getY(), loc.getZ());
+        e.setYRot(loc.getYaw());
+        Rotations rot = new Rotations((float) Math.toRadians(loc.getPitch() - 10), 0f, 0f);
+        e.setRightArmPose(rot);
         ClientboundTeleportEntityPacket packet = new ClientboundTeleportEntityPacket(e);
         Connection connection = Versioning.getConnection(player.getPlayer());
         connection.send(packet);

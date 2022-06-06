@@ -1,13 +1,16 @@
 package xyz.destiall.mc.valorant.api.player;
 
+import com.shampaggon.crackshot.events.WeaponDamageEntityEvent;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.util.Vector;
 import xyz.destiall.mc.valorant.api.abilities.Ability;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
+import xyz.destiall.mc.valorant.api.abilities.PreviewHold;
 import xyz.destiall.mc.valorant.api.abilities.Ultimate;
 import xyz.destiall.mc.valorant.api.items.Gun;
 import xyz.destiall.mc.valorant.api.items.Knife;
@@ -40,6 +43,8 @@ public interface VPlayer {
     Spike getSpike();
     Settings.Chat getChatSettings();
     Stats getStats();
+    PreviewHold getHoldingAbility();
+    Event getLastDamage();
     int getUltPoints();
     boolean isHoldingSpike();
     boolean isFlashed();
@@ -69,7 +74,9 @@ public interface VPlayer {
     void setDiffusing(boolean diffusing);
     void setPlanting(boolean planting);
     void rejoin(Player player);
-    void leave();
+    void leave(boolean tp);
+    void setHoldingAbility(PreviewHold hold);
+    void setLastDamage(Event e);
 
     default void addArmour(Integer armour) {
         getPlayer().setAbsorptionAmount(armour / 100F * 20);

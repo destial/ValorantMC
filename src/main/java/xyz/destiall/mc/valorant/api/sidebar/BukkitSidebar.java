@@ -3,7 +3,6 @@ package xyz.destiall.mc.valorant.api.sidebar;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.scoreboard.DisplaySlot;
-import org.bukkit.scoreboard.NameTagVisibility;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 import xyz.destiall.mc.valorant.api.items.Team;
@@ -12,54 +11,65 @@ import xyz.destiall.mc.valorant.api.player.VPlayer;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public class BukkitSidebar extends Sidebar {
-    private final ScoreboardWrapper board;
     private final Scoreboard emptyBoard;
-    private final org.bukkit.scoreboard.Team boardTeam;
-    private final HashMap<UUID, ScoreboardWrapper> boards;
+    private final Map<UUID, ScoreboardWrapper> boards;
+
     public BukkitSidebar(Team team) {
         super(team);
+        emptyBoard = Bukkit.getScoreboardManager().getMainScoreboard();
         boards = new HashMap<>();
-        emptyBoard = Bukkit.getScoreboardManager().getNewScoreboard();
-        board = new ScoreboardWrapper("Match");
-        boardTeam = board.getScoreboard().registerNewTeam("" + team.hashCode());
-        boardTeam.setNameTagVisibility(NameTagVisibility.HIDE_FOR_OTHER_TEAMS);
-        boardTeam.setAllowFriendlyFire(false);
     }
 
     @Override
     public void create() {
+        Team otherTeam = team.getMatch().getOtherTeam(team);
         for (VPlayer player : team.getMembers()) {
-            ScoreboardWrapper b = new ScoreboardWrapper("Match");
-            player.getPlayer().setScoreboard(b.scoreboard);
+            ScoreboardWrapper board = new ScoreboardWrapper("Match");
+            org.bukkit.scoreboard.Team boardTeam = board.getScoreboard().registerNewTeam("" + team.hashCode());
+            boardTeam.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.NEVER);
+            boardTeam.setAllowFriendlyFire(false);
+            boardTeam.setColor(ChatColor.AQUA);
             boardTeam.addEntry(player.getPlayer().getName());
-            boards.put(player.getUUID(), b);
-            System.out.println("Adding " + player.getPlayer().getName() + " to scoreboard");
+            boards.put(player.getUUID(), board);
+
+            for (VPlayer player1 : team.getMembers()) {
+                if (player == player1) continue;
+                boardTeam.addEntry(player1.getPlayer().getName());
+            }
+
+            org.bukkit.scoreboard.Team otherBoardTeam = board.getScoreboard().registerNewTeam("" + otherTeam.hashCode());
+            otherBoardTeam.setOption(org.bukkit.scoreboard.Team.Option.NAME_TAG_VISIBILITY, org.bukkit.scoreboard.Team.OptionStatus.NEVER);
+            for (VPlayer enemy : otherTeam.getMembers()) {
+                otherBoardTeam.addEntry(enemy.getPlayer().getName());
+            }
+
+            player.getPlayer().setScoreboard(board.scoreboard);
         }
     }
 
     @Override
     public void rejoin(VPlayer player) {
-        invalidate(player);
-        boardTeam.addEntry(player.getPlayer().getName());
         ScoreboardWrapper board = boards.get(player.getUUID());
-        if (board == null) return;
         player.getPlayer().setScoreboard(board.scoreboard);
     }
 
     @Override
     public void invalidate(VPlayer player) {
         player.getPlayer().setScoreboard(emptyBoard);
-        boardTeam.removeEntry(player.getPlayer().getName());
     }
 
     @Override
     public void destroy() {
-        boardTeam.unregister();
         for (VPlayer player : team.getMembers()) {
             player.getPlayer().setScoreboard(emptyBoard);
+        }
+        for (ScoreboardWrapper board : boards.values()) {
+            board.objective.unregister();
+            board.scoreboard.getTeam("" + team.hashCode()).unregister();
         }
         boards.clear();
     }
@@ -68,18 +78,15 @@ public class BukkitSidebar extends Sidebar {
     public void render(VPlayer player) {
         ScoreboardWrapper board = boards.get(player.getUUID());
         if (board == null) return;
-        int i = 0;
-        board.setLine(i++, ChatColor.AQUA + "Alive Members:");
+        board.setLine(0, ChatColor.AQUA + "Alive Members:");
+        int i = -1;
         for (VPlayer p1 : team.getMembers()) {
             if (p1.isDead()) {
-                board.setLine(i++, "");
+                board.setLine(++i, " ");
                 continue;
             }
-            board.setLine(i++, ChatColor.GREEN + p1.getPlayer().getName());
+            board.setLine(++i, ChatColor.GREEN + p1.getPlayer().getName());
         }
-        board.setLine(++i, " ");
-        board.setLine(++i, ChatColor.AQUA + "Your points: " + team.getScore());
-        board.setLine(++i, ChatColor.RED + "Enemy points: " + team.getMatch().getOtherTeam(team).getScore());
         board.setLine(++i, " ");
         board.setLine(++i, ChatColor.GREEN + "Money: $" + player.getEconomy().getBalance());
 

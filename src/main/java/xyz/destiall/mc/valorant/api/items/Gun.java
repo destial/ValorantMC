@@ -152,5 +152,23 @@ public class Gun implements ShopItem, Giveable {
         public Type getType() {
             return type;
         }
+
+        public Slot getSlot() {
+            return type == Type.PISTOL || type == Type.TACTICAL ? Slot.SECOND : Slot.FIRST;
+        }
+    }
+
+    public enum Slot {
+        FIRST(0),
+        SECOND(1);
+
+        private final int slot;
+        Slot(int slot) {
+            this.slot = slot;
+        }
+
+        public int getInt() {
+            return slot;
+        }
     }
 }

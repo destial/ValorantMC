@@ -11,6 +11,7 @@ public class Knife implements Giveable {
         this.itemStack = stack;
         ItemMeta meta = stack.getItemMeta();
         meta.setDisplayName(ChatColor.RESET + "Knife");
+        meta.setUnbreakable(true);
         stack.setItemMeta(meta);
     }
 

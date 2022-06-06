@@ -9,7 +9,6 @@ public class RoundImpl implements Round {
     private final int round;
     private Team.Side winner;
     private Team.Side loser;
-    private boolean over = false;
 
     public RoundImpl(int round) {
         this.round = round;
@@ -19,7 +18,6 @@ public class RoundImpl implements Round {
         this.round = round;
         this.winner = winner;
         this.loser = loser;
-        over = true;
     }
 
     @Override
@@ -36,20 +34,19 @@ public class RoundImpl implements Round {
     public void setWinningSide(Team.Side side) {
         this.winner = side;
         this.loser = side == Team.Side.ATTACKER ? Team.Side.DEFENDER : Team.Side.ATTACKER;
-        this.over = true;
     }
 
     @Override
     public boolean isOver() {
-        return over;
+        return winner != null;
     }
 
     @Override
-    public String toJSON() {
+    public JSONObject toJSON() {
         JSONObject object = new JSONObject();
         object.put("number", round);
         object.put("winners", winner.name());
         object.put("losers", loser.name());
-        return object.toString();
+        return object;
     }
 }

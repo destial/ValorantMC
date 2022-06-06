@@ -85,7 +85,7 @@ public class Stats implements JSON {
     }
 
     @Override
-    public String toJSON() {
+    public JSONObject toJSON() {
         JSONObject object = new JSONObject();
         object.put("uuid", uuid.toString());
         object.put("kills", totalKills);
@@ -100,6 +100,6 @@ public class Stats implements JSON {
             array.put(result.toJSON());
         }
         object.put("matches", array);
-        return object.toString();
+        return object;
     }
 }

@@ -1,5 +1,6 @@
 package xyz.destiall.mc.valorant.listeners;
 
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -11,6 +12,7 @@ import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.ItemStack;
 import xyz.destiall.mc.valorant.api.abilities.Ability;
+import xyz.destiall.mc.valorant.api.abilities.PreviewHold;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.managers.MatchManager;
 
@@ -22,25 +24,23 @@ public class InventoryListener implements Listener {
         if (player == null) return;
         Ability ability = player.getAbilities().get(e.getNewSlot());
         if (ability == null) {
-            ItemStack newSlot = e.getPlayer().getInventory().getItem(e.getNewSlot());
-            if (newSlot == null) {
-                e.setCancelled(true);
-                return;
-            }
-            if (newSlot.getType().isAir()) {
-                e.setCancelled(true);
-                return;
-            }
-            if (e.getNewSlot() == 0 && player.getPrimaryGun() != null) {
-                player.showHotbar(player.getPrimaryGun().getName().name());
-            } else if (e.getNewSlot() == 1 && player.getSecondaryGun() != null) {
-                player.showHotbar(player.getSecondaryGun().getName().name());
+            if (player.getHoldingAbility() != null) {
+                player.getHoldingAbility().onStopHold();
+                player.setHoldingAbility(null);
             }
             return;
         }
-        player.showHotbar(ability.getName());
+        ItemStack item = player.getInventory().getItem(e.getNewSlot());
+        if (item == null || item.getType() == Material.AIR) return;
+
+        if (ability instanceof PreviewHold hold) {
+            player.setHoldingAbility(hold);
+            hold.onHold();
+        }
         if (!ability.isUsing() && ability.getTrigger() == Ability.Trigger.HOLD) {
             ability.use();
+            ItemStack inc = player.getPlayer().getInventory().getItem(e.getNewSlot());
+            if (inc != null) inc.setAmount(inc.getAmount() - 1);
         }
     }
 
@@ -56,7 +56,11 @@ public class InventoryListener implements Listener {
             boolean use = false;
             if (trigger == Ability.Trigger.RIGHT && (e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK)) use = true;
             else if (trigger == Ability.Trigger.LEFT && (e.getAction() == Action.LEFT_CLICK_AIR || e.getAction() == Action.LEFT_CLICK_BLOCK)) use = true;
-            if (use) ability.use();
+            if (use) {
+                ability.use();
+                ItemStack inc = player.getPlayer().getInventory().getItem(player.getAbilities().entrySet().stream().filter(en -> en.getValue() == ability).findFirst().get().getKey());
+                if (inc != null) inc.setAmount(inc.getAmount() - 1);
+            }
             if (ability.cancelEvent()) e.setCancelled(true);
         }
     }

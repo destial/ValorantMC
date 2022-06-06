@@ -9,8 +9,11 @@ import xyz.destiall.mc.valorant.api.abilities.Ability;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
 import xyz.destiall.mc.valorant.utils.Effects;
+import xyz.destiall.mc.valorant.utils.ScheduledTask;
 
 public class Blaze extends Ability {
+    private ScheduledTask wallTask;
+
     public Blaze(VPlayer player) {
         super(player);
         agent = Agent.PHOENIX;
@@ -24,9 +27,7 @@ public class Blaze extends Ability {
     @Override
     public void use() {
         Vector direction = player.getDirection();
-        Effects.wall(player.getMatch(), player.getLocation(), direction, Agent.PHOENIX, 20, 4, 8);
-        ItemStack a = player.getPlayer().getInventory().getItem(5);
-        a.setAmount(a.getAmount() - 1);
+        wallTask = Effects.wall(player.getMatch(), player.getLocation(), direction, Agent.PHOENIX, 20, 4, 8);
     }
 
     @Override
@@ -36,12 +37,9 @@ public class Blaze extends Ability {
 
     @Override
     public void remove() {
-
-    }
-
-    @Override
-    public ItemStack getShopDisplay() {
-        return item.clone();
+        wallTask.setRunOnCancel(true);
+        wallTask.cancel();
+        wallTask = null;
     }
 
     @Override

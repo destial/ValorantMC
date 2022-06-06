@@ -31,6 +31,16 @@ public abstract class Ability implements ShopItem {
         return cancel;
     }
 
+    @Override
+    public ItemStack getShopDisplay() {
+        if (item == null) return null;
+        ItemStack stack = item.clone();
+        if (!(this instanceof Ultimate)) {
+            stack.setAmount(getMaxUses());
+        }
+        return item;
+    }
+
     public boolean isUsing() {
         return using;
     }

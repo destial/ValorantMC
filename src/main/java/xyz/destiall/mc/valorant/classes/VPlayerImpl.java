@@ -3,12 +3,16 @@ package xyz.destiall.mc.valorant.classes;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.inventory.ItemStack;
+import xyz.destiall.mc.valorant.Valorant;
 import xyz.destiall.mc.valorant.agents.cypher.CyberCage;
 import xyz.destiall.mc.valorant.agents.jett.BladeStorm;
 import xyz.destiall.mc.valorant.agents.jett.CloudBurst;
+import xyz.destiall.mc.valorant.agents.jett.Tailwind;
 import xyz.destiall.mc.valorant.agents.jett.Updraft;
 import xyz.destiall.mc.valorant.agents.omen.Paranoia;
 import xyz.destiall.mc.valorant.agents.omen.ShroudedStep;
@@ -16,17 +20,18 @@ import xyz.destiall.mc.valorant.agents.phoenix.Blaze;
 import xyz.destiall.mc.valorant.agents.reyna.Leer;
 import xyz.destiall.mc.valorant.api.abilities.Ability;
 import xyz.destiall.mc.valorant.api.abilities.Agent;
+import xyz.destiall.mc.valorant.api.abilities.PreviewHold;
 import xyz.destiall.mc.valorant.api.abilities.Ultimate;
 import xyz.destiall.mc.valorant.api.items.Gun;
 import xyz.destiall.mc.valorant.api.items.Knife;
 import xyz.destiall.mc.valorant.api.items.Team;
 import xyz.destiall.mc.valorant.api.map.Site;
-import xyz.destiall.mc.valorant.api.match.Countdown;
 import xyz.destiall.mc.valorant.api.match.Economy;
 import xyz.destiall.mc.valorant.api.match.Spike;
 import xyz.destiall.mc.valorant.api.player.Party;
 import xyz.destiall.mc.valorant.api.player.Settings;
 import xyz.destiall.mc.valorant.api.player.VPlayer;
+import xyz.destiall.mc.valorant.api.topbar.TopbarHandler;
 import xyz.destiall.mc.valorant.database.Datastore;
 import xyz.destiall.mc.valorant.database.Stats;
 import xyz.destiall.mc.valorant.factories.ItemFactory;
@@ -35,6 +40,9 @@ import xyz.destiall.mc.valorant.managers.MatchManager;
 import xyz.destiall.mc.valorant.utils.ScheduledTask;
 import xyz.destiall.mc.valorant.utils.Scheduler;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
@@ -63,6 +71,8 @@ class VPlayerImpl implements VPlayer {
     private ScheduledTask diffusingTask;
     private ScheduledTask plantingTask;
     private ScheduledTask beforePlant;
+    private PreviewHold holdingAbility;
+    private Event damageEvent;
 
     public VPlayerImpl(Player player, Team team) {
         this.player = new AtomicReference<>(player);
@@ -210,6 +220,16 @@ class VPlayerImpl implements VPlayer {
     }
 
     @Override
+    public PreviewHold getHoldingAbility() {
+        return holdingAbility;
+    }
+
+    @Override
+    public Event getLastDamage() {
+        return damageEvent;
+    }
+
+    @Override
     public int getUltPoints() {
         return ultPoints;
     }
@@ -300,8 +320,9 @@ class VPlayerImpl implements VPlayer {
         switch (agent) {
             case JETT -> {
                 abilities.put(5, new Updraft(this));
-                abilities.put(6, new CloudBurst(this));
-                abilities.put(7, new BladeStorm(this));
+                abilities.put(6, new Tailwind(this));
+                abilities.put(7, new CloudBurst(this));
+                // abilities.put(8, new BladeStorm(this));
             }
             case REYNA -> abilities.put(5, new Leer(this));
             case PHOENIX -> abilities.put(5, new Blaze(this));
@@ -312,6 +333,20 @@ class VPlayerImpl implements VPlayer {
             }
             default -> {}
         }
+
+        Scheduler.delayAsync(() -> {
+            ByteArrayOutputStream b = new ByteArrayOutputStream();
+            DataOutputStream out = new DataOutputStream(b);
+            try {
+                out.writeUTF("applyskin");
+                out.writeUTF(getPlayer().getName());
+                out.writeUTF(this.agent.VALUE);
+                out.writeUTF(this.agent.SIGNATURE);
+                getPlayer().sendPluginMessage(Valorant.getInstance().getPlugin(), "valorant:channel", b.toByteArray());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }, 0L);
     }
 
     @Override
@@ -336,6 +371,7 @@ class VPlayerImpl implements VPlayer {
                 }
                 getPlayer().sendTitle(builder.toString(), null, 0, 2, 0);
                 sp.setDiffuse(t + 1 / 160f);
+                getInventory().setHeldItemSlot(3);
                 if (sp.getDiffuse() >= 1f) {
                     sp.defuse();
                     sp.setDiffuse(1f);
@@ -394,7 +430,7 @@ class VPlayerImpl implements VPlayer {
     }
 
     @Override
-    public void leave() {
+    public void leave(boolean tp) {
         getPlayer().closeInventory();
         for (ItemStack item : getPlayer().getInventory()) {
             if (item == null || item.getType() == Material.AIR) continue;
@@ -409,13 +445,23 @@ class VPlayerImpl implements VPlayer {
         }
         getPlayer().getInventory().clear();
         getTeam().removeMember(getUUID());
-        Countdown countdown = getMatch().getModule(Countdown.class);
-        if (countdown != null) {
-            countdown.getBossBar().removePlayer(getPlayer());
+        TopbarHandler topbar = getMatch().getModule(TopbarHandler.class);
+        if (topbar != null) {
+            topbar.leave(this);
         }
         getPlayer().setHealth(20d);
         setDead(false);
-        getPlayer().teleport(MatchManager.getInstance().getLobby());
+        if (tp) getPlayer().teleport(MatchManager.getInstance().getLobby());
+    }
+
+    @Override
+    public void setHoldingAbility(PreviewHold hold) {
+        this.holdingAbility = hold;
+    }
+
+    @Override
+    public void setLastDamage(Event e) {
+        this.damageEvent = e;
     }
 
     @Override
